@@ -37,8 +37,28 @@ export const sampleAPIResponse = `
         "id": 1,
         "type": "warmup",
         "exercise": null,
-        "exercise_name": "Dynamic Warm-up",
+        "exercise_name": "Thread the needle",
         "metadata": [
+          {
+            "type": "reps",
+            "value": "12",
+            "units": ""
+          },
+          {
+            "type": "weight",
+            "value": "5-10",
+            "units": "kg"
+          },
+          {
+            "type": "rpe",
+            "value": "6",
+            "units": ""
+          },
+          {
+            "type": "sets",
+            "value": "3",
+            "units": ""
+          },
           {
             "type": "notes",
             "value": "Routine to prepare for upper body workouts.",
@@ -281,6 +301,21 @@ export const sampleAPIResponse = `
           {
             "type": "notes",
             "value": "Hold each stretch for 20-30 seconds.",
+            "units": ""
+          },
+          {
+            "type": "reps",
+            "value": "12",
+            "units": ""
+          },
+          {
+            "type": "weight",
+            "value": "5-10",
+            "units": "kg"
+          },
+          {
+            "type": "rpe",
+            "value": "6",
             "units": ""
           }
         ],

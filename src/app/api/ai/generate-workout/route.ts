@@ -1,7 +1,8 @@
 import "server-only";
 
-import { NextRequest, NextResponse } from "next/server";
 import { generateWorkout } from "@/lib/ai/openai/client";
+import { sleep } from "@/lib/utils/util";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();

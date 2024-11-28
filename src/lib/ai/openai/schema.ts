@@ -48,17 +48,14 @@ type WorkoutExercise = z.infer<typeof workoutExerciseSchema>;
 type Workout = z.infer<typeof workoutSchema>;
 
 export {
-  // Zod schemas (lowercase)
-  workoutSchema,
-  workoutExerciseSchema,
+  columnSchema,
   exerciseSchema,
   metadataSchema,
-  columnSchema,
-
-  // TypeScript types (uppercase)
-  type Workout,
-  type WorkoutExercise,
+  workoutExerciseSchema,
+  workoutSchema,
+  type Column,
   type Exercise,
   type Metadata,
-  type Column,
+  type Workout,
+  type WorkoutExercise,
 };

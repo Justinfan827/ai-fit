@@ -96,3 +96,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .debug {
+    border: 1px solid red;
+  }
+}

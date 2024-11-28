@@ -1,8 +1,8 @@
 import "server-only";
 
-import { NextRequest, NextResponse } from "next/server";
 import { Exercise } from "@/lib/domain/exercises";
 import { APIResponse } from "@/lib/types/apires";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   // query params
@@ -35,6 +35,14 @@ async function searchExercises({
     {
       id: 4,
       name: "Overhead Press",
+    },
+    {
+      id: 5,
+      name: "Barbell Row",
+    },
+    {
+      id: 6,
+      name: "Incline Bench Press",
     },
   ];
   return {

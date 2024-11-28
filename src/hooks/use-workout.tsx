@@ -1,25 +1,32 @@
 "use client";
 
-import { Workout } from "@/lib/ai/openai/schema";
+import { WorkoutPlan } from "@/lib/domain/exercises";
 import { createContext, useContext, useState } from "react";
 
-interface WorkoutContext {
-  workout: Workout | undefined;
-  setWorkout: (p: Workout) => void;
+interface WorkoutPlanContext {
+  workoutPlan: WorkoutPlan | undefined;
+  setWorkoutPlan: (p: WorkoutPlan) => void;
+  setIsPending: (p: boolean) => void;
+  isPending: boolean;
 }
-const Context = createContext<WorkoutContext | undefined>(undefined);
+const Context = createContext<WorkoutPlanContext | undefined>(undefined);
 
 interface TableProviderProps {
   children: React.ReactNode;
 }
 
-export default function WorkoutProvider({ children }: TableProviderProps) {
-  const [workout, setWorkout] = useState<Workout | undefined>(undefined);
+export default function WorkoutPlanProvider({ children }: TableProviderProps) {
+  const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | undefined>(
+    undefined,
+  );
+  const [isPending, setIsPending] = useState(false);
   return (
     <Context.Provider
       value={{
-        workout,
-        setWorkout,
+        workoutPlan,
+        setWorkoutPlan,
+        isPending,
+        setIsPending,
       }}
     >
       <>{children}</>
@@ -27,11 +34,10 @@ export default function WorkoutProvider({ children }: TableProviderProps) {
   );
 }
 
-export const useWorkout = () => {
+export const useWorkoutPlan = () => {
   const context = useContext(Context);
   if (context === undefined) {
-    throw new Error("useWorkout() must be used inside TableProvider");
+    throw new Error("useWorkout() must be used inside WorkoutPlanProvider");
   }
   return context;
 };
-

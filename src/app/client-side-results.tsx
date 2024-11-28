@@ -1,32 +1,42 @@
 "use client";
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useWorkout } from "@/hooks/use-workout";
-import { Workout } from "@/lib/ai/openai/schema";
-import React, { useEffect, useRef, useState } from "react";
-import { AgGridReact, CustomCellEditorProps } from "ag-grid-react"; // React Data Grid Component
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
-import { BasicTable } from "@/components/table";
-import { Input } from "@/components/ui/input";
+import { AgGridReact, CustomCellEditorProps } from "ag-grid-react"; // React Data Grid Component
+import { useEffect, useRef, useState } from "react";
+import "./my-ag-grid.css";
+
+import { Icons } from "@/components/icons";
+import { Typography } from "@/components/typography";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
-import useDebouncedValue from "@/hooks/use-debounce";
-import { Exercise } from "@/lib/domain/exercises";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import useExercises from "@/hooks/use-exercises";
+import { useWorkoutPlan } from "@/hooks/use-workout";
+import { Workout, WorkoutExercise } from "@/lib/ai/openai/schema";
+import { WorkoutPlan } from "@/lib/domain/exercises";
+import MyGrid from "./my-grid";
+
+export default function ClientSideResultsPage() {
+  const { workoutPlan } = useWorkoutPlan();
+  return (
+    <div className="flex h-full flex-col items-start justify-start p-6">
+      <ScrollArea className="w-full">
+        <MyGrid />
+      </ScrollArea>
+      {workoutPlan && (
+        <ScrollArea className="w-full">
+          {/* <WorkoutPlanView workoutPlan={workoutPlan} /> */}
+        </ScrollArea>
+      )}
+    </div>
+  );
+}
 
 function CustomEditorComp({
   value,
@@ -51,53 +61,6 @@ function CustomEditorComp({
   );
 }
 
-function useExercises({ searchTerm }: { searchTerm: string }) {
-  const debouncedTerm = useDebouncedValue(searchTerm, 150);
-  const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState(undefined);
-  // undefined to distinguish between no data yet vs. no results
-  const [exercises, setExercises] = useState<Exercise[] | undefined>(undefined);
-
-  // TODO: debounce the search term and signal cancel the previous request
-  useEffect(() => {
-    let ignore = false;
-    const queryFn = async (query: string) => {
-      setIsPending(true);
-      try {
-        const res = await fetch(`/api/exercises/search?query=${query}`);
-        if (!res.ok) {
-          throw new Error("Failed to fetch exercises: " + res.status);
-        }
-        const { data } = await res.json();
-        console.log({ data });
-        // ignore flag as per react docs
-        if (!ignore) {
-          setExercises(data);
-          setError(undefined);
-        }
-      } catch (e) {
-        if (!ignore) {
-          setError(e);
-          setError(undefined);
-        }
-      } finally {
-        if (!ignore) {
-          setIsPending(false);
-        }
-      }
-    };
-    queryFn(debouncedTerm);
-    return () => {
-      ignore = true;
-    };
-  }, [debouncedTerm]);
-  return {
-    isPending,
-    error,
-    exercises,
-  };
-}
-
 function CustomEditorCompCommand({
   value,
   onValueChange,
@@ -118,13 +81,14 @@ function CustomEditorCompCommand({
   };
 
   return (
-    <Command>
+    <Command className="rounded-s">
       <CommandInput
         ref={ref}
         value={value || ""}
         onValueChange={handleOnChange}
       />
       <CommandList>
+        <CommandItem className="z-[100]">Search for an exercise</CommandItem>
         {isPending && <CommandItem>Loading...</CommandItem>}
         {!isPending && exercises?.length === 0 && (
           <CommandEmpty>No results found.</CommandEmpty>
@@ -151,10 +115,12 @@ function useWorkoutGrid(workout: Workout) {
       editable: true,
       headerName: "Name",
       cellEditor: CustomEditorCompCommand,
+      cellEditorPopup: true,
     },
     ...exerciseMetadataCols,
   ];
-  const gridRows = workout.exercises.map((e) => {
+
+  const exerciseAsRow = (e: WorkoutExercise) => {
     const baseRow = {
       name: e.exercise_name,
     };
@@ -172,36 +138,94 @@ function useWorkoutGrid(workout: Workout) {
       };
     }, baseRow);
     return row;
+  };
+  const gridRows = workout.exercises.map((e) => {
+    return exerciseAsRow(e);
   });
+
   // Row Data: The data to be displayed.
   const [rowData, setRowData] = useState(gridRows);
   // Column Definitions: Defines the columns to be displayed.
   const [colDefs, setColDefs] = useState(gridCols);
 
+  const addNewRow = (e: WorkoutExercise) => {
+    const newRow = exerciseAsRow(e);
+    setRowData((prev) => {
+      return [...prev, newRow];
+    });
+  };
+
   return {
     rowData,
     colDefs,
+    addNewRow,
     setRowData,
     setColDefs,
   };
 }
 
 function WorkoutGrid({ workout }: { workout: Workout }) {
-  const { rowData, colDefs } = useWorkoutGrid(workout);
+  const { rowData, colDefs, addNewRow } = useWorkoutGrid(workout);
   return (
-    <div className="ag-theme-quartz h-[500px] w-full">
-      <AgGridReact rowData={rowData} columnDefs={colDefs} />
+    // Make this grow with the child container
+    <div className="w-full space-y-[1px]">
+      <div className="ag-theme-quartz w-full">
+        <AgGridReact
+          domLayout="autoHeight"
+          autoSizeStrategy={{
+            type: "fitGridWidth",
+          }}
+          rowData={rowData}
+          columnDefs={colDefs}
+        />
+      </div>
+      <button
+        onClick={() =>
+          addNewRow({
+            type: "exercise",
+            exercise_name: "",
+            metadata: [],
+          })
+        }
+        className="flex w-full items-center justify-center rounded-sm bg-muted py-2 transition-colors hover:bg-border"
+      >
+        <Icons.plus className="h-4 w-4 rounded-full text-muted-foreground" />
+      </button>
     </div>
   );
 }
 
-export default function ClientSideResults() {
-  const { workout } = useWorkout();
+function WorkoutPlanView({ workoutPlan }: { workoutPlan: WorkoutPlan }) {
+  // order sort workout plan
+
+  const workouts = workoutPlan.workouts;
+  workouts.sort((a, b) => {
+    if (a.order > b.order) {
+      return 1;
+    } else if (a.order === b.order) {
+      return 0;
+    }
+    return -1;
+  });
   return (
-    <div className="flex h-full flex-col items-start justify-start p-6">
-      <span className="font-semibold">Results</span>
-      <div>Generated workout will be displayed here</div>
-      {workout && <WorkoutGrid workout={workout} />}
+    <div className="h-full w-full space-y-6 pr-4">
+      <div className="flex items-center justify-between">
+        <Typography variant="h3">{workoutPlan.planName}</Typography>
+        <div className="flex gap-2">
+          <Button variant="secondary">Start workout</Button>
+          <Button>Save Workout</Button>
+        </div>
+      </div>
+      {workouts.map((workout) => {
+        return (
+          <div key={workout.data.id} className="space-y-4">
+            <Typography variant="h3">Workout {workout.order}</Typography>
+            <div className="h-[400px] w-full" key={workout.data.id}>
+              <WorkoutGrid workout={workout.data} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

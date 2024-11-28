@@ -1,7 +1,10 @@
-import { workoutSchema } from "@/lib/ai/openai/schema";
-import { getError } from "@/lib/utils/util";
+import { WorkoutPlan, workoutPlanSchema } from "@/lib/domain/exercises";
+import { APIResponse } from "@/lib/types/apires";
+import { getError, sleep } from "@/lib/utils/util";
 
-export default async function apiGenerateWorkout(body: { prompt: string }) {
+export default async function apiGenerateWorkoutPlan(body: {
+  prompt: string;
+}): Promise<APIResponse<WorkoutPlan>> {
   try {
     const res = await fetch(`/api/ai/generate-workout`, {
       method: "POST",
@@ -11,12 +14,14 @@ export default async function apiGenerateWorkout(body: { prompt: string }) {
     if (!res.ok) {
       const bodyMsg = await res.text();
       return {
+        data: null,
         error: new Error(bodyMsg || res.statusText),
       };
     }
 
     const { data: apiData } = await res.json();
-    const { data, error } = workoutSchema.safeParse(apiData);
+    console.log({ apiData });
+    const { data, error } = workoutPlanSchema.safeParse(apiData);
     if (error) {
       return {
         data: null,
@@ -30,6 +35,7 @@ export default async function apiGenerateWorkout(body: { prompt: string }) {
   } catch (e) {
     return {
       error: getError(e),
+      data: null,
     };
   }
 }

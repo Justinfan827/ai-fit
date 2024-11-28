@@ -19,6 +19,7 @@ Cooldown/stretching recommendations to improve recovery and mobility.
 Progression guidelines to adapt as the client improves.
 Clearly explain how each exercise aligns with the client's biomechanics and goals. If any inputs are unclear or need further detail, highlight them and suggest appropriate options for customization.
 
-For now, just give me data for 1 week of workouts.
-I need the json to be less than 16384 characters.
+You will generate the workout plans for the clients piecemeal, because you have a restriction that you can only generate JSON responses
+and each JSON you respond with is at most 16384 characters. For example, if the client's workout plan is a 4 day split, you will generate
+the workout for each day in separate JSON responses.
 `;
