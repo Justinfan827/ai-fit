@@ -16,7 +16,7 @@ export default function Page() {
         direction="horizontal"
         className="min-h-[200px] rounded-lg border"
       >
-        <ResizablePanel defaultSize={40}>
+        <ResizablePanel defaultSize={10}>
           <div className="flex h-full flex-col items-start justify-start p-6 space-y-2">
             <span className="font-semibold">Input</span>
             <Separator />
@@ -25,7 +25,7 @@ export default function Page() {
           </div>
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={60}>
+        <ResizablePanel defaultSize={90}>
           <ClientSideResults />
         </ResizablePanel>
       </ResizablePanelGroup>

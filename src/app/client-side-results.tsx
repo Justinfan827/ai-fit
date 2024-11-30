@@ -3,7 +3,6 @@ import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the 
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AgGridReact, CustomCellEditorProps } from "ag-grid-react"; // React Data Grid Component
 import { useEffect, useRef, useState } from "react";
-import "./my-ag-grid.css";
 
 import { Icons } from "@/components/icons";
 import { Typography } from "@/components/typography";
@@ -27,7 +26,58 @@ export default function ClientSideResultsPage() {
   return (
     <div className="flex h-full flex-col items-start justify-start p-6">
       <ScrollArea className="w-full">
-        <MyGrid />
+        <MyGrid
+          rowData={[
+            {
+              exercise_name: "Bench Press",
+              sets: "3",
+              reps: "10",
+              weight: "135",
+              rest: "60",
+              notes: "This is a note",
+            },
+            {
+              exercise_name: "Squats",
+              sets: "3",
+              reps: "10",
+              weight: "225",
+              rest: "60",
+              notes: "This is a note",
+            },
+          ]}
+          columns={[
+            {
+              field: "exercise_name",
+              header: "Exercise",
+              width: 250,
+            },
+            {
+              field: "sets",
+              header: "Sets",
+              width: 100,
+            },
+            {
+              field: "reps",
+              header: "Reps",
+              width: 100,
+            },
+            {
+              field: "weight",
+              header: "lbs",
+              width: 100,
+            },
+            {
+              field: "rest",
+              header: "Rest",
+              width: 100,
+            },
+            {
+              field: "notes",
+              header: "Notes",
+              width: 200,
+            },
+          ]}
+        />
       </ScrollArea>
       {workoutPlan && (
         <ScrollArea className="w-full">

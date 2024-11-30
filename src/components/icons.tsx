@@ -43,9 +43,11 @@ import {
   UserPlus,
   X,
   XCircle,
+  GripVertical,
 } from "lucide-react";
 
 export const Icons = {
+  gripVertical: GripVertical,
   alertCircle: AlertCircle,
   arrowLeft: ArrowLeft,
   bird: Bird,
