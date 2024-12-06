@@ -3,6 +3,7 @@ import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the 
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AgGridReact, CustomCellEditorProps } from "ag-grid-react"; // React Data Grid Component
 import { useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import { Icons } from "@/components/icons";
 import { Typography } from "@/components/typography";
@@ -14,76 +15,137 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import useExercises from "@/hooks/use-exercises";
-import { useWorkoutPlan } from "@/hooks/use-workout";
 import { Workout, WorkoutExercise } from "@/lib/ai/openai/schema";
 import { WorkoutPlan } from "@/lib/domain/exercises";
 import MyGrid from "./my-grid";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-export default function ClientSideResultsPage() {
-  const { workoutPlan } = useWorkoutPlan();
+const defaultRowData = [
+  {
+    exercise_name: "Bench Press",
+    sets: "3",
+    reps: "10",
+    weight: "135",
+    rest: "60",
+    notes: "This is a note",
+  },
+  {
+    exercise_name: "Squats",
+    sets: "3",
+    reps: "10",
+    weight: "225",
+    rest: "60",
+    notes: "This is a note",
+  },
+];
+
+const defaultColData = [
+  {
+    field: "exercise_name",
+    header: "Exercise",
+    width: 250,
+  },
+  {
+    field: "sets",
+    header: "Sets",
+    width: 100,
+  },
+  {
+    field: "reps",
+    header: "Reps",
+    width: 100,
+  },
+  {
+    field: "weight",
+    header: "lbs",
+    width: 100,
+  },
+  {
+    field: "rest",
+    header: "Rest",
+    width: 100,
+  },
+  {
+    field: "notes",
+    header: "Notes",
+    width: 200,
+  },
+];
+
+export default function ClientSideResults() {
+  const [workouts, setWorkouts] = useState([
+    {
+      id: uuidv4().toString(),
+      name: "workout 1",
+      rows: defaultRowData,
+    },
+  ]);
+  const handleNewWorkout = () => {
+    setWorkouts([
+      ...workouts,
+      {
+        id: uuidv4().toString(),
+        name: `workout ${workouts.length + 1}`,
+        rows: defaultRowData,
+      },
+    ]);
+  };
+  const handleDeletion = (id: string) => {
+    const newWorkouts = workouts.filter((w) => w.id !== id);
+    setWorkouts(newWorkouts);
+  };
+
   return (
-    <div className="flex h-full flex-col items-start justify-start p-6">
-      <ScrollArea className="w-full">
-        <MyGrid
-          rowData={[
-            {
-              exercise_name: "Bench Press",
-              sets: "3",
-              reps: "10",
-              weight: "135",
-              rest: "60",
-              notes: "This is a note",
-            },
-            {
-              exercise_name: "Squats",
-              sets: "3",
-              reps: "10",
-              weight: "225",
-              rest: "60",
-              notes: "This is a note",
-            },
-          ]}
-          columns={[
-            {
-              field: "exercise_name",
-              header: "Exercise",
-              width: 250,
-            },
-            {
-              field: "sets",
-              header: "Sets",
-              width: 100,
-            },
-            {
-              field: "reps",
-              header: "Reps",
-              width: 100,
-            },
-            {
-              field: "weight",
-              header: "lbs",
-              width: 100,
-            },
-            {
-              field: "rest",
-              header: "Rest",
-              width: 100,
-            },
-            {
-              field: "notes",
-              header: "Notes",
-              width: 200,
-            },
-          ]}
-        />
+    <div className="mx-auto flex h-full max-w-7xl flex-col items-start justify-start p-6 sm:px-6 lg:px-8">
+      <div className="flex w-full items-center justify-end">
+        <Button>Save</Button>
+      </div>
+      <ScrollArea>
+        <div id="workout-ui" className="debug w-[1000px]">
+          <div id="workout-grid" className="w-full space-y-8">
+            {workouts.map((workout) => {
+              return (
+                <div key={workout.id} className="space-y-4">
+                  <div className="ml-[72px] flex items-center justify-start">
+                    <Typography
+                      className="capitalize leading-none"
+                      variant="h3"
+                    >
+                      {workout.name}
+                    </Typography>
+                    <div
+                      id="action menu"
+                      className="flex items-center justify-center px-2"
+                    >
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
+                        onClick={() => handleDeletion(workout.id)}
+                      >
+                        <Icons.x className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <MyGrid rowData={workout.rows} columns={defaultColData} />
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex w-full items-center justify-end pt-4">
+            <Button
+              variant="dashed"
+              size="sm"
+              className="text-sm font-normal"
+              onClick={handleNewWorkout}
+            >
+              <Icons.plus className="h-4 w-4 rounded-full" />
+              Add workout day
+            </Button>
+          </div>
+        </div>
       </ScrollArea>
-      {workoutPlan && (
-        <ScrollArea className="w-full">
-          {/* <WorkoutPlanView workoutPlan={workoutPlan} /> */}
-        </ScrollArea>
-      )}
     </div>
   );
 }

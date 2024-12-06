@@ -21,7 +21,6 @@ import { useWorkoutPlan } from "@/hooks/use-workout";
 import { Icons } from "../icons";
 import { Checkbox } from "../ui/checkbox";
 import { Textarea } from "../ui/textarea";
-import { FormDebugContainer } from "./debug-container";
 
 const FormSchema = z.object({
   firstname: z.string().min(1, {
@@ -188,7 +187,7 @@ export function IntakeForm() {
     // });
 
     const prompt = formToPrompt(data);
-    console.log({prompt});
+    console.log({ prompt });
     toast({
       title: "Prompt",
       description: prompt,
@@ -504,7 +503,6 @@ export function IntakeForm() {
             "Generate Workout ⚡️"
           )}
         </Button>
-        <FormDebugContainer form={form} />
       </form>
     </Form>
   );

@@ -15,6 +15,7 @@ import {
   CircleHelp,
   Clock,
   Copy,
+  Delete,
   DollarSign,
   Download,
   ExternalLink,
@@ -23,13 +24,13 @@ import {
   FileJson2,
   FileSpreadsheet,
   FileWarning,
+  GripVertical,
   Hash,
   HelpCircle,
   Info,
   ListFilter,
   Loader2,
   LucideMailbox,
-  LucideProps,
   LucideTrash2,
   PauseCircle,
   Plus,
@@ -43,7 +44,6 @@ import {
   UserPlus,
   X,
   XCircle,
-  GripVertical,
 } from "lucide-react";
 
 export const Icons = {
@@ -53,6 +53,7 @@ export const Icons = {
   bird: Bird,
   calendar: Calendar,
   check: Check,
+  delete: Delete,
   checkCircle: CheckCircle,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,

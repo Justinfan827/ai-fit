@@ -22,4 +22,14 @@ Clearly explain how each exercise aligns with the client's biomechanics and goal
 You will generate the workout plans for the clients piecemeal, because you have a restriction that you can only generate JSON responses
 and each JSON you respond with is at most 16384 characters. For example, if the client's workout plan is a 4 day split, you will generate
 the workout for each day in separate JSON responses.
+
+
+Make sure that each exercise contains the following fields in the metadata:
+
+sets: number of sets
+reps: number of repetitions
+weight: weight used in lbs
+rpe: rate of perceived exertion
+rest: rest time in seconds
+notes: any additional notes
 `;

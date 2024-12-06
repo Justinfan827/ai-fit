@@ -7,56 +7,53 @@ import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import { v1 } from "../prompts/prompts";
-import { workoutSchema } from "./schema";
-import { sampleAPIResponse } from "./examples/sample_responses";
+import { Workout, workoutSchema } from "./schema";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 async function generateWorkout({
-  prompt: clientProfile,
-  previousJSONResponses,
+  context,
 }: {
-  prompt: string;
-  previousJSONResponses: {
-    dayNumber: string;
-    workoutJSON: string;
+  context: {
+    role: "assistant" | "user";
+    content: string;
   }[];
-}): Promise<APIResponse<WorkoutPlan>> {
-  const sampleRes = sampleAPIResponse;
-  const res = JSON.parse(sampleRes);
-  const jsonRes = res.parsed;
-  console.log({ jsonRes });
-
-  const { data, error } = workoutSchema.safeParse(jsonRes);
-  console.log({ data });
-  console.log({ error });
-  if (error) {
-    console.log({ error });
-    return {
-      error: new Error(error.message),
-      data: null,
-    };
-  }
-  return {
-    data: {
-      id: "workout-plan-1",
-      planName: "Justin's workout plan",
-      workouts: [
-        {
-          order: 1,
-          data,
-        },
-        {
-          order: 2,
-          data: {
-            ...data,
-            id: 123413,
-          },
-        },
-      ],
-    },
-    error: null,
-  };
+}): Promise<APIResponse<Workout>> {
+  // const sampleRes = sampleAPIResponse;
+  // const res = JSON.parse(sampleRes);
+  // const jsonRes = res.parsed;
+  // console.log({ jsonRes });
+  //
+  // const { data, error } = workoutSchema.safeParse(jsonRes);
+  // console.log({ data });
+  // console.log({ error });
+  // if (error) {
+  //   console.log({ error });
+  //   return {
+  //     error: new Error(error.message),
+  //     data: null,
+  //   };
+  // }
+  // return {
+  //   data: {
+  //     id: "workout-plan-1",
+  //     planName: "Justin's workout plan",
+  //     workouts: [
+  //       {
+  //         order: 1,
+  //         data,
+  //       },
+  //       {
+  //         order: 2,
+  //         data: {
+  //           ...data,
+  //           id: 123413,
+  //         },
+  //       },
+  //     ],
+  //   },
+  //   error: null,
+  // };
   try {
     const completion = await openai.beta.chat.completions.parse({
       model: "gpt-4o-mini",
@@ -65,10 +62,7 @@ async function generateWorkout({
           role: "system",
           content: v1,
         },
-        {
-          role: "assistant",
-          content: `Generate a workout plan for this client: ${clientProfile}`,
-        },
+        ...context,
       ],
       response_format: zodResponseFormat(workoutSchema, "workout_plan"),
       max_completion_tokens: 16384,
@@ -126,33 +120,5 @@ async function generateWorkout({
     }
   }
 }
-
-const testjson = `
-{
-  id: 1,
-  name: "Full Body Workout",
-  columns: [
-    { type: "sets" },
-    { type: "reps" },
-    { type: "weight", units: "lb" },
-    { type: "rest" }
-  ],
-  exercises: [{
-    id: 1,
-    type: "exercise",
-    exercise: {
-      id: 1,
-      name: "Squat"
-    },
-    exercise_name: "Squat",
-    metadata: [
-      { type: "sets", value: "3" },
-      { type: "reps", value: "10" },
-      { type: "weight", value: "135", units: "lb" },
-      { type: "rest", value: "90s" }
-    ]
-  }]
-}
-`;
 
 export { generateWorkout };

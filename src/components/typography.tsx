@@ -4,6 +4,8 @@ import { VariantProps, cva } from "class-variance-authority";
 const titleVariants = cva("text-sm", {
   variants: {
     variant: {
+      display: "text-8xl tracking-wide font-bold",
+      displaySubtitle: "tracking-wide text-xl",
       h1: "font-semibold tracking-tight text-4xl",
       h2: "text-xl font-semibold tracking-normal",
       h3: "text-lg font-semibold tracking-normal leading-7",
