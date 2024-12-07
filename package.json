@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "staging-types": "npx supabase gen types typescript --project-id \"xtrtsnjmfknhouvtulaw\" --schema public > ./src/lib/supabase/database.types.ts",
+    "format:fix": "./node_modules/.bin/prettier --write .",
     "local-types": "npx supabase gen types typescript --local --schema public > ./src/lib/supabase/database.types.ts",
     "dev": "next dev",
     "build": "next build",

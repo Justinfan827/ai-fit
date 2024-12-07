@@ -32,4 +32,4 @@ weight: weight used in lbs
 rpe: rate of perceived exertion
 rest: rest time in seconds
 notes: any additional notes
-`;
+`

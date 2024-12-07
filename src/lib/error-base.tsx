@@ -1,6 +1,4 @@
-export type ErrorLabels =
-  | 'userId'
-  | 'vendorStatusCode'
+export type ErrorLabels = 'userId' | 'vendorStatusCode'
 
 type Labels = Partial<Record<ErrorLabels, string | number>>
 type Annotations = Record<string, Object>

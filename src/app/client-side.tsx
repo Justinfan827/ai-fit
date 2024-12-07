@@ -1,42 +1,42 @@
-"use client";
-import { Icons } from "@/components/icons";
-import Tiptap from "@/components/tip-tap";
-import { Button } from "@/components/ui/button";
-import apiGenerateWorkoutPlan from "@/fetches/generate-workout";
-import { useAsyncFetch } from "@/hooks/async-fetch";
-import { useToast } from "@/hooks/use-toast";
-import { useWorkoutPlan } from "@/hooks/use-workout";
-import { useEffect, useState } from "react";
+'use client'
+import { Icons } from '@/components/icons'
+import Tiptap from '@/components/tip-tap'
+import { Button } from '@/components/ui/button'
+import apiGenerateWorkoutPlan from '@/fetches/generate-workout'
+import { useAsyncFetch } from '@/hooks/async-fetch'
+import { useToast } from '@/hooks/use-toast'
+import { useWorkoutPlan } from '@/hooks/use-workout'
+import { useEffect, useState } from 'react'
 
 export default function ClientSide() {
-  const defaultContent = `This is a capable client looking to workout 3x per week. Beginner intermediate. No real issues. Looking to focus on building bigger arms`;
-  const [editorContent, setEditorContent] = useState(defaultContent);
-  const { setWorkoutPlan } = useWorkoutPlan();
-  const { toast } = useToast();
+  const defaultContent = `This is a capable client looking to workout 3x per week. Beginner intermediate. No real issues. Looking to focus on building bigger arms`
+  const [editorContent, setEditorContent] = useState(defaultContent)
+  const { setWorkoutPlan } = useWorkoutPlan()
+  const { toast } = useToast()
 
   const { runQuery, isPending } = useAsyncFetch({
     queryFunc: async () => {
       const { data, error } = await apiGenerateWorkoutPlan({
         prompt: editorContent,
-      });
+      })
       if (error) {
         toast({
-          title: "Error",
+          title: 'Error',
           description: error.message,
-          variant: "destructive",
-        });
-        return;
+          variant: 'destructive',
+        })
+        return
       }
-      setWorkoutPlan(data);
+      setWorkoutPlan(data)
     },
-  });
+  })
   const handleOnClick = async () => {
-    runQuery();
-  };
+    runQuery()
+  }
 
   useEffect(() => {
-    runQuery();
-  }, []);
+    runQuery()
+  }, [])
 
   return (
     <>
@@ -51,9 +51,9 @@ export default function ClientSide() {
         {isPending ? (
           <Icons.spinner className="h-5 w-5 animate-spin" />
         ) : (
-          "Generate Workout ⚡️"
+          'Generate Workout ⚡️'
         )}
       </Button>
     </>
-  );
+  )
 }

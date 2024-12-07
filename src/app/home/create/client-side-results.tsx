@@ -1,86 +1,86 @@
-"use client";
-import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
-import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
-import { AgGridReact, CustomCellEditorProps } from "ag-grid-react"; // React Data Grid Component
-import { useEffect, useRef, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+'use client'
+import 'ag-grid-community/styles/ag-grid.css' // Mandatory CSS required by the Data Grid
+import 'ag-grid-community/styles/ag-theme-quartz.css' // Optional Theme applied to the Data Grid
+import { AgGridReact, CustomCellEditorProps } from 'ag-grid-react' // React Data Grid Component
+import { useEffect, useRef, useState } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
-import { Icons } from "@/components/icons";
-import { Typography } from "@/components/typography";
-import { Button } from "@/components/ui/button";
+import { Icons } from '@/components/icons'
+import { Typography } from '@/components/typography'
+import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import useExercises from "@/hooks/use-exercises";
-import { Workout, WorkoutExercise } from "@/lib/ai/openai/schema";
-import { WorkoutPlan } from "@/lib/domain/exercises";
-import MyGrid from "./my-grid";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from '@/components/ui/command'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import useExercises from '@/hooks/use-exercises'
+import { Workout, WorkoutExercise } from '@/lib/ai/openai/schema'
+import { WorkoutPlan } from '@/lib/domain/exercises'
+import MyGrid from './my-grid'
 
 const defaultRowData = [
   {
-    exercise_name: "Bench Press",
-    sets: "3",
-    reps: "10",
-    weight: "135",
-    rest: "60",
-    notes: "This is a note",
+    exercise_name: 'Bench Press',
+    sets: '3',
+    reps: '10',
+    weight: '135',
+    rest: '60',
+    notes: 'This is a note',
   },
   {
-    exercise_name: "Squats",
-    sets: "3",
-    reps: "10",
-    weight: "225",
-    rest: "60",
-    notes: "This is a note",
+    exercise_name: 'Squats',
+    sets: '3',
+    reps: '10',
+    weight: '225',
+    rest: '60',
+    notes: 'This is a note',
   },
-];
+]
 
 const defaultColData = [
   {
-    field: "exercise_name",
-    header: "Exercise",
+    field: 'exercise_name',
+    header: 'Exercise',
     width: 250,
   },
   {
-    field: "sets",
-    header: "Sets",
+    field: 'sets',
+    header: 'Sets',
     width: 100,
   },
   {
-    field: "reps",
-    header: "Reps",
+    field: 'reps',
+    header: 'Reps',
     width: 100,
   },
   {
-    field: "weight",
-    header: "lbs",
+    field: 'weight',
+    header: 'lbs',
     width: 100,
   },
   {
-    field: "rest",
-    header: "Rest",
+    field: 'rest',
+    header: 'Rest',
     width: 100,
   },
   {
-    field: "notes",
-    header: "Notes",
+    field: 'notes',
+    header: 'Notes',
     width: 200,
   },
-];
+]
 
 export default function ClientSideResults() {
   const [workouts, setWorkouts] = useState([
     {
       id: uuidv4().toString(),
-      name: "workout 1",
+      name: 'workout 1',
       rows: defaultRowData,
     },
-  ]);
+  ])
   const handleNewWorkout = () => {
     setWorkouts([
       ...workouts,
@@ -89,12 +89,12 @@ export default function ClientSideResults() {
         name: `workout ${workouts.length + 1}`,
         rows: defaultRowData,
       },
-    ]);
-  };
+    ])
+  }
   const handleDeletion = (id: string) => {
-    const newWorkouts = workouts.filter((w) => w.id !== id);
-    setWorkouts(newWorkouts);
-  };
+    const newWorkouts = workouts.filter((w) => w.id !== id)
+    setWorkouts(newWorkouts)
+  }
 
   return (
     <div className="mx-auto flex h-full max-w-7xl flex-col items-start justify-start p-6 sm:px-6 lg:px-8">
@@ -130,7 +130,7 @@ export default function ClientSideResults() {
                   </div>
                   <MyGrid rowData={workout.rows} columns={defaultColData} />
                 </div>
-              );
+              )
             })}
           </div>
           <div className="flex w-full items-center justify-end pt-4">
@@ -147,7 +147,7 @@ export default function ClientSideResults() {
         </div>
       </ScrollArea>
     </div>
-  );
+  )
 }
 
 function CustomEditorComp({
@@ -156,21 +156,21 @@ function CustomEditorComp({
   eGridCell,
 }: CustomCellEditorProps) {
   // on focus of the eGridCell, i want to focus on the input
-  const ref = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLInputElement>(null)
   useEffect(() => {
-    ref.current?.focus();
-  }, [eGridCell]);
+    ref.current?.focus()
+  }, [eGridCell])
   return (
     <input
       ref={ref}
       type="text"
       className="w-full px-[15px] focus:outline-none"
-      value={value || ""}
+      value={value || ''}
       onChange={({ target: { value } }) =>
-        onValueChange(value === "" ? null : value)
+        onValueChange(value === '' ? null : value)
       }
     />
-  );
+  )
 }
 
 function CustomEditorCompCommand({
@@ -179,24 +179,24 @@ function CustomEditorCompCommand({
   eGridCell,
 }: CustomCellEditorProps) {
   // on focus of the eGridCell, i want to focus on the input
-  const ref = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLInputElement>(null)
   useEffect(() => {
-    ref.current?.focus();
-  }, [eGridCell]);
+    ref.current?.focus()
+  }, [eGridCell])
 
   const { isPending, exercises } = useExercises({
     searchTerm: value,
-  });
-  console.log("results", exercises, value, isPending);
+  })
+  console.log('results', exercises, value, isPending)
   const handleOnChange = (e: string) => {
-    onValueChange(e === "" ? null : e);
-  };
+    onValueChange(e === '' ? null : e)
+  }
 
   return (
     <Command className="rounded-s">
       <CommandInput
         ref={ref}
-        value={value || ""}
+        value={value || ''}
         onValueChange={handleOnChange}
       />
       <CommandList>
@@ -206,11 +206,11 @@ function CustomEditorCompCommand({
           <CommandEmpty>No results found.</CommandEmpty>
         )}
         {exercises?.map((exercise) => {
-          return <CommandItem key={exercise.id}>{exercise.name}</CommandItem>;
+          return <CommandItem key={exercise.id}>{exercise.name}</CommandItem>
         })}
       </CommandList>
     </Command>
-  );
+  )
 }
 
 function useWorkoutGrid(workout: Workout) {
@@ -219,53 +219,53 @@ function useWorkoutGrid(workout: Workout) {
       field: c.type,
       headerName: `${c.type} (${c.units})`,
       editable: true,
-    };
-  });
+    }
+  })
   const gridCols = [
     {
-      field: "name",
+      field: 'name',
       editable: true,
-      headerName: "Name",
+      headerName: 'Name',
       cellEditor: CustomEditorCompCommand,
       cellEditorPopup: true,
     },
     ...exerciseMetadataCols,
-  ];
+  ]
 
   const exerciseAsRow = (e: WorkoutExercise) => {
     const baseRow = {
       name: e.exercise_name,
-    };
+    }
     // zero out the dynamic column values
 
     exerciseMetadataCols.forEach((c) => {
-      baseRow[c.field] = "";
-    });
+      baseRow[c.field] = ''
+    })
 
     // use a reduce here instead
     const row = e.metadata.reduce((acc, m) => {
       return {
         ...acc,
         [m.type]: m.value,
-      };
-    }, baseRow);
-    return row;
-  };
+      }
+    }, baseRow)
+    return row
+  }
   const gridRows = workout.exercises.map((e) => {
-    return exerciseAsRow(e);
-  });
+    return exerciseAsRow(e)
+  })
 
   // Row Data: The data to be displayed.
-  const [rowData, setRowData] = useState(gridRows);
+  const [rowData, setRowData] = useState(gridRows)
   // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState(gridCols);
+  const [colDefs, setColDefs] = useState(gridCols)
 
   const addNewRow = (e: WorkoutExercise) => {
-    const newRow = exerciseAsRow(e);
+    const newRow = exerciseAsRow(e)
     setRowData((prev) => {
-      return [...prev, newRow];
-    });
-  };
+      return [...prev, newRow]
+    })
+  }
 
   return {
     rowData,
@@ -273,11 +273,11 @@ function useWorkoutGrid(workout: Workout) {
     addNewRow,
     setRowData,
     setColDefs,
-  };
+  }
 }
 
 function WorkoutGrid({ workout }: { workout: Workout }) {
-  const { rowData, colDefs, addNewRow } = useWorkoutGrid(workout);
+  const { rowData, colDefs, addNewRow } = useWorkoutGrid(workout)
   return (
     // Make this grow with the child container
     <div className="w-full space-y-[1px]">
@@ -285,7 +285,7 @@ function WorkoutGrid({ workout }: { workout: Workout }) {
         <AgGridReact
           domLayout="autoHeight"
           autoSizeStrategy={{
-            type: "fitGridWidth",
+            type: 'fitGridWidth',
           }}
           rowData={rowData}
           columnDefs={colDefs}
@@ -294,8 +294,8 @@ function WorkoutGrid({ workout }: { workout: Workout }) {
       <button
         onClick={() =>
           addNewRow({
-            type: "exercise",
-            exercise_name: "",
+            type: 'exercise',
+            exercise_name: '',
             metadata: [],
           })
         }
@@ -304,21 +304,21 @@ function WorkoutGrid({ workout }: { workout: Workout }) {
         <Icons.plus className="h-4 w-4 rounded-full text-muted-foreground" />
       </button>
     </div>
-  );
+  )
 }
 
 function WorkoutPlanView({ workoutPlan }: { workoutPlan: WorkoutPlan }) {
   // order sort workout plan
 
-  const workouts = workoutPlan.workouts;
+  const workouts = workoutPlan.workouts
   workouts.sort((a, b) => {
     if (a.order > b.order) {
-      return 1;
+      return 1
     } else if (a.order === b.order) {
-      return 0;
+      return 0
     }
-    return -1;
-  });
+    return -1
+  })
   return (
     <div className="h-full w-full space-y-6 pr-4">
       <div className="flex items-center justify-between">
@@ -336,8 +336,8 @@ function WorkoutPlanView({ workoutPlan }: { workoutPlan: WorkoutPlan }) {
               <WorkoutGrid workout={workout.data} />
             </div>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

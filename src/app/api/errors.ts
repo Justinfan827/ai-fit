@@ -1,4 +1,3 @@
-
 import { ErrorBase, ErrorOptions } from '@/lib/error-base'
 import { NextResponse } from 'next/server'
 import { APIErrorResponse } from './types'
@@ -9,7 +8,7 @@ export const BadRequestRes = (apiError: APIError) =>
     { status: 400 }
   )
 
-export const InternalErrorRes= (apiError: APIError) =>
+export const InternalErrorRes = (apiError: APIError) =>
   NextResponse.json<APIErrorResponse>(
     { data: null, error: apiError },
     { status: 500 }

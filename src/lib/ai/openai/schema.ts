@@ -1,17 +1,17 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 // Column configuration
 const columnSchema = z.object({
-  type: z.enum(["sets", "reps", "weight", "rpe", "rest", "notes"]),
+  type: z.enum(['sets', 'reps', 'weight', 'rpe', 'rest', 'notes']),
   units: z.string().optional(), // e.g. "lb" for weight
-});
+})
 
 // Core exercise metadata (sets, reps, weight, etc.)
 const metadataSchema = z.object({
-  type: z.enum(["sets", "reps", "weight", "rpe", "rest", "notes"]),
+  type: z.enum(['sets', 'reps', 'weight', 'rpe', 'rest', 'notes']),
   value: z.string(),
   units: z.string().optional(), // Only used for weight
-});
+})
 
 // Basic exercise definition
 const exerciseSchema = z.object({
@@ -19,17 +19,17 @@ const exerciseSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   focus: z.string().optional(),
-});
+})
 
 // Exercise within a workout
 const workoutExerciseSchema = z.object({
   id: z.number(),
-  type: z.enum(["exercise", "circuit", "warmup"]),
+  type: z.enum(['exercise', 'circuit', 'warmup']),
   exercise: exerciseSchema.nullable(),
   exercise_name: z.string(),
   metadata: z.array(metadataSchema),
   notes: z.string().optional(),
-});
+})
 
 // Complete workout schema
 const workoutSchema = z.object({
@@ -38,14 +38,14 @@ const workoutSchema = z.object({
   columns: z.array(columnSchema),
   exercises: z.array(workoutExerciseSchema),
   notes: z.string().optional(),
-});
+})
 
 // Type definitions with capital letters
-type Column = z.infer<typeof columnSchema>;
-type Metadata = z.infer<typeof metadataSchema>;
-type Exercise = z.infer<typeof exerciseSchema>;
-type WorkoutExercise = z.infer<typeof workoutExerciseSchema>;
-type Workout = z.infer<typeof workoutSchema>;
+type Column = z.infer<typeof columnSchema>
+type Metadata = z.infer<typeof metadataSchema>
+type Exercise = z.infer<typeof exerciseSchema>
+type WorkoutExercise = z.infer<typeof workoutExerciseSchema>
+type Workout = z.infer<typeof workoutSchema>
 
 export {
   columnSchema,
@@ -58,4 +58,4 @@ export {
   type Metadata,
   type Workout,
   type WorkoutExercise,
-};
+}

@@ -1,7 +1,7 @@
-import { IntakeForm } from "@/components/forms/intake-form";
-import { Icons } from "@/components/icons";
-import { Typography } from "@/components/typography";
-import WorkoutPlanProvider from "@/hooks/use-workout";
+import { IntakeForm } from '@/components/forms/intake-form'
+import { Icons } from '@/components/icons'
+import { Typography } from '@/components/typography'
+import WorkoutPlanProvider from '@/hooks/use-workout'
 
 export default function Home() {
   return (
@@ -12,12 +12,12 @@ export default function Home() {
           <Typography variant="displaySubtitle">
             Workout smarter with an AI generated workout plan
           </Typography>
-          <div className="w-full flex justify-center">
+          <div className="flex w-full justify-center">
             <Icons.chevronDown className="h-15 w-15 animate-bounce" />
           </div>
         </div>
         <IntakeForm />
       </div>
     </WorkoutPlanProvider>
-  );
+  )
 }

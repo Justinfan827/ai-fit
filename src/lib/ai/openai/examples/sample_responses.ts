@@ -325,4 +325,4 @@ export const sampleAPIResponse = `
     "notes": "This beginner-intermediate program focuses on arm hypertrophy and is structured for 3 days a week. Progress by gradually increasing weights or reps as strength improves."
   }
 }
-`;
+`

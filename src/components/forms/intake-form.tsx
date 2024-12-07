@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -13,98 +13,98 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import apiGenerateWorkoutPlan from "@/fetches/generate-workout";
-import { toast } from "@/hooks/use-toast";
-import { useWorkoutPlan } from "@/hooks/use-workout";
-import { Icons } from "../icons";
-import { Checkbox } from "../ui/checkbox";
-import { Textarea } from "../ui/textarea";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import apiGenerateWorkoutPlan from '@/fetches/generate-workout'
+import { toast } from '@/hooks/use-toast'
+import { useWorkoutPlan } from '@/hooks/use-workout'
+import { Icons } from '../icons'
+import { Checkbox } from '../ui/checkbox'
+import { Textarea } from '../ui/textarea'
 
 const FormSchema = z.object({
   firstname: z.string().min(1, {
-    message: "first name must be at least 1 characters.",
+    message: 'first name must be at least 1 characters.',
   }),
   lastname: z.string().min(1, {
-    message: "last name must be at least 1 characters.",
+    message: 'last name must be at least 1 characters.',
   }),
   age: z.string(),
   goals: z.array(z.string()).min(1, {
-    message: "please select at least one goal.",
+    message: 'please select at least one goal.',
   }),
   experience: z.string().min(1, {
-    message: "please select an experience level.",
+    message: 'please select an experience level.',
   }),
   lengthOfWorkout: z.string().min(1, {
-    message: "please select a length of workout.",
+    message: 'please select a length of workout.',
   }),
   daysPerWeek: z.string(),
   typeOfWorkoutPreference: z
     .array(z.string())
     .min(1, {
-      message: "please select at least one workout type.",
+      message: 'please select at least one workout type.',
     })
     .optional(),
   otherDetails: z.string().optional(),
-});
+})
 
 const possibleGoals = [
   {
-    id: "lose-weight",
-    label: "Lose Weight",
+    id: 'lose-weight',
+    label: 'Lose Weight',
   },
   {
-    id: "build-muscle",
-    label: "Build Muscle",
+    id: 'build-muscle',
+    label: 'Build Muscle',
   },
   {
-    id: "improve-general-fitness",
-    label: "Improve General Fitness",
+    id: 'improve-general-fitness',
+    label: 'Improve General Fitness',
   },
   {
-    id: "increase-strength",
-    label: "Increase Strength",
+    id: 'increase-strength',
+    label: 'Increase Strength',
   },
   {
-    id: "improve-endurance",
-    label: "Improve Endurance",
+    id: 'improve-endurance',
+    label: 'Improve Endurance',
   },
-];
+]
 
 const experienceLevel = [
   {
-    id: "newbie",
-    label: "Newbie",
+    id: 'newbie',
+    label: 'Newbie',
   },
   {
-    id: "beginner",
-    label: "Beginner",
+    id: 'beginner',
+    label: 'Beginner',
   },
   {
-    id: "intermediate",
-    label: "Intermediate",
+    id: 'intermediate',
+    label: 'Intermediate',
   },
   {
-    id: "advanced",
-    label: "Advanced",
+    id: 'advanced',
+    label: 'Advanced',
   },
-];
+]
 
 const lengthOfWorkout = [
   {
-    id: "30-minutes-max",
-    label: "30 minutes max",
+    id: '30-minutes-max',
+    label: '30 minutes max',
   },
   {
-    id: "45-minutes-max",
-    label: "45 minutes max",
+    id: '45-minutes-max',
+    label: '45 minutes max',
   },
   {
-    id: "60-minutes-max",
-    label: "60 minutes max",
+    id: '60-minutes-max',
+    label: '60 minutes max',
   },
-];
+]
 
 // Read a quick primer on the types of workouts before your selection:
 // CrossFit: A type of high-intensity workout that combines weightlifting, gymnastics, and cardio exercises to build overall fitness.
@@ -124,55 +124,55 @@ const lengthOfWorkout = [
 
 const typeOfWorkoutPreference = [
   {
-    id: "crossfit",
-    label: "CrossFit",
+    id: 'crossfit',
+    label: 'CrossFit',
   },
   {
-    id: "functional-bodybuilding",
-    label: "Functional Bodybuilding",
+    id: 'functional-bodybuilding',
+    label: 'Functional Bodybuilding',
   },
   {
-    id: "bodybuilding",
-    label: "Bodybuilding",
+    id: 'bodybuilding',
+    label: 'Bodybuilding',
   },
   {
-    id: "hiit",
-    label: "HIIT",
+    id: 'hiit',
+    label: 'HIIT',
   },
   {
-    id: "long-form-cardio",
-    label: "Long Form Cardio",
+    id: 'long-form-cardio',
+    label: 'Long Form Cardio',
   },
   {
-    id: "general-strength-training",
-    label: "General Strength Training",
+    id: 'general-strength-training',
+    label: 'General Strength Training',
   },
   {
-    id: "powerlifting",
-    label: "Powerlifting",
+    id: 'powerlifting',
+    label: 'Powerlifting',
   },
-];
+]
 
 export function IntakeForm() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      firstname: "John",
-      lastname: "Wick",
-      age: "18",
-      goals: ["increase-strength"],
-      experience: "newbie",
-      lengthOfWorkout: "30-minutes-max",
-      daysPerWeek: "3",
+      firstname: 'John',
+      lastname: 'Wick',
+      age: '18',
+      goals: ['increase-strength'],
+      experience: 'newbie',
+      lengthOfWorkout: '30-minutes-max',
+      daysPerWeek: '3',
       typeOfWorkoutPreference: [
-        "general-strength-training",
-        "bodybuilding",
-        "functional-bodybuilding",
+        'general-strength-training',
+        'bodybuilding',
+        'functional-bodybuilding',
       ],
-      otherDetails: "",
+      otherDetails: '',
     },
-  });
-  const { setWorkoutPlan, isPending, setIsPending } = useWorkoutPlan();
+  })
+  const { setWorkoutPlan, isPending, setIsPending } = useWorkoutPlan()
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     // TODO: when i submit this form, should I use an
@@ -186,47 +186,47 @@ export function IntakeForm() {
     //   ),
     // });
 
-    const prompt = formToPrompt(data);
-    console.log({ prompt });
+    const prompt = formToPrompt(data)
+    console.log({ prompt })
     toast({
-      title: "Prompt",
+      title: 'Prompt',
       description: prompt,
-    });
-    setIsPending(true);
+    })
+    setIsPending(true)
     const { data: apiData, error } = await apiGenerateWorkoutPlan({
       prompt: prompt,
-    });
+    })
     if (error) {
-      setIsPending(false);
+      setIsPending(false)
       toast({
-        title: "Error",
+        title: 'Error',
         description: error.message,
-        variant: "destructive",
-      });
-      return;
+        variant: 'destructive',
+      })
+      return
     }
-    console.log({ apiData });
-    setWorkoutPlan(apiData);
-    setIsPending(false);
-  };
+    console.log({ apiData })
+    setWorkoutPlan(apiData)
+    setIsPending(false)
+  }
 
   const formToPrompt = (data: z.infer<typeof FormSchema>) => {
     return `Generate a workout plan for ${data.firstname} ${data.lastname}, a ${data.age} year old ${
       experienceLevel.find((exp) => exp.id === data.experience)?.label
     } looking to ${data.goals.map((goal) =>
-      possibleGoals.find((g) => g.id === goal)?.label.toLowerCase(),
+      possibleGoals.find((g) => g.id === goal)?.label.toLowerCase()
     )}. They prefer ${typeOfWorkoutPreference
       .filter((type) => data.typeOfWorkoutPreference?.includes(type.id))
       .map((type) => type.label.toLowerCase())} workouts ${
-      data.lengthOfWorkout === "30-minutes-max"
-        ? "that are 30 minutes or less"
-        : data.lengthOfWorkout === "45-minutes-max"
-          ? "that are 45 minutes or less"
-          : "that are 60 minutes or less"
+      data.lengthOfWorkout === '30-minutes-max'
+        ? 'that are 30 minutes or less'
+        : data.lengthOfWorkout === '45-minutes-max'
+          ? 'that are 45 minutes or less'
+          : 'that are 60 minutes or less'
     } and want to workout ${
       data.daysPerWeek
-    } days a week. ${data.otherDetails ? data.otherDetails : ""}`;
-  };
+    } days a week. ${data.otherDetails ? data.otherDetails : ''}`
+  }
 
   return (
     <Form {...form}>
@@ -300,9 +300,9 @@ export function IntakeForm() {
                                 ? field.onChange([...field.value, goal.id])
                                 : field.onChange(
                                     field.value?.filter(
-                                      (value) => value !== goal.id,
-                                    ),
-                                  );
+                                      (value) => value !== goal.id
+                                    )
+                                  )
                             }}
                           />
                         </FormControl>
@@ -310,7 +310,7 @@ export function IntakeForm() {
                           {goal.label}
                         </FormLabel>
                       </FormItem>
-                    );
+                    )
                   }}
                 />
               ))}
@@ -346,7 +346,7 @@ export function IntakeForm() {
                             onCheckedChange={(checked) => {
                               return checked
                                 ? field.onChange(expLevel.id)
-                                : field.onChange("");
+                                : field.onChange('')
                             }}
                           />
                         </FormControl>
@@ -354,7 +354,7 @@ export function IntakeForm() {
                           {expLevel.label}
                         </FormLabel>
                       </FormItem>
-                    );
+                    )
                   }}
                 />
               ))}
@@ -392,7 +392,7 @@ export function IntakeForm() {
                             onCheckedChange={(checked) => {
                               return checked
                                 ? field.onChange(curLength.id)
-                                : field.onChange("");
+                                : field.onChange('')
                             }}
                           />
                         </FormControl>
@@ -400,7 +400,7 @@ export function IntakeForm() {
                           {curLength.label}
                         </FormLabel>
                       </FormItem>
-                    );
+                    )
                   }}
                 />
               ))}
@@ -459,9 +459,9 @@ export function IntakeForm() {
                                   ])
                                 : field.onChange(
                                     field.value?.filter(
-                                      (value) => value !== typeOfWorkout.id,
-                                    ),
-                                  );
+                                      (value) => value !== typeOfWorkout.id
+                                    )
+                                  )
                             }}
                           />
                         </FormControl>
@@ -469,7 +469,7 @@ export function IntakeForm() {
                           {typeOfWorkout.label}
                         </FormLabel>
                       </FormItem>
-                    );
+                    )
                   }}
                 />
               ))}
@@ -500,10 +500,10 @@ export function IntakeForm() {
           {isPending ? (
             <Icons.spinner className="h-5 w-5 animate-spin" />
           ) : (
-            "Generate Workout ⚡️"
+            'Generate Workout ⚡️'
           )}
         </Button>
       </form>
     </Form>
-  );
+  )
 }

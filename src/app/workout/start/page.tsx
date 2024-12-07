@@ -1,51 +1,51 @@
-"use client";
-import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
-import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
-import { AgGridReact } from "ag-grid-react";
-import { useEffect, useState } from "react";
+'use client'
+import 'ag-grid-community/styles/ag-grid.css' // Mandatory CSS required by the Data Grid
+import 'ag-grid-community/styles/ag-theme-quartz.css' // Optional Theme applied to the Data Grid
+import { AgGridReact } from 'ag-grid-react'
+import { useEffect, useState } from 'react'
 
-import { Typography } from "@/components/typography";
-import { Button } from "@/components/ui/button";
-import apiGenerateWorkoutPlan from "@/fetches/generate-workout";
-import { useAsyncFetch } from "@/hooks/async-fetch";
-import { toast } from "@/hooks/use-toast";
-import WorkoutPlanProvider, { useWorkoutPlan } from "@/hooks/use-workout";
-import { Metadata, Workout, WorkoutExercise } from "@/lib/ai/openai/schema";
-import { ColDef } from "@ag-grid-community/core";
+import { Typography } from '@/components/typography'
+import { Button } from '@/components/ui/button'
+import apiGenerateWorkoutPlan from '@/fetches/generate-workout'
+import { useAsyncFetch } from '@/hooks/async-fetch'
+import { toast } from '@/hooks/use-toast'
+import WorkoutPlanProvider, { useWorkoutPlan } from '@/hooks/use-workout'
+import { Metadata, Workout, WorkoutExercise } from '@/lib/ai/openai/schema'
+import { ColDef } from '@ag-grid-community/core'
 
 export default function StartWorkout() {
   return (
     <WorkoutPlanProvider>
       <WorkoutInstance />
     </WorkoutPlanProvider>
-  );
+  )
 }
 
 function WorkoutInstance() {
-  const { workoutPlan, setWorkoutPlan } = useWorkoutPlan();
+  const { workoutPlan, setWorkoutPlan } = useWorkoutPlan()
   const { runQuery, isPending } = useAsyncFetch({
     queryFunc: async () => {
       const { data, error } = await apiGenerateWorkoutPlan({
-        prompt: "",
-      });
+        prompt: '',
+      })
       if (error) {
         toast({
-          title: "Error",
+          title: 'Error',
           description: error.message,
-          variant: "destructive",
-        });
-        return;
+          variant: 'destructive',
+        })
+        return
       }
-      setWorkoutPlan(data);
+      setWorkoutPlan(data)
     },
-  });
+  })
 
   useEffect(() => {
-    runQuery();
-  }, []);
+    runQuery()
+  }, [])
 
   if (isPending || !workoutPlan) {
-    return <div className="p-2">loading...</div>;
+    return <div className="p-2">loading...</div>
   }
   return (
     <div className="p-2">
@@ -62,7 +62,7 @@ function WorkoutInstance() {
         <WorkoutStartInstance workout={workoutPlan!.workouts[0].data} />;
       </div>
     </div>
-  );
+  )
 }
 
 function WorkoutExerciseInstance({ exercise }: { exercise: WorkoutExercise }) {
@@ -71,7 +71,7 @@ function WorkoutExerciseInstance({ exercise }: { exercise: WorkoutExercise }) {
       <Typography variant="h4">{exercise.exercise_name}</Typography>
       <ExerciseGrid exercise={exercise} />
     </div>
-  );
+  )
 }
 
 function WorkoutStartInstance({ workout }: { workout: Workout }) {
@@ -81,41 +81,41 @@ function WorkoutStartInstance({ workout }: { workout: Workout }) {
         {workout.exercises.map((exercise) => {
           return (
             <WorkoutExerciseInstance key={exercise.id} exercise={exercise} />
-          );
+          )
         })}
       </div>
     </div>
-  );
+  )
 }
 
 function getColumnFromMetadata(metadata: Metadata) {
   switch (metadata.type) {
-    case "reps":
+    case 'reps':
       return {
-        field: "reps",
-        headerName: "Reps",
+        field: 'reps',
+        headerName: 'Reps',
         editable: true,
         resizable: true,
         sortable: false,
-        cellEditor: "agNumberCellEditor",
-      };
-    case "rpe":
+        cellEditor: 'agNumberCellEditor',
+      }
+    case 'rpe':
       return {
-        field: "rpe",
-        headerName: "Target",
+        field: 'rpe',
+        headerName: 'Target',
         editable: true,
         resizable: false,
         sortable: false,
-      };
-    case "weight":
+      }
+    case 'weight':
       return {
-        field: "weight",
-        headerName: "Weight",
+        field: 'weight',
+        headerName: 'Weight',
         editable: true,
         resizable: false,
         sortable: false,
-        cellEditor: "agNumberCellEditor",
-      };
+        cellEditor: 'agNumberCellEditor',
+      }
     default:
       return {
         field: metadata.type,
@@ -124,70 +124,70 @@ function getColumnFromMetadata(metadata: Metadata) {
         resizable: false,
         sortable: false,
         hide: true,
-      };
+      }
   }
 }
 
 interface IGridRow {
-  setNumber: number;
-  reps: string;
-  rpe: string;
-  weight: string;
+  setNumber: number
+  reps: string
+  rpe: string
+  weight: string
 }
 
 function enforceColOrder(cols: ColDef<IGridRow>[]) {
   return [
-    cols.find((c) => c.field === "setNumber"),
-    cols.find((c) => c.field === "rpe"),
-    cols.find((c) => c.field === "weight"),
-    cols.find((c) => c.field === "reps"),
-  ];
+    cols.find((c) => c.field === 'setNumber'),
+    cols.find((c) => c.field === 'rpe'),
+    cols.find((c) => c.field === 'weight'),
+    cols.find((c) => c.field === 'reps'),
+  ]
 }
 
 function useExerciseGrid(exercise: WorkoutExercise) {
   const numSets = Number(
-    exercise.metadata.find((md) => md.type === "sets")?.value,
-  );
-  const restMeta = exercise.metadata.filter((md) => md.type !== "sets");
-  const rpeCol = restMeta.find((md) => md.type === "rpe")!;
-  const weightCol = restMeta.find((md) => md.type === "weight")!;
-  const repsCol = restMeta.find((md) => md.type === "reps")!;
+    exercise.metadata.find((md) => md.type === 'sets')?.value
+  )
+  const restMeta = exercise.metadata.filter((md) => md.type !== 'sets')
+  const rpeCol = restMeta.find((md) => md.type === 'rpe')!
+  const weightCol = restMeta.find((md) => md.type === 'weight')!
+  const repsCol = restMeta.find((md) => md.type === 'reps')!
   const gridCols: ColDef<any>[] = [
-    { field: "setNumber", headerName: `Set`, sortable: false },
+    { field: 'setNumber', headerName: `Set`, sortable: false },
     getColumnFromMetadata(rpeCol),
     getColumnFromMetadata(weightCol),
     getColumnFromMetadata(repsCol),
-  ];
+  ]
   // create a row per set
   const gridRows = new Array(numSets || 1).fill(0).map((_, idx) => {
-    const setNum = idx + 1;
+    const setNum = idx + 1
     const row = {
       setNumber: setNum,
-      reps: restMeta.find((md) => md.type === "reps")?.value || "-",
-      rpe: restMeta.find((md) => md.type === "rpe")?.value || "-",
-      weight: restMeta.find((md) => md.type === "weight")?.value || "-",
-    };
-    return row;
-  });
+      reps: restMeta.find((md) => md.type === 'reps')?.value || '-',
+      rpe: restMeta.find((md) => md.type === 'rpe')?.value || '-',
+      weight: restMeta.find((md) => md.type === 'weight')?.value || '-',
+    }
+    return row
+  })
 
   console.log({
     name: exercise.exercise_name,
     gridCols,
     gridRows,
     numSets,
-  });
+  })
 
   // Row Data: The data to be displayed.
-  const [rowData, setRowData] = useState(gridRows);
+  const [rowData, setRowData] = useState(gridRows)
   // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState(gridCols);
+  const [colDefs, setColDefs] = useState(gridCols)
 
   const addNewRow = (e: WorkoutExercise) => {
     // const newRow = exerciseAsRow(e);
     // setRowData((prev) => {
     //   return [...prev, newRow];
     // });
-  };
+  }
 
   return {
     rowData,
@@ -195,11 +195,11 @@ function useExerciseGrid(exercise: WorkoutExercise) {
     addNewRow,
     setRowData,
     setColDefs,
-  };
+  }
 }
 
 function ExerciseGrid({ exercise }: { exercise: WorkoutExercise }) {
-  const { rowData, colDefs } = useExerciseGrid(exercise);
+  const { rowData, colDefs } = useExerciseGrid(exercise)
   return (
     // Make this grow with the child container
     <div className="w-full space-y-[1px]">
@@ -207,7 +207,7 @@ function ExerciseGrid({ exercise }: { exercise: WorkoutExercise }) {
         <AgGridReact
           domLayout="autoHeight"
           autoSizeStrategy={{
-            type: "fitGridWidth",
+            type: 'fitGridWidth',
           }}
           singleClickEdit={true}
           rowData={rowData}
@@ -215,5 +215,5 @@ function ExerciseGrid({ exercise }: { exercise: WorkoutExercise }) {
         />
       </div>
     </div>
-  );
+  )
 }

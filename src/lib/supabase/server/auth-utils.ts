@@ -1,18 +1,18 @@
-import { User } from "@supabase/supabase-js";
-import { redirect } from "next/navigation";
-import { createServerClient } from "../create-server-client";
+import { User } from '@supabase/supabase-js'
+import { redirect } from 'next/navigation'
+import { createServerClient } from '../create-server-client'
 
-type AuthCheck = AuthCheckFailed | AuthCheckSuccess;
+type AuthCheck = AuthCheckFailed | AuthCheckSuccess
 
 type AuthCheckFailed = {
-  error: Error;
-  user: null;
-};
+  error: Error
+  user: null
+}
 
 type AuthCheckSuccess = {
-  error: null;
-  user: User;
-};
+  error: null
+  user: User
+}
 /*
  * checkUserAuth is a utility function to check if a user is authenticated.
  * It returns the user and session if they exist.
@@ -24,29 +24,29 @@ type AuthCheckSuccess = {
  **/
 
 export const checkServerUserAuth = async (): Promise<AuthCheck> => {
-  const supabase = await createServerClient();
+  const supabase = await createServerClient()
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser()
   if (error) {
-    return { user: null, error };
+    return { user: null, error }
   }
   if (!user) {
-    return { user: null, error: new Error("No user found") };
+    return { user: null, error: new Error('No user found') }
   }
-  return { user, error: null };
-};
+  return { user, error: null }
+}
 
 /**
  * serverRedirectToHomeIfAuthorized can be used in server components
  * to redirect to the users home page if the user is authorized
  **/
 export const serverRedirectToHomeIfAuthorized = async () => {
-  const supabase = await createServerClient();
-  const { user, error } = await checkServerUserAuth();
+  const supabase = await createServerClient()
+  const { user, error } = await checkServerUserAuth()
   if (user) {
-    redirect("/home");
+    redirect('/home')
   }
-  return { supabase, error };
-};
+  return { supabase, error }
+}

@@ -1,25 +1,25 @@
-"use client";
+'use client'
 
-import { WorkoutPlan } from "@/lib/domain/exercises";
-import { createContext, useContext, useState } from "react";
+import { WorkoutPlan } from '@/lib/domain/exercises'
+import { createContext, useContext, useState } from 'react'
 
 interface WorkoutPlanContext {
-  workoutPlan: WorkoutPlan | undefined;
-  setWorkoutPlan: (p: WorkoutPlan) => void;
-  setIsPending: (p: boolean) => void;
-  isPending: boolean;
+  workoutPlan: WorkoutPlan | undefined
+  setWorkoutPlan: (p: WorkoutPlan) => void
+  setIsPending: (p: boolean) => void
+  isPending: boolean
 }
-const Context = createContext<WorkoutPlanContext | undefined>(undefined);
+const Context = createContext<WorkoutPlanContext | undefined>(undefined)
 
 interface TableProviderProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export default function WorkoutPlanProvider({ children }: TableProviderProps) {
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | undefined>(
-    undefined,
-  );
-  const [isPending, setIsPending] = useState(false);
+    undefined
+  )
+  const [isPending, setIsPending] = useState(false)
   return (
     <Context.Provider
       value={{
@@ -31,13 +31,13 @@ export default function WorkoutPlanProvider({ children }: TableProviderProps) {
     >
       <>{children}</>
     </Context.Provider>
-  );
+  )
 }
 
 export const useWorkoutPlan = () => {
-  const context = useContext(Context);
+  const context = useContext(Context)
   if (context === undefined) {
-    throw new Error("useWorkout() must be used inside WorkoutPlanProvider");
+    throw new Error('useWorkout() must be used inside WorkoutPlanProvider')
   }
-  return context;
-};
+  return context
+}

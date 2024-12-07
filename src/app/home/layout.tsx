@@ -1,23 +1,23 @@
-import StickyNavbar from "@/components/navbar";
-import SignOutButton from "@/components/sign-out-button";
+import StickyNavbar from '@/components/navbar'
+import SignOutButton from '@/components/sign-out-button'
 import {
   Card,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { createServerClient } from "@/lib/supabase/create-server-client";
-import { getCurrentUser } from "@/lib/supabase/server/database.operations.queries";
-import SupabaseProvider from "@/lib/supabase/use-supabase";
+} from '@/components/ui/card'
+import { createServerClient } from '@/lib/supabase/create-server-client'
+import { getCurrentUser } from '@/lib/supabase/server/database.operations.queries'
+import SupabaseProvider from '@/lib/supabase/use-supabase'
 
 export default async function HomeLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const client = await createServerClient();
-  const { data: user, error } = await getCurrentUser(client);
+  const client = await createServerClient()
+  const { data: user, error } = await getCurrentUser(client)
   if (error) {
     return (
       <SupabaseProvider user={user}>
@@ -40,7 +40,7 @@ export default async function HomeLayout({
           </section>
         </main>
       </SupabaseProvider>
-    );
+    )
   }
   return (
     <>
@@ -49,5 +49,5 @@ export default async function HomeLayout({
         <main>{children}</main>
       </SupabaseProvider>
     </>
-  );
+  )
 }

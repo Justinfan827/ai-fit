@@ -1,5 +1,5 @@
-import { IntakeForm } from "@/components/forms/intake-form";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { IntakeForm } from '@/components/forms/intake-form'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default function ClientSideForm() {
   return (
@@ -8,5 +8,5 @@ export default function ClientSideForm() {
         <IntakeForm />;
       </div>
     </ScrollArea>
-  );
+  )
 }
