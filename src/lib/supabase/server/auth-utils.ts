@@ -1,5 +1,8 @@
+import 'server-only'
+
 import { User } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
+
 import { createServerClient } from '../create-server-client'
 
 type AuthCheck = AuthCheckFailed | AuthCheckSuccess

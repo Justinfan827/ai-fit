@@ -170,13 +170,6 @@ function useExerciseGrid(exercise: WorkoutExercise) {
     return row
   })
 
-  console.log({
-    name: exercise.exercise_name,
-    gridCols,
-    gridRows,
-    numSets,
-  })
-
   // Row Data: The data to be displayed.
   const [rowData, setRowData] = useState(gridRows)
   // Column Definitions: Defines the columns to be displayed.

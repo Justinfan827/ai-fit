@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils'
 
-import { useDrag } from '@use-gesture/react'
 import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
 
 import {
@@ -9,7 +8,6 @@ import {
   ComboboxOption,
   ComboboxOptions,
 } from '@headlessui/react'
-import { useSpring } from '@react-spring/web'
 
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
@@ -20,7 +18,7 @@ interface Position {
   col: number
 }
 
-interface RowData {
+export interface RowData {
   [key: string]: string
 }
 
@@ -35,10 +33,12 @@ interface Cell {
   colType: string
   width: number
 }
-export default function EditableGrid({
+export default function WorkoutGrid({
+  onGridChange,
   rowData,
   columns,
 }: {
+  onGridChange: (grid: RowData[]) => void
   rowData: RowData[]
   columns: Columns[]
 }) {
@@ -48,17 +48,9 @@ export default function EditableGrid({
   const cols = columns.length
   const [grid, setGrid] = useState(newGrid(rowDataS, columns))
   const [editingCell, setEditingCell] = useState<Position | null>(null) // Tracks the editing cell
-  console.log({ editingCell })
 
   const pendingFocusRef = useRef(null)
   const gridRefs = useRef<HTMLDivElement[][]>([]) // Ref array for all cells
-
-  const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }))
-
-  // Set the drag hook and define component movement based on gesture data.
-  const bind = useDrag(({ down, movement: [mx, my] }) => {
-    api.start({ x: down ? mx : 0, y: down ? my : 0 })
-  })
 
   useEffect(() => {
     if (pendingFocusRef.current) {
@@ -69,8 +61,7 @@ export default function EditableGrid({
         pendingFocusRef.current = null // Clear the pending focus
       }, 0)
     }
-    console.log('new grid', grid)
-  }, [grid]) // Trigger effect when grid updates
+  }, [grid]) // Trigger effect when grid updates // TODO: make grid a ref?
 
   // Handles keyboard navigation
   const handleKeyDown = (e: KeyboardEvent, row: number, col: number) => {
@@ -89,6 +80,7 @@ export default function EditableGrid({
         // delete current row
         const newRowData = rowDataS.filter((_, idx) => idx !== row)
         setRowData(newRowData)
+        onGridChange(newRowData)
         setGrid(newGrid(newRowData, columns))
       }
     } else {
@@ -110,8 +102,8 @@ export default function EditableGrid({
         if (e.ctrlKey) {
           // move the current row up
           const newRowData = swapArrayElements(rowDataS, row, row - 1)
-          console.log({ newRowData })
           setRowData(newRowData)
+          onGridChange(newRowData)
           setGrid(newGrid(newRowData, columns))
         }
         newRow = Math.max(0, row - 1)
@@ -124,8 +116,8 @@ export default function EditableGrid({
         if (e.ctrlKey) {
           // move the current row down
           const newRowData = swapArrayElements(rowDataS, row, row + 1)
-          console.log({ newRowData })
           setRowData(newRowData)
+          onGridChange(newRowData)
           setGrid(newGrid(newRowData, columns))
         }
         newRow = Math.min(rows - 1, row + 1)
@@ -161,7 +153,6 @@ export default function EditableGrid({
     col: number
   ) => {
     const value = e.target.value
-    console.log({ value })
     handleOnSelectInput(value, row, col)
   }
 
@@ -176,6 +167,7 @@ export default function EditableGrid({
     })
 
     setRowData(newRows)
+    onGridChange(newRows)
     setGrid(newGrid(newRows, columns))
   }
 
@@ -190,6 +182,7 @@ export default function EditableGrid({
     newRowData.splice(rowIndex + 1, 0, {})
     pendingFocusRef.current = { row: rowIndex + 1, col: colIndex }
     setRowData(newRowData)
+    onGridChange(newRowData)
     setGrid(newGrid(newRowData, columns))
   }
 
@@ -233,7 +226,7 @@ export default function EditableGrid({
                   size="icon"
                   variant="ghost"
                   className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out group-hover:opacity-100"
-                  onClick={() => handleAddRow(rowIndex)}
+                  onClick={() => handleAddRow(rowIndex, 0)}
                 >
                   <Icons.plus className="h-4 w-4" />
                 </Button>
@@ -370,7 +363,6 @@ function ExInput({
 }
 
 function swapArrayElements(arr: any[], idx1: number, idx2: number) {
-  console.log({ arr })
   if (idx1 < 0 || idx2 < 0 || idx1 >= arr.length || idx2 >= arr.length) {
     return arr
   }

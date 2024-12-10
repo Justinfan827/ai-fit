@@ -1,6 +1,6 @@
 'use client'
+import WorkoutPlanEditor from '@/components/grid/workout-plan-editor'
 import WorkoutPlanProvider from '@/hooks/use-workout'
-import ClientSideResults from './client-side-results'
 
 export default function Page() {
   return (
@@ -20,7 +20,7 @@ export default function Page() {
       {/*   <ResizablePanel defaultSize={90}> */}
       {/*   </ResizablePanel> */}
       {/* </ResizablePanelGroup> */}
-      <ClientSideResults />
+      <WorkoutPlanEditor />
     </WorkoutPlanProvider>
   )
 }

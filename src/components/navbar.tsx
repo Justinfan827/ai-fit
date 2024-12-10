@@ -1,4 +1,4 @@
-import { User } from '@supabase/supabase-js'
+import { AuthSessionMissingError, User } from '@supabase/supabase-js'
 
 import SignOutButton from '@/components/sign-out-button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -12,14 +12,22 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { createServerClient } from '@/lib/supabase/create-server-client'
-import { getUserFirstLast } from '@/lib/supabase/server/database.operations.queries'
+import {
+  getCurrentUser,
+  getUserFirstLast,
+} from '@/lib/supabase/server/database.operations.queries'
 import { capitalizeFirstLetter } from '@/lib/utils'
 import NavbarLinks from './navbar-client'
 
-type Props = {
-  user: User
-}
-export default async function Navbar({ user }: Props) {
+export default async function Navbar() {
+  const client = await createServerClient()
+  const { data: user, error } = await getCurrentUser(client) // TODO: suspense and fallback
+  if (error) {
+    if (error instanceof AuthSessionMissingError) {
+      return <nav className="sticky top-0 z-40 w-full bg-background"></nav>
+    }
+    throw new Error(`Error fetching user ${error.name}: ${error.message}`)
+  }
   return (
     <nav className="sticky top-0 z-40 w-full border-b border-gray-200 bg-background">
       <div className="-mb-px flex items-center justify-between px-4">

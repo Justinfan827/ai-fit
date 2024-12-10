@@ -19,19 +19,18 @@ const Context = createContext<SupabaseContext | undefined>(undefined)
  **/
 export default function SupabaseProvider({
   children,
-  user: initialUser,
 }: {
   children: React.ReactNode
 
   user: MaybeUser
 }) {
   const router = useRouter()
-  const [user, setUser] = useState<MaybeUser>(initialUser)
+  const [user, setUser] = useState<MaybeUser>(null)
   const [supabase] = useState(() => createBrowserClient())
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((_, session) => {
       // refresh server component data
       setUser(session?.user ?? null)
       router.refresh()

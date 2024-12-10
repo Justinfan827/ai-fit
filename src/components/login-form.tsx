@@ -42,9 +42,8 @@ export const authSchema = z.object({
 })
 export function LoginForm() {
   const { toast } = useToast()
-  const router = useRouter()
   const [isPending, setPending] = useState(false)
-  const supabase = createBrowserClient()
+  const client = createBrowserClient()
   const searchParams = useSearchParams()
   const originalPath = searchParams.get('original_path') || ''
 
@@ -65,7 +64,7 @@ export function LoginForm() {
 
     console.log({ authURL })
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error } = await client.auth.signInWithOtp({
         email: data.email,
         options: {
           shouldCreateUser: false,

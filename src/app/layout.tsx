@@ -1,3 +1,5 @@
+import { Logo } from '@/components/icons'
+import Navbar from '@/components/navbar'
 import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
@@ -16,8 +18,18 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning // temporarily: https://github.com/pacocoursey/next-themes/tree/bf0c5a45eaf6fb2b336a6b93840e4ec572bc08c8?tab=readme-ov-file#with-app
+    >
       <body className={`h-screen w-full`}>
+        <header className="flex">
+          <div className="px-4 py-4">
+            <Logo />
+          </div>
+          <Navbar />
+        </header>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

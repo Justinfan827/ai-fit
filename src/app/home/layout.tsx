@@ -45,7 +45,6 @@ export default async function HomeLayout({
   return (
     <>
       <SupabaseProvider user={user}>
-        <StickyNavbar user={user} />
         <main>{children}</main>
       </SupabaseProvider>
     </>

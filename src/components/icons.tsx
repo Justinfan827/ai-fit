@@ -92,26 +92,27 @@ export const Icons = {
   view: Eye,
   x: X,
   xCircle: XCircle,
-  logox100: () => (
+}
+
+// guide for logos
+// https://www.google.com/search?q=jakearchibald+svg&oq=jakearchibald+svg&sourceid=chrome&ie=UTF-8
+// https://www.youtube.com/watch?v=MbUyHQRq2go&list=PL7CcGwsqRpSM3w9BT_21tUU8JN2SnyckR&index=12
+export function Logo({
+  className,
+}: React.SVGAttributes<HTMLOrSVGElement>) {
+  return (
     <svg
-      width="57"
-      height="64"
-      viewBox="0 0 57 64"
+    className='h-[32px] w-[32px]'
+      viewBox="0 0 53 53"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path
-        d="M0 3.79408C0 1.69867 1.69867 0 3.79408 0H53.1171C55.2125 0 56.9112 1.69867 56.9112 3.79408V15.1763C56.9112 17.2717 55.2125 18.9704 53.1171 18.9704H3.79408C1.69867 18.9704 0 17.2717 0 15.1763V3.79408Z"
-        fill="white"
-      />
-      <path
-        d="M0 25.9262C0 23.8308 1.69867 22.1321 3.79408 22.1321H36.812C38.9074 22.1321 40.6061 23.8308 40.6061 25.9262V37.3084C40.6061 39.4038 38.9074 41.1025 36.812 41.1025H3.79408C1.69867 41.1025 0 39.4038 0 37.3084V25.9262Z"
-        fill="white"
-      />
-      <path
-        d="M0 48.0583C0 45.9629 1.69867 44.2642 3.79408 44.2642H15.1763C17.2717 44.2642 18.9704 45.9629 18.9704 48.0583V59.4405C18.9704 61.536 17.2717 63.2346 15.1763 63.2346H3.79408C1.69867 63.2346 0 61.536 0 59.4405V48.0583Z"
-        fill="white"
-      />
+      <rect width="53" height="53" fill="white" />
+      <rect x="34" y="14" width="10" height="25" fill="black" />
+      <rect x="9" y="14" width="10" height="25" fill="black" />
+      <rect x="14" y="21.5" width="25" height="10" fill="black" />
+      <rect x="14" y="21.5" width="5" height="10" fill="white" />
+      <rect x="34" y="21.5" width="5" height="10" fill="white" />
     </svg>
-  ),
+  )
 }

@@ -9,6 +9,35 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      programs: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'workout_plans_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string | null
@@ -33,6 +62,44 @@ export type Database = {
         }
         Relationships: []
       }
+      workout_instance: {
+        Row: {
+          created_at: string
+          end_at: string | null
+          id: string
+          instance_json: Json
+          start_at: string | null
+          user_id: string
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_at?: string | null
+          id?: string
+          instance_json: Json
+          start_at?: string | null
+          user_id: string
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          end_at?: string | null
+          id?: string
+          instance_json?: Json
+          start_at?: string | null
+          user_id?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'workout_instance_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       workout_rows: {
         Row: {
           id: number
@@ -53,24 +120,41 @@ export type Database = {
       }
       workouts: {
         Row: {
+          blocks: Json
           created_at: string | null
           id: string
+          name: string
+          program_id: string
+          program_order: number
           user_id: string
-          version: string
         }
         Insert: {
-          created_at?: string | null
-          id: string
-          user_id: string
-          version: string
-        }
-        Update: {
+          blocks: Json
           created_at?: string | null
           id?: string
-          user_id?: string
-          version?: string
+          name: string
+          program_id: string
+          program_order: number
+          user_id: string
         }
-        Relationships: []
+        Update: {
+          blocks?: Json
+          created_at?: string | null
+          id?: string
+          name?: string
+          program_id?: string
+          program_order?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'workouts_program_id_fkey'
+            columns: ['program_id']
+            isOneToOne: false
+            referencedRelation: 'programs'
+            referencedColumns: ['id']
+          },
+        ]
       }
     }
     Views: {

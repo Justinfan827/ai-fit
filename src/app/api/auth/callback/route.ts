@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { createServerClient } from '@/lib/supabase/create-server-client'
 import type { NextRequest } from 'next/server'
+import { EmailOtpType } from '@supabase/supabase-js'
 
 /**
  * This endpoint handles the code exchange in the supabase auth flow:
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
 
   const original = searchParams.get('original_path')
   const token_hash = searchParams.get('token_hash')
-  const type = searchParams.get('type')
+  const type = searchParams.get('type') as EmailOtpType
 
   if (!token_hash || !type) {
     return redirectToSigninWithErrors(request.nextUrl, {
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
       errorDescription: 'Missing token hash or type in the query params.',
     })
   }
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const { error } = await supabase.auth.verifyOtp({
     type,
     token_hash,

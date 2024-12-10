@@ -21,8 +21,8 @@ interface NavLink {
 export default function NavbarLinks() {
   const allLinks: NavLink[] = [
     {
-      href: '/home/create',
-      name: 'Create Workout',
+      href: '/home/programs',
+      name: 'Programs',
     },
     {
       href: '/home',
@@ -42,7 +42,6 @@ export default function NavbarLinks() {
 
 export function NavbarLink({ href, children, matchOn }: NavbarLinkProps) {
   const path = usePathname()
-  console.log({ path })
   return (
     <Link
       key={href}
