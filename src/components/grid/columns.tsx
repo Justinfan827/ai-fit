@@ -1,3 +1,5 @@
+import { v4 } from "uuid"
+
 export const defaultColumns = [
   {
     field: 'exercise_name',
@@ -33,6 +35,7 @@ export const defaultColumns = [
 
 export const defaultRowData = [
   {
+    id: v4().toString(),
     exercise_name: 'Bench Press',
     sets: '3',
     reps: '10',
@@ -41,6 +44,7 @@ export const defaultRowData = [
     notes: 'This is a note',
   },
   {
+    id: v4().toString(),
     exercise_name: 'Squats',
     sets: '3',
     reps: '10',

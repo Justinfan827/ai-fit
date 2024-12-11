@@ -2,8 +2,18 @@ import 'server-only'
 
 import { User } from '@supabase/supabase-js'
 
-import { Exercise, Program, programSchema } from '@/lib/domain/workouts'
+import {
+  Exercise,
+  Program,
+  programSchema,
+  Workout,
+  WorkoutInstance,
+  WorkoutInstanceBlock,
+  workoutInstanceSchema,
+  workoutSchema,
+} from '@/lib/domain/workouts'
 import { Res } from '@/lib/types/types'
+import { z } from 'zod'
 import { createServerClient } from '../create-server-client'
 import { Database } from '../database.types'
 import { DBClient } from '../types'
@@ -25,6 +35,118 @@ export async function getCurrentUser(client: DBClient): Promise<Res<User>> {
   return { data: user, error: null }
 }
 
+export async function getLatestWorkoutInstance(
+  workoutid: string
+): Promise<Res<WorkoutInstance | undefined>> {
+  const client = await createServerClient()
+  const { data, error } = await client.auth.getUser()
+  if (error) {
+    return { data: null, error }
+  }
+  const { data: pData, error: pErr } = await client
+    .from('workout_instances')
+    .select('*, workouts (name)')
+    .eq('user_id', data.user.id)
+    .eq('workout_id', workoutid)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (pErr) {
+    return { data: null, error: pErr }
+  }
+  if (!pData) {
+    return { data: undefined, error: null }
+  }
+  const resData: WorkoutInstance = {
+    id: pData.id,
+    start_at: pData.start_at,
+    end_at: pData.end_at,
+    workout_id: pData.workout_id,
+    workout_name: pData.workouts!.name,
+    blocks: pData.blocks as WorkoutInstanceBlock[],
+  }
+  const { data: wData, error: wErr } = workoutInstanceSchema.safeParse(resData)
+  if (wErr) {
+    return { data: null, error: wErr }
+  }
+  return {
+    data: wData,
+    error: null,
+  }
+}
+
+export async function getUserWorkout(workoutid: string): Promise<Res<Workout>> {
+  const client = await createServerClient()
+  const { data, error } = await client.auth.getUser()
+  if (error) {
+    return { data: null, error }
+  }
+  const { data: pData, error: pErr } = await client
+    .from('workouts')
+    .select('*')
+    .eq('user_id', data.user.id)
+    .eq('id', workoutid)
+    .single()
+
+  if (pErr) {
+    return { data: null, error: pErr }
+  }
+
+  const resData: Workout = {
+    id: pData.id,
+    program_id: pData.program_id,
+    name: pData.name,
+    blocks: pData.blocks as Exercise[],
+  }
+  const { data: wData, error: wErr } = workoutSchema.safeParse(resData)
+  if (wErr) {
+    return { data: null, error: wErr }
+  }
+  return {
+    data: wData,
+    error: null,
+  }
+}
+
+export async function getWorkoutInstances(
+  programId: string
+): Promise<Res<WorkoutInstance[]>> {
+  const client = await createServerClient()
+  const { data, error } = await client.auth.getUser()
+  if (error) {
+    return { data: null, error }
+  }
+  const { data: pData, error: pErr } = await client
+    .from('workout_instances')
+    .select('*, workouts (name)')
+    .eq('user_id', data.user.id)
+    .eq('program_id', programId)
+
+  if (pErr) {
+    return { data: null, error: pErr }
+  }
+
+  const resData: WorkoutInstance[] = pData.map((p) => ({
+    id: p.id,
+    start_at: p.start_at,
+    end_at: p.end_at,
+    workout_id: p.workout_id,
+    workout_name: p.workouts!.name,
+    blocks: p.blocks as WorkoutInstanceBlock[],
+  }))
+  const { data: wData, error: wErr } = z
+    .array(workoutInstanceSchema)
+    .safeParse(resData)
+  if (wErr) {
+    return { data: null, error: wErr }
+  }
+
+  return {
+    data: wData,
+    error: null,
+  }
+}
 export async function getUserProgram(programId: string): Promise<Res<Program>> {
   const client = await createServerClient()
   const { data, error } = await client.auth.getUser()
@@ -55,17 +177,18 @@ export async function getUserProgram(programId: string): Promise<Res<Program>> {
     name: pData.name,
     workouts: wData.map((workout) => ({
       id: workout.id,
+      program_id: workout.program_id,
       name: workout.name,
-      rows: workout.blocks as Exercise[],
+      blocks: workout.blocks as Exercise[],
     })),
   }
-  const { data: workoutData, error: parseErr } =
+  const { data: programData, error: parseErr } =
     programSchema.safeParse(program)
   if (parseErr) {
     return { data: null, error: parseErr }
   }
   return {
-    data: program,
+    data: programData,
     error: null,
   }
 }
@@ -108,8 +231,9 @@ async function resolvePrograms(
         name: p.name,
         workouts: wData.map((workout) => ({
           id: workout.id,
+          program_id: workout.program_id,
           name: workout.name,
-          rows: workout.blocks as Exercise[],
+          blocks: workout.blocks as Exercise[],
         })),
       }
       const { data: programData, error: parseErr } =

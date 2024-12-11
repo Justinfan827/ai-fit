@@ -2,7 +2,7 @@ import {
   getLatestWorkoutInstance,
   getUserWorkout,
 } from '@/lib/supabase/server/database.operations.queries'
-import ClientPage from './client-page'
+import ClientPage from '../../client-page'
 
 export default async function SingleWorkoutPage({
   params,
@@ -24,7 +24,7 @@ export default async function SingleWorkoutPage({
   }
 
   if (instance.error) {
-    return <div>error: {instance.error.message}</div>
+    return <div>instance error: {instance.error.message}</div>
   }
 
   return (
@@ -33,3 +33,4 @@ export default async function SingleWorkoutPage({
     </div>
   )
 }
+

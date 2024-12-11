@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
-const exerciseSchema = z.object({
+export const exerciseSchema = z.object({
+  id: z.string().uuid(), // Validates a UUID string
   exercise_name: z.string(),
   sets: z.string(), // Assuming `sets` is a string (e.g., "3")
   reps: z.string(), // Assuming `reps` is a string (e.g., "10")
@@ -9,21 +10,22 @@ const exerciseSchema = z.object({
   notes: z.string(),
 })
 
-const workoutSchema = z.object({
+export const workoutSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string
+  program_id: z.string().uuid(), // Validates a UUID string
   name: z.string(),
-  rows: z.array(exerciseSchema), // Array of exercises
+  blocks: z.array(exerciseSchema), // Array of exercises
 })
 
-const workoutsSchema = z.array(workoutSchema)
+export const workoutsSchema = z.array(workoutSchema)
 
-const programSchema = z.object({
+export const programSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   workouts: z.array(workoutSchema),
 })
 
-const exerciseInstanceSetSchema = z.object({
+export const exerciseInstanceSetSchema = z.object({
   planned: z.object({
     reps: z.string(),
     rest: z.string(),
@@ -38,42 +40,32 @@ const exerciseInstanceSetSchema = z.object({
   }),
 })
 
-const exerciseInstanceSchema = z.object({
+export const exerciseInstanceSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   sets: z.array(exerciseInstanceSetSchema),
 })
 
-const workoutInstanceBlockSchema = z.object({
+export const workoutInstanceBlockSchema = z.object({
   id: z.string().uuid(),
   type: z.enum(['exercise']),
   exercise: exerciseInstanceSchema,
 })
 
-const workoutInstanceSchema = z.object({
+export const workoutInstanceSchema = z.object({
   id: z.string().uuid(),
+  // supabase times are offset 0 at UTC
+  start_at: z.string().datetime({ offset: true }).nullable(),
+  end_at: z.string().datetime({ offset: true }).nullable(),
+  workout_name: z.string(),
   workout_id: z.string().uuid(),
   blocks: z.array(workoutInstanceBlockSchema),
 })
 
-type WorkoutInstanceBlock = z.infer<typeof workoutInstanceBlockSchema>
-type WorkoutInstance = z.infer<typeof workoutInstanceSchema>
-type Workouts = z.infer<typeof workoutsSchema>
-type Workout = z.infer<typeof workoutSchema>
-type Exercise = z.infer<typeof exerciseSchema>
-type Program = z.infer<typeof programSchema>
-
-export {
-  exerciseSchema,
-  programSchema,
-  workoutInstanceBlockSchema,
-  workoutInstanceSchema,
-  workoutSchema,
-  workoutsSchema,
-  type Exercise,
-  type Workout,
-  type WorkoutInstance,
-  type WorkoutInstanceBlock,
-  type Program,
-  type Workouts,
-}
+export type WorkoutInstanceBlock = z.infer<typeof workoutInstanceBlockSchema>
+export type WorkoutInstance = z.infer<typeof workoutInstanceSchema>
+export type Workouts = z.infer<typeof workoutsSchema>
+export type Workout = z.infer<typeof workoutSchema>
+export type Exercise = z.infer<typeof exerciseSchema>
+export type Program = z.infer<typeof programSchema>
+export type ExerciseInstance = z.infer<typeof exerciseInstanceSchema>

@@ -31,7 +31,7 @@ export async function createProgram(userId: string, body: Program) {
       program_order: idx,
       program_id: data.id,
       user_id: userId,
-      blocks: workout.rows,
+      blocks: workout.blocks,
     }))
   const { error: wErr } = await client.from('workouts').insert(insertWorkouts)
   if (wErr) {
@@ -83,7 +83,7 @@ export async function updateProgram(userId: string, program: Program) {
             program_id: program.id,
             program_order: idx,
             user_id: userId,
-            blocks: workout.rows,
+            blocks: workout.blocks,
           },
           {
             onConflict: 'id',
@@ -121,45 +121,66 @@ export async function updateProgram(userId: string, program: Program) {
   }
 }
 
+export async function updateWorkoutInstance(
+  workoutInstance: WorkoutInstance
+): Promise<Res<undefined>> {
+  const client = await createServerClient()
+  const { error } = await client
+    .from('workout_instances')
+    .update({
+      end_at: workoutInstance.end_at,
+      blocks: workoutInstance.blocks,
+    })
+    .eq('id', workoutInstance.id)
+  if (error) {
+    return { data: null, error: new Error('Failed to end workout instance') }
+  }
+  return { data: undefined, error }
+}
+
 export async function createWorkoutInstance(
   userId: string,
   workout: Workout
 ): Promise<Res<WorkoutInstance>> {
-  const exerciseSets: WorkoutInstanceBlock[] = workout.rows.map((exercise) => {
-    const numSets = Number(exercise.sets)
-    return {
-      id: v4().toString(),
-      type: 'exercise' as const,
-      exercise: {
+  const exerciseSets: WorkoutInstanceBlock[] = workout.blocks.map(
+    (exercise) => {
+      const numSets = Number(exercise.sets)
+      return {
         id: v4().toString(),
-        name: exercise.exercise_name,
-        sets: Array.from({ length: numSets }).map(() => {
-          return {
-            planned: {
-              reps: exercise.reps,
-              rest: exercise.rest,
-              weight: exercise.weight,
-              notes: exercise.notes,
-            },
-            actual: {
-              reps: '',
-              rest: '',
-              weight: '',
-              notes: '',
-            },
-          }
-        }),
-      },
+        type: 'exercise' as const,
+        exercise: {
+          id: v4().toString(),
+          name: exercise.exercise_name,
+          sets: Array.from({ length: numSets }).map(() => {
+            return {
+              planned: {
+                reps: exercise.reps,
+                rest: exercise.rest,
+                weight: exercise.weight,
+                notes: exercise.notes,
+              },
+              actual: {
+                reps: '',
+                rest: '',
+                weight: '',
+                notes: '',
+              },
+            }
+          }),
+        },
+      }
     }
-  })
+  )
 
   const client = await createServerClient()
   const { data, error } = await client
-    .from('workout_instance')
+    .from('workout_instances')
     .insert({
       user_id: userId,
+      start_at: new Date().toISOString(),
+      program_id: workout.program_id,
       workout_id: workout.id,
-      instance_json: exerciseSets,
+      blocks: exerciseSets,
     })
     .select('*')
     .single()
@@ -170,6 +191,8 @@ export async function createWorkoutInstance(
     data: {
       id: data.id,
       workout_id: workout.id,
+      workout_name: workout.name,
+      start_at: data.start_at,
       blocks: exerciseSets,
     },
     error,

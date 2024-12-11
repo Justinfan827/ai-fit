@@ -22,13 +22,14 @@ export default function WorkoutPlanEditor({
 }) {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
-  const defaultWorkouts = workoutPlan
+  const defaultWorkouts: Workout[] = workoutPlan
     ? workoutPlan.workouts
     : [
         {
           id: uuidv4().toString(),
           name: 'workout 1',
-          rows: defaultRowData,
+          program_id: uuidv4().toString(), // populated on create
+          blocks: defaultRowData,
         },
       ]
 
@@ -40,7 +41,8 @@ export default function WorkoutPlanEditor({
       {
         id: uuidv4().toString(),
         name: `workout ${workouts.length + 1}`,
-        rows: defaultRowData,
+        program_id: uuidv4().toString(), // populated on create
+        blocks: defaultRowData,
       },
     ])
   }
@@ -150,15 +152,15 @@ export default function WorkoutPlanEditor({
                     </div>
                   </div>
                   <MyGrid
-                    rowData={workout.rows}
+                    rowData={workout.blocks}
                     columns={defaultColumns}
                     onGridChange={(rows) => {
                       const newWorkouts = workouts.map((w) => {
                         if (w.id === workout.id) {
-                          const workoutRows = rows as Workout['rows']
+                          const workoutRows = rows as Workout['blocks']
                           return {
                             ...w,
-                            rows: workoutRows,
+                            blocks: workoutRows,
                           }
                         }
                         return w
