@@ -1,5 +1,5 @@
 {
-  "name": "my-tiptap-project",
+  "name": "ai-workouts",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "next lint",
     "openstudio": "open http://localhost:54323",
-    "openemail": "open http://localhost:54324"
+    "openemail": "open http://localhost:54324",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@ag-grid-community/core": "^32.3.3",

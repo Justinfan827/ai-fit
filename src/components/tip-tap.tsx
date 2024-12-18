@@ -30,7 +30,7 @@ export default function Tiptap({
     // this is just an example. do whatever you want to do here
     // to retrieve your editors content from somewhere
     editor?.commands.setContent(editorContent)
-  }, [editor])
+  }, [editor, editorContent])
 
   return <EditorContent className="h-full w-full" editor={editor} />
 }

@@ -29,7 +29,7 @@ export default async function HomeLayout({
                 <CardHeader className="">
                   <CardTitle className="pb-4 text-2xl">WOOPS</CardTitle>
                   <CardDescription>
-                    Looks like you're an invalid user or your session has
+                    Looks like you&apos;re an invalid user or your session has
                     expired.
                   </CardDescription>
                 </CardHeader>
