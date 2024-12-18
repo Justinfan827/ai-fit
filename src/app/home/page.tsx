@@ -1,6 +1,13 @@
 import { Logo } from '@/components/icons'
 import { Typography } from '@/components/typography'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+} from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { getAllPrograms } from '@/lib/supabase/server/database.operations.queries'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -13,9 +20,23 @@ export default async function WorkoutsPage() {
 
   if (!data || data.length === 0) {
     return (
-      <div className="mx-auto max-w-7xl sm:px-6 sm:py-6 lg:px-8 lg:py-6">
-        <div className="flex w-full justify-center">
-          <EmptyStateCard />
+      <div className="w-full">
+        <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4">
+          <Logo />
+          <Separator orientation="vertical" className="h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink href="#">Home</BreadcrumbLink>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        {/* height is calculated as the height of the screen (dvh) - h-16, where 16 = 4rem*/}
+        <div className="mx-auto flex h-[calc(100dvh-4rem)] w-full justify-center">
+          <div className="h-[4rem]">
+            <EmptyStateCard />
+          </div>
         </div>
       </div>
     )

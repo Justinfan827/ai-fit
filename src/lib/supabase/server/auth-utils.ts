@@ -46,10 +46,10 @@ export const checkServerUserAuth = async (): Promise<AuthCheck> => {
  * to redirect to the users home page if the user is authorized
  **/
 export const serverRedirectToHomeIfAuthorized = async () => {
-  const supabase = await createServerClient()
-  const { user, error } = await checkServerUserAuth()
+  const { user } = await checkServerUserAuth()
   if (user) {
     redirect('/home')
+  } else {
+    redirect('/login')
   }
-  return { supabase, error }
 }
