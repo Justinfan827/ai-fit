@@ -22,7 +22,7 @@ export default function SupabaseProvider({
 }: {
   children: React.ReactNode
 
-  user: MaybeUser
+  user?: MaybeUser
 }) {
   const router = useRouter()
   const [user, setUser] = useState<MaybeUser>(null)

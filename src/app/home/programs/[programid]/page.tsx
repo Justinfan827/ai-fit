@@ -1,5 +1,6 @@
 import WorkoutPlanEditor from '@/components/grid/workout-plan-editor'
 import { getUserProgram } from '@/lib/supabase/server/database.operations.queries'
+import { ProgramNavigationMenu } from './program-nav-menu'
 
 export default async function Page({
   params,
@@ -13,6 +14,9 @@ export default async function Page({
   }
   return (
     <div>
+      <div className="flex justify-center pt-8">
+        <ProgramNavigationMenu programId={programid} />
+      </div>
       <WorkoutPlanEditor workoutPlan={data} />
     </div>
   )

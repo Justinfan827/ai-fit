@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils'
 import { Icons } from './icons'
 import { Button, ButtonProps } from './ui/button'
 
@@ -12,11 +13,10 @@ export default function LoadingButton({
 }: LoadingButtonProps) {
   return (
     <Button disabled={isLoading} {...props}>
-      {isLoading ? (
-        <Icons.spinner className="mr-2 h-5 w-5 animate-spin" />
-      ) : (
-        children
-      )}
+      {isLoading && <Icons.spinner className="absolute h-5 w-5 animate-spin" />}
+      <span className={cn(isLoading ? 'opacity-30' : 'opacity-100')}>
+        {children}
+      </span>
     </Button>
   )
 }

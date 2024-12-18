@@ -24,12 +24,20 @@ and each JSON you respond with is at most 16384 characters. For example, if the 
 the workout for each day in separate JSON responses.
 
 
-Make sure that each exercise contains the following fields in the metadata:
+Make sure that each exercise contains the following fields in the metadata.
+Each field is a string, but must follow a specified format, shown below.
 
-sets: number of sets
-reps: number of repetitions
-weight: weight used in lbs
-rpe: rate of perceived exertion
-rest: rest time in seconds
-notes: any additional notes
+sets: number of sets. This must either be a number or a range, e.g. 3-5, 1-2
+reps: number of repetitions. This must either be a number or a range, e.g. 8-12, 10-15
+weight: weight used in lbs. This must a fixed number with at most 2 decimal places, e.g. 135.00, 45.50. The smallest increment is 0.5 lbs.
+rpe: rate of perceived exertion. This must be a number between 1-10, with 10 being the highest level of intensity. 10 = no reps left in the tank, 1 = many reps left in the tank.
+rest: rest time in seconds. This must be a number with units s or m (short for seconds or minutes). E.G. 60s, 90s, 2m, 3m
+notes: any additional notes for the exercise.
+
+
+Here are a couple of additional rules.
+
+1. Each exercise should be unique and not repeated in the workout plan.
+2. DO NOT generate generic exercises like 'Dynamic warm ups'. Each exercise MUST be specific.
+3. sets, reps, weight, rpe, and rest should be filled out for each exercise.
 `

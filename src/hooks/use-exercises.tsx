@@ -1,7 +1,7 @@
 'use client'
 
 import useDebouncedValue from '@/hooks/use-debounce'
-import { Exercise } from '@/lib/domain/exercises'
+import { Workout } from '@/lib/domain/workouts'
 import { useEffect, useState } from 'react'
 
 function useExercises({ searchTerm }: { searchTerm: string }) {
@@ -9,7 +9,7 @@ function useExercises({ searchTerm }: { searchTerm: string }) {
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState(undefined)
   // undefined to distinguish between no data yet vs. no results
-  const [exercises, setExercises] = useState<Exercise[] | undefined>(undefined)
+  const [exercises, setExercises] = useState<Workout | undefined>(undefined)
 
   // TODO: debounce the search term and signal cancel the previous request
   useEffect(() => {

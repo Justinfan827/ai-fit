@@ -93,6 +93,12 @@ export default function WorkoutGrid({
     let newRow = row
     let newCol = col
 
+    console.log('naviagting grid', e.key, e.metaKey);
+    if (e.altKey) {
+      console.log('breaking early. alt key pressed');
+      //  disable meta keybindings when editing
+      return
+    }
     switch (e.key) {
       case 'ArrowUp':
         newRow = Math.max(0, row - 1)
@@ -250,7 +256,7 @@ export default function WorkoutGrid({
                 }}
                 tabIndex={0}
                 className={cn(
-                  `relative shrink-0 flex-grow cursor-pointer border-b border-r border-neutral-800 p-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500`,
+                  `overflow-hidden relative shrink-0 flex-grow cursor-pointer border-b border-r border-neutral-800 p-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500`,
                   rowIndex === 0 && 'border-t',
                   colIndex === 0 && 'border-l',
                   // colIndex !== 0 && "focus-within:-ml-px",

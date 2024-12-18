@@ -34,6 +34,7 @@ export default function ClientPage({
     setIsPending(true)
     const { data, error } = await apiCreateWorkoutInstance({ body: workout })
     if (error) {
+      console.log({ error })
       setIsPending(false)
       toast({
         title: 'Failed to start workout!',
@@ -53,7 +54,7 @@ export default function ClientPage({
   }
 
   // finish the workout i.e. form submission
-  const onSubmit = async (
+  const handleWorkoutUpdate = async (
     data: WorkoutInstanceFormValues,
     action: 'save' | 'finish'
   ) => {
@@ -81,8 +82,11 @@ export default function ClientPage({
       }),
     }
     // update the actual values
-    console.log('submitting form', data)
-    setIsPending(true)
+    if (action === 'save') {
+      setIsPending(true)
+    } else {
+      setIsFinishPending(true)
+    }
     const { error } = await apiUpdateWorkoutInstance({
       body: newWorkoutInstance,
     })
@@ -95,10 +99,19 @@ export default function ClientPage({
       setIsPending(false)
       return
     }
-    toast({
-      title: 'Workout ended!',
-      description: 'Great job!',
-    })
+
+    if (action === 'save') {
+      setIsPending(false)
+      toast({
+        title: 'Workout saved',
+      })
+    } else {
+      setIsFinishPending(false)
+      toast({
+        title: 'Workout ended!',
+        description: 'Great job!',
+      })
+    }
   }
 
   const defaultValues: WorkoutInstanceFormValues = !workoutInstance
@@ -158,7 +171,7 @@ export default function ClientPage({
               isLoading={isPending}
               variant="outline"
               onClick={() =>
-                form.handleSubmit((data) => onSubmit(data, 'save'))()
+                form.handleSubmit((data) => handleWorkoutUpdate(data, 'save'))()
               }
             >
               Save
@@ -169,7 +182,9 @@ export default function ClientPage({
               variant="default"
               type="button"
               onClick={() =>
-                form.handleSubmit((data) => onSubmit(data, 'finish'))()
+                form.handleSubmit((data) =>
+                  handleWorkoutUpdate(data, 'finish')
+                )()
               }
             >
               Finish

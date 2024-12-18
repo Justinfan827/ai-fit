@@ -1,4 +1,3 @@
-import StickyNavbar from '@/components/navbar'
 import SignOutButton from '@/components/sign-out-button'
 import {
   Card,
@@ -7,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import AIProgramProvider from '@/hooks/use-workout'
 import { createServerClient } from '@/lib/supabase/create-server-client'
 import { getCurrentUser } from '@/lib/supabase/server/database.operations.queries'
 import SupabaseProvider from '@/lib/supabase/use-supabase'
@@ -18,6 +18,7 @@ export default async function HomeLayout({
 }) {
   const client = await createServerClient()
   const { data: user, error } = await getCurrentUser(client)
+
   if (error) {
     return (
       <SupabaseProvider user={user}>
@@ -43,10 +44,10 @@ export default async function HomeLayout({
     )
   }
   return (
-    <>
+    <AIProgramProvider>
       <SupabaseProvider user={user}>
-        <main>{children}</main>
+        <main className="">{children}</main>
       </SupabaseProvider>
-    </>
+    </AIProgramProvider>
   )
 }

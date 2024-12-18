@@ -11,7 +11,10 @@ import { v4 } from 'uuid'
 import { createServerClient } from '../create-server-client'
 import { Database } from '../database.types'
 
-export async function createProgram(userId: string, body: Program) {
+export async function createProgram(
+  userId: string,
+  body: Program
+): Promise<Res<Program>> {
   const client = await createServerClient()
   const { data, error } = await client
     .from('programs')
@@ -39,6 +42,7 @@ export async function createProgram(userId: string, body: Program) {
   }
   return {
     data: {
+      created_at: data.created_at,
       id: data.id,
       name: body.name,
       workouts: body.workouts,
@@ -47,9 +51,12 @@ export async function createProgram(userId: string, body: Program) {
   }
 }
 
-export async function updateProgram(userId: string, program: Program) {
+export async function updateProgram(
+  userId: string,
+  program: Program
+): Promise<Res<Program>> {
   const client = await createServerClient()
-  const { data, error } = await client
+  const { data: dbProgramData, error } = await client
     .from('programs')
     .update({
       name: program.name,
@@ -74,7 +81,7 @@ export async function updateProgram(userId: string, program: Program) {
 
   const res = await Promise.all(
     program.workouts.map(async (workout, idx) => {
-      const { data, error: wErr } = await client
+      const { error: wErr } = await client
         .from('workouts')
         .upsert(
           {
@@ -96,24 +103,19 @@ export async function updateProgram(userId: string, program: Program) {
       if (wErr) {
         return { error: wErr }
       }
-      console.log('\n\n\n')
-      console.log({ data: data.blocks })
-      console.log('\n\n\n')
       return { error: null }
     })
   )
 
   for (const r of res) {
     if (r.error) {
-      console.log('\n\n\n')
-      console.log('error', r.error)
-      console.log('\n\n\n')
       return { data: null, error: r.error }
     }
   }
   return {
     data: {
-      id: data.id,
+      id: dbProgramData.id,
+      created_at: dbProgramData.created_at,
       name: program.name,
       workouts: program.workouts,
     },
@@ -128,8 +130,8 @@ export async function updateWorkoutInstance(
   const { error } = await client
     .from('workout_instances')
     .update({
-      end_at: workoutInstance.end_at,
       blocks: workoutInstance.blocks,
+      ...(workoutInstance.end_at && { end_at: workoutInstance.end_at }),
     })
     .eq('id', workoutInstance.id)
   if (error) {

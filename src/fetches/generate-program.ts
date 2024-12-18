@@ -1,12 +1,14 @@
-import { WorkoutPlan, workoutPlanSchema } from '@/lib/domain/exercises'
+import { AIProgram, aiProgramSchema } from '@/lib/domain/workouts'
 import { APIResponse } from '@/lib/types/apires'
 import { getError } from '@/lib/utils/util'
 
-export default async function apiGenerateWorkoutPlan(body: {
-  prompt: string
-}): Promise<APIResponse<WorkoutPlan>> {
+export default async function apiGenerateProgram(body: {
+  clientInfo: string
+  totalNumDays: number
+}): Promise<APIResponse<AIProgram>> {
+  console.log({ body })
   try {
-    const res = await fetch(`/api/ai/generate-workout`, {
+    const res = await fetch(`/api/ai/generate-program`, {
       method: 'POST',
       body: JSON.stringify(body),
       headers: new Headers({ 'Content-Type': 'application/json' }),
@@ -21,7 +23,7 @@ export default async function apiGenerateWorkoutPlan(body: {
 
     const { data: apiData } = await res.json()
     console.log({ apiData })
-    const { data, error } = workoutPlanSchema.safeParse(apiData)
+    const { data, error } = aiProgramSchema.safeParse(apiData)
     if (error) {
       return {
         data: null,

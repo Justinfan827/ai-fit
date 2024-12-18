@@ -6,26 +6,26 @@ import { useEffect, useState } from 'react'
 
 import { Typography } from '@/components/typography'
 import { Button } from '@/components/ui/button'
-import apiGenerateWorkoutPlan from '@/fetches/generate-workout'
+import apiGenerateProgram from '@/fetches/generate-workout'
 import { useAsyncFetch } from '@/hooks/async-fetch'
 import { toast } from '@/hooks/use-toast'
-import WorkoutPlanProvider, { useWorkoutPlan } from '@/hooks/use-workout'
+import AIProgramProvider, { useAIProgram } from '@/hooks/use-workout'
 import { Metadata, Workout, WorkoutExercise } from '@/lib/ai/openai/schema'
 import { ColDef } from '@ag-grid-community/core'
 
 export default function StartWorkout() {
   return (
-    <WorkoutPlanProvider>
+    <AIProgramProvider>
       <WorkoutInstance />
-    </WorkoutPlanProvider>
+    </AIProgramProvider>
   )
 }
 
 function WorkoutInstance() {
-  const { workoutPlan, setWorkoutPlan } = useWorkoutPlan()
+  const { program: workoutPlan, setProgram: setWorkoutPlan } = useAIProgram()
   const { runQuery, isPending } = useAsyncFetch({
     queryFunc: async () => {
-      const { data, error } = await apiGenerateWorkoutPlan({
+      const { data, error } = await apiGenerateProgram({
         prompt: '',
       })
       if (error) {

@@ -24,6 +24,7 @@ export default async function apiCreateWorkout({
     const { data: apiData } = await res.json()
     const { data, error } = programSchema.safeParse(apiData)
     if (error) {
+      console.log({error});
       return {
         data: null,
         error: new Error(error.message),

@@ -40,7 +40,6 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     !currentPath.startsWith('/login') &&
-    !currentPath.startsWith('/test') &&
     !currentPath.startsWith('/api/auth/callback') &&
     !currentPath.startsWith('/api/status')
   ) {

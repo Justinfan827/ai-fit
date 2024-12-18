@@ -1,7 +1,4 @@
-import {
-  getLatestWorkoutInstance,
-  getUserWorkout,
-} from '@/lib/supabase/server/database.operations.queries'
+import { getUserWorkout } from '@/lib/supabase/server/database.operations.queries'
 import ClientPage from './client-page'
 
 export default async function SingleWorkoutPage({
@@ -13,23 +10,15 @@ export default async function SingleWorkoutPage({
   }>
 }) {
   const workoutid = (await params).workoutid
-
-  const [workout, instance] = await Promise.all([
-    getUserWorkout(workoutid),
-    getLatestWorkoutInstance(workoutid),
-  ])
+  const [workout] = await Promise.all([getUserWorkout(workoutid)])
 
   if (workout.error) {
     return <div>error: {workout.error.message}</div>
   }
 
-  if (instance.error) {
-    return <div>error: {instance.error.message}</div>
-  }
-
   return (
     <div className="w-full space-y-2 p-2">
-      <ClientPage workout={workout.data} workoutInstance={instance.data} />
+      <ClientPage workout={workout.data} />
     </div>
   )
 }

@@ -2,16 +2,17 @@
 import { Icons } from '@/components/icons'
 import Tiptap from '@/components/tip-tap'
 import { Button } from '@/components/ui/button'
-import apiGenerateWorkoutPlan from '@/fetches/generate-workout'
+import { useEffect, useState } from 'react'
+
+import apiGenerateWorkoutPlan from '@/fetches/generate-program'
 import { useAsyncFetch } from '@/hooks/async-fetch'
 import { useToast } from '@/hooks/use-toast'
-import { useWorkoutPlan } from '@/hooks/use-workout'
-import { useEffect, useState } from 'react'
+import { useAIProgram } from '@/hooks/use-workout'
 
 export default function ClientSide() {
   const defaultContent = `This is a capable client looking to workout 3x per week. Beginner intermediate. No real issues. Looking to focus on building bigger arms`
   const [editorContent, setEditorContent] = useState(defaultContent)
-  const { setWorkoutPlan } = useWorkoutPlan()
+  const { setProgram: setWorkoutPlan } = useAIProgram()
   const { toast } = useToast()
 
   const { runQuery, isPending } = useAsyncFetch({

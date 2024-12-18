@@ -15,9 +15,9 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import apiGenerateWorkoutPlan from '@/fetches/generate-workout'
+import apiGenerateProgram from '@/fetches/generate-program'
 import { toast } from '@/hooks/use-toast'
-import { useWorkoutPlan } from '@/hooks/use-workout'
+import { useAIProgram } from '@/hooks/use-workout'
 import { Icons } from '../icons'
 import { Checkbox } from '../ui/checkbox'
 import { Textarea } from '../ui/textarea'
@@ -157,11 +157,11 @@ export function IntakeForm() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      firstname: 'John',
-      lastname: 'Wick',
-      age: '18',
+      firstname: 'Vinson',
+      lastname: 'Li',
+      age: '22',
       goals: ['increase-strength'],
-      experience: 'newbie',
+      experience: 'intermediate',
       lengthOfWorkout: '30-minutes-max',
       daysPerWeek: '3',
       typeOfWorkoutPreference: [
@@ -169,32 +169,33 @@ export function IntakeForm() {
         'bodybuilding',
         'functional-bodybuilding',
       ],
-      otherDetails: '',
+      otherDetails:
+        'Vinson is a 22 year old guy who is pretty fit. He has some trouble squatting so we need to regress that movement into a loaded leg press or single leg variations. He just wants to get really strong.',
     },
   })
-  const { setWorkoutPlan, isPending, setIsPending } = useWorkoutPlan()
+  const { setProgram: setProgram, isPending, setIsPending } = useAIProgram()
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     // TODO: when i submit this form, should I use an
     // AI to generate the prompt I use for the workout generation?
-    // toast({
-    //   title: "You submitted the following values:",
-    //   description: (
-    //     <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-    //       <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-    //     </pre>
-    //   ),
-    // });
+    toast({
+      title: 'You submitted the following values:',
+      description: (
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+        </pre>
+      ),
+    })
 
     const prompt = formToPrompt(data)
-    console.log({ prompt })
     toast({
       title: 'Prompt',
       description: prompt,
     })
     setIsPending(true)
-    const { data: apiData, error } = await apiGenerateWorkoutPlan({
-      prompt: prompt,
+    const { data: apiData, error } = await apiGenerateProgram({
+      clientInfo: prompt,
+      totalNumDays: Number(data.daysPerWeek),
     })
     if (error) {
       setIsPending(false)
@@ -206,7 +207,7 @@ export function IntakeForm() {
       return
     }
     console.log({ apiData })
-    setWorkoutPlan(apiData)
+    setProgram(apiData)
     setIsPending(false)
   }
 

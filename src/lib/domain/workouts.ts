@@ -12,15 +12,35 @@ export const exerciseSchema = z.object({
 
 export const workoutSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string
+  program_order: z.number(),
   program_id: z.string().uuid(), // Validates a UUID string
   name: z.string(),
   blocks: z.array(exerciseSchema), // Array of exercises
+})
+
+export const aiExerciseSchema = z.object({
+  exercise_name: z.string(),
+  sets: z.string(), // Assuming `sets` is a string (e.g., "3")
+  reps: z.string(), // Assuming `reps` is a string (e.g., "10")
+  weight: z.string(), // Assuming `weight` is a string (e.g., "135")
+  rest: z.string(), // Assuming `rest` is a string (e.g., "60")
+  notes: z.string(),
+})
+
+export const aiWorkoutSchema = z.object({
+  name: z.string(),
+  blocks: z.array(aiExerciseSchema), // Array of exercises
+})
+
+export const aiProgramSchema = z.object({
+  workouts: z.array(aiWorkoutSchema),
 })
 
 export const workoutsSchema = z.array(workoutSchema)
 
 export const programSchema = z.object({
   id: z.string().uuid(),
+  created_at: z.string().datetime({ offset: true }),
   name: z.string(),
   workouts: z.array(workoutSchema),
 })
@@ -56,7 +76,7 @@ export const workoutInstanceSchema = z.object({
   id: z.string().uuid(),
   // supabase times are offset 0 at UTC
   start_at: z.string().datetime({ offset: true }).nullable(),
-  end_at: z.string().datetime({ offset: true }).nullable(),
+  end_at: z.string().datetime({ offset: true }).nullable().optional(),
   workout_name: z.string(),
   workout_id: z.string().uuid(),
   blocks: z.array(workoutInstanceBlockSchema),
@@ -69,3 +89,7 @@ export type Workout = z.infer<typeof workoutSchema>
 export type Exercise = z.infer<typeof exerciseSchema>
 export type Program = z.infer<typeof programSchema>
 export type ExerciseInstance = z.infer<typeof exerciseInstanceSchema>
+
+// types just for AI generation (no id's primarily)
+export type AIWorkout = z.infer<typeof aiWorkoutSchema>
+export type AIProgram = z.infer<typeof aiProgramSchema>

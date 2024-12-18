@@ -95,6 +95,7 @@ export async function getUserWorkout(workoutid: string): Promise<Res<Workout>> {
 
   const resData: Workout = {
     id: pData.id,
+    program_order: pData.program_order,
     program_id: pData.program_id,
     name: pData.name,
     blocks: pData.blocks as Exercise[],
@@ -168,6 +169,7 @@ export async function getUserProgram(programId: string): Promise<Res<Program>> {
     .from('workouts')
     .select('*')
     .eq('program_id', programId)
+    .order('program_order', { ascending: true })
 
   if (wErr) {
     return { data: null, error: wErr }
@@ -175,8 +177,10 @@ export async function getUserProgram(programId: string): Promise<Res<Program>> {
   const program: Program = {
     id: pData.id,
     name: pData.name,
+    created_at: pData.created_at,
     workouts: wData.map((workout) => ({
       id: workout.id,
+      program_order: workout.program_order,
       program_id: workout.program_id,
       name: workout.name,
       blocks: workout.blocks as Exercise[],
@@ -203,6 +207,7 @@ export async function getUserPrograms(): Promise<Res<Program[]>> {
     .from('programs')
     .select('*')
     .eq('user_id', data.user.id)
+    .order('created_at', { ascending: false })
 
   if (pErr) {
     return { data: null, error: pErr }
@@ -215,13 +220,13 @@ async function resolvePrograms(
   pData: Database['public']['Tables']['programs']['Row'][]
 ): Promise<Res<Program[]>> {
   const returnData: Program[] = []
-
   const res = await Promise.all(
     pData.map(async (p) => {
       const { data: wData, error: wErr } = await client
         .from('workouts')
         .select('*')
         .eq('program_id', p.id)
+        .order('program_order', { ascending: true })
 
       if (wErr) {
         return { error: wErr }
@@ -229,8 +234,10 @@ async function resolvePrograms(
       const program: Program = {
         id: p.id,
         name: p.name,
+        created_at: p.created_at,
         workouts: wData.map((workout) => ({
           id: workout.id,
+          program_order: workout.program_order,
           program_id: workout.program_id,
           name: workout.name,
           blocks: workout.blocks as Exercise[],
@@ -251,7 +258,10 @@ async function resolvePrograms(
       return { data: null, error: r.error }
     }
   }
-
+  // need to sort the programs by created_at
+  returnData.sort((a, b) => {
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
   return {
     data: returnData,
     error: null,
@@ -260,7 +270,10 @@ async function resolvePrograms(
 
 export async function getAllPrograms(): Promise<Res<Program[]>> {
   const client = await createServerClient()
-  const { data: wData, error: wErr } = await client.from('programs').select('*')
+  const { data: wData, error: wErr } = await client
+    .from('programs')
+    .select('*')
+    .order('created_at', { ascending: false })
   if (wErr) {
     return { data: null, error: wErr }
   }

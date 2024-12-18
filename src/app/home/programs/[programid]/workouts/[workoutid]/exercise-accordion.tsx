@@ -13,7 +13,12 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Exercise, ExerciseInstance, Workout, WorkoutInstance } from '@/lib/domain/workouts'
+import {
+  Exercise,
+  ExerciseInstance,
+  Workout,
+  WorkoutInstance,
+} from '@/lib/domain/workouts'
 import { cn } from '@/lib/utils'
 import { WorkoutForm } from './form'
 
@@ -181,7 +186,7 @@ export function WorkoutAccordionInstance({
                     <p className="tracking-wider">
                       {block.exercise.sets.length} sets
                     </p>
-                    <p>
+                    <p className="font-mono">
                       {block.exercise.sets
                         .map((set) => {
                           return `${set.planned.reps}x${set.planned.weight}lb`

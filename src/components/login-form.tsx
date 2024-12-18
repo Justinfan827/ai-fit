@@ -62,7 +62,6 @@ export function LoginForm() {
       }),
     })
 
-    console.log({ authURL })
     try {
       const { error } = await client.auth.signInWithOtp({
         email: data.email,
