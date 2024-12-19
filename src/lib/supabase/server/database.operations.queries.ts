@@ -26,13 +26,43 @@ export async function getUserFirstLast(client: DBClient, user: User) {
     .single()
 }
 
-export async function getCurrentUser(client: DBClient): Promise<Res<User>> {
+export interface CurrentUser {
+  sbUser: User
+  metadata: {
+    firstName: string
+    lastName: string
+    role: 'trainer' | 'client'
+  }
+}
+
+export async function getCurrentUser(): Promise<Res<CurrentUser>> {
+  const client = await createServerClient()
   const { data: userRes, error: getUserError } = await client.auth.getUser()
   if (getUserError) {
     return { data: null, error: getUserError }
   }
-  const { user } = userRes
-  return { data: user, error: null }
+
+  const { data: dbUser, error: dbErr } = await client
+    .from('users')
+    .select('*')
+    .eq('id', userRes.user.id)
+    .single()
+  if (dbErr) {
+    return { data: null, error: dbErr }
+  }
+  const { user: sbUser } = userRes
+  return {
+    data: {
+      sbUser,
+      metadata: {
+        firstName: dbUser.first_name || '',
+        lastName: dbUser.last_name || '',
+        // @ts-ignore TODO: fix type
+        role: dbUser.metadata['roles'][0],
+      },
+    },
+    error: null,
+  }
 }
 
 export async function getLatestWorkoutInstance(

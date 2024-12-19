@@ -3,17 +3,29 @@ import { Typography } from '@/components/typography'
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { getAllPrograms } from '@/lib/supabase/server/database.operations.queries'
+import {
+  getAllPrograms,
+  getCurrentUser,
+} from '@/lib/supabase/server/database.operations.queries'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
 export default async function WorkoutsPage() {
-  const { data, error } = await getAllPrograms()
+  const [programs, user] = await Promise.all([
+    getAllPrograms(),
+    getCurrentUser(),
+  ])
+
+  const { data: userData, error: userError } = user
+  if (userError) {
+    return <div>error: {userError.message}</div>
+  }
+  const { data, error } = programs
   if (error) {
     return <div>error: {error.message}</div>
   }
@@ -27,7 +39,7 @@ export default async function WorkoutsPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Home</BreadcrumbLink>
+                <BreadcrumbPage>Home</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -42,24 +54,53 @@ export default async function WorkoutsPage() {
     )
   }
   return (
-    <div className="mx-auto max-w-7xl sm:px-6 sm:py-6 lg:px-8 lg:py-6">
-      <Typography className="text-2xl tracking-wide" variant="h2">
-        Programs
-      </Typography>
-      <div id="list-container" className="mt-8">
-        {data.map((program, idx) => (
-          <Link
-            href={`/test/${program.id}`}
-            key={program.id}
-            className={cn(
-              'flex border-x border-b border-neutral-700 px-4 py-4',
-              idx === 0 && 'rounded-t-sm border-t',
-              idx === data.length - 1 && 'rounded-b-sm border-b'
-            )}
-          >
-            {program.name}
-          </Link>
-        ))}
+    <div>
+      <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4">
+        <Logo />
+        <Separator orientation="vertical" className="h-4" />
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem className="hidden md:block">
+              <BreadcrumbPage>Home</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </header>
+      <div id="home content">
+        <div className="border-b border-b-neutral-800 p-4">
+          <div className="mx-auto flex max-w-7xl items-center justify-between sm:px-6 sm:py-6 lg:px-8 lg:py-6">
+            <div>
+              <Typography className="text-2xl tracking-wide" variant="h2">
+                Welcome{' '}
+                {`${userData.metadata.firstName} ${userData.metadata.lastName}`}
+              </Typography>
+              <p className="leading-none text-neutral-500">
+                {userData.sbUser.email}
+              </p>
+            </div>
+            <Button asChild>
+              <Link href="/home/programs/new">New program</Link>
+            </Button>
+          </div>
+        </div>
+        <div className="p-4">
+        <Typography></Typography>
+          <div id="list-container" className="mt-8">
+            {data.map((program, idx) => (
+              <Link
+                href={`/home/programs/${program.id}`}
+                key={program.id}
+                className={cn(
+                  'flex border-x border-b border-neutral-700 px-4 py-4',
+                  idx === 0 && 'rounded-t-sm border-t',
+                  idx === data.length - 1 && 'rounded-b-sm border-b'
+                )}
+              >
+                {program.name}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

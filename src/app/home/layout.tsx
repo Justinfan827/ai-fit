@@ -7,7 +7,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import AIProgramProvider from '@/hooks/use-workout'
-import { createServerClient } from '@/lib/supabase/create-server-client'
 import { getCurrentUser } from '@/lib/supabase/server/database.operations.queries'
 import SupabaseProvider from '@/lib/supabase/use-supabase'
 
@@ -16,8 +15,7 @@ export default async function HomeLayout({
 }: {
   children: React.ReactNode
 }) {
-  const client = await createServerClient()
-  const { data: user, error } = await getCurrentUser(client)
+  const { data: user, error } = await getCurrentUser()
 
   if (error) {
     return (

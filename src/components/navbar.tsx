@@ -31,19 +31,19 @@ import { Logo } from './icons'
 
 export default async function Navbar() {
   const client = await createServerClient()
-  const { data: user, error } = await getCurrentUser(client) // TODO: suspense and fallback
+  const { data: user, error } = await getCurrentUser() // TODO: suspense and fallback
   if (error) {
     return (
       <header className="sticky top-0 z-40 flex w-full items-center justify-start gap-8 border-b border-neutral-800 bg-background px-4 py-2">
         <Logo />
-        <nav className="h-10 flex w-full items-center justify-between"></nav>
+        <nav className="flex h-10 w-full items-center justify-between"></nav>
       </header>
     )
   }
   return (
     <header className="sticky top-0 z-40 flex w-full items-center justify-start gap-8 border-b border-neutral-800 bg-background px-4 py-2">
       <Logo />
-      <nav className="h-10 flex w-full items-center justify-between">
+      <nav className="flex h-10 w-full items-center justify-between">
         <NavbarNew />
         <SupabaseProvider>
           <NavUserDropdown user={user} />

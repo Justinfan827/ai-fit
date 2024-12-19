@@ -13,25 +13,71 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_template: boolean
           name: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_template: boolean
           name: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_template?: boolean
           name?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "workout_plans_user_id_fkey"
+            foreignKeyName: "programs_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainer_assigned_programs: {
+        Row: {
+          client_id: string
+          id: string
+          program_id: string
+          trainer_id: string
+        }
+        Insert: {
+          client_id?: string
+          id?: string
+          program_id?: string
+          trainer_id?: string
+        }
+        Update: {
+          client_id?: string
+          id?: string
+          program_id?: string
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_assigned_programs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_assigned_programs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_assigned_programs_trainer_id_fkey"
+            columns: ["trainer_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -45,6 +91,7 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          metadata: Json | null
         }
         Insert: {
           created_at?: string | null
@@ -52,6 +99,7 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          metadata?: Json | null
         }
         Update: {
           created_at?: string | null
@@ -59,6 +107,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          metadata?: Json | null
         }
         Relationships: []
       }
@@ -119,17 +168,17 @@ export type Database = {
       }
       workout_rows: {
         Row: {
-          id: number
+          id: string
           row_data: Json | null
           workout_id: string | null
         }
         Insert: {
-          id?: number
+          id: string
           row_data?: Json | null
           workout_id?: string | null
         }
         Update: {
-          id?: number
+          id?: string
           row_data?: Json | null
           workout_id?: string | null
         }

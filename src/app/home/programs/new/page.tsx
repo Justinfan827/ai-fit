@@ -22,7 +22,7 @@ export default function Page() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Programs</BreadcrumbLink>
+                <BreadcrumbLink href="/home/programs">Programs</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
@@ -32,7 +32,7 @@ export default function Page() {
           </Breadcrumb>
         </header>
         {/* height is calculated as the height of the screen (dvh) - h-16, where 16 = 4rem*/}
-        <div className="debug flex h-[calc(100dvh-4rem)] w-full overflow-auto">
+        <div className="flex h-[calc(100dvh-4rem)] w-full overflow-auto">
           <ProgramEditor />
         </div>
       </div>
