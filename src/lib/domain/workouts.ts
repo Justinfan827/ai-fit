@@ -1,6 +1,14 @@
 import { z } from 'zod'
 
+// exercises that are stored in the DB
 export const exerciseSchema = z.object({
+  id: z.string().uuid(), // Validates a UUID string
+  name: z.string(),
+})
+
+export const exercisesSchema = z.array(exerciseSchema)
+
+export const workoutExerciseSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string
   exercise_name: z.string(),
   sets: z.string(), // Assuming `sets` is a string (e.g., "3")
@@ -15,7 +23,7 @@ export const workoutSchema = z.object({
   program_order: z.number(),
   program_id: z.string().uuid(), // Validates a UUID string
   name: z.string(),
-  blocks: z.array(exerciseSchema), // Array of exercises
+  blocks: z.array(workoutExerciseSchema), // Array of exercises
 })
 
 export const aiExerciseSchema = z.object({
@@ -86,6 +94,7 @@ export type WorkoutInstanceBlock = z.infer<typeof workoutInstanceBlockSchema>
 export type WorkoutInstance = z.infer<typeof workoutInstanceSchema>
 export type Workouts = z.infer<typeof workoutsSchema>
 export type Workout = z.infer<typeof workoutSchema>
+export type WorkoutExercise = z.infer<typeof workoutExerciseSchema>
 export type Exercise = z.infer<typeof exerciseSchema>
 export type Program = z.infer<typeof programSchema>
 export type ExerciseInstance = z.infer<typeof exerciseInstanceSchema>

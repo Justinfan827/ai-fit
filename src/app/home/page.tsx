@@ -1,5 +1,5 @@
 import { Logo } from '@/components/icons'
-import { Typography } from '@/components/typography'
+import { Tp } from '@/components/typography'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -11,14 +11,16 @@ import { Separator } from '@/components/ui/separator'
 import {
   getAllPrograms,
   getCurrentUser,
+  getCurrentUserClients,
 } from '@/lib/supabase/server/database.operations.queries'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
 export default async function WorkoutsPage() {
-  const [programs, user] = await Promise.all([
+  const [programs, user, clients] = await Promise.all([
     getAllPrograms(),
     getCurrentUser(),
+    getCurrentUserClients(),
   ])
 
   const { data: userData, error: userError } = user
@@ -28,6 +30,11 @@ export default async function WorkoutsPage() {
   const { data, error } = programs
   if (error) {
     return <div>error: {error.message}</div>
+  }
+
+  const { data: clientsData, error: clientsError } = clients
+  if (clientsError) {
+    return <div>error: {clientsError.message}</div>
   }
 
   if (!data || data.length === 0) {
@@ -70,10 +77,10 @@ export default async function WorkoutsPage() {
         <div className="border-b border-b-neutral-800 p-4">
           <div className="mx-auto flex max-w-7xl items-center justify-between sm:px-6 sm:py-6 lg:px-8 lg:py-6">
             <div>
-              <Typography className="text-2xl tracking-wide" variant="h2">
+              <Tp className="text-2xl tracking-wide" variant="h2">
                 Welcome{' '}
                 {`${userData.metadata.firstName} ${userData.metadata.lastName}`}
-              </Typography>
+              </Tp>
               <p className="leading-none text-neutral-500">
                 {userData.sbUser.email}
               </p>
@@ -83,23 +90,37 @@ export default async function WorkoutsPage() {
             </Button>
           </div>
         </div>
-        <div className="p-4">
-        <Typography></Typography>
-          <div id="list-container" className="mt-8">
-            {data.map((program, idx) => (
-              <Link
-                href={`/home/programs/${program.id}`}
-                key={program.id}
-                className={cn(
-                  'flex border-x border-b border-neutral-700 px-4 py-4',
-                  idx === 0 && 'rounded-t-sm border-t',
-                  idx === data.length - 1 && 'rounded-b-sm border-b'
-                )}
-              >
-                {program.name}
-              </Link>
-            ))}
-          </div>
+        <div id="programs-container" className="space-y-4 p-4">
+          <Tp className="text-2xl tracking-wide">Programs</Tp>
+          {data.map((program, idx) => (
+            <Link
+              href={`/home/programs/${program.id}`}
+              key={program.id}
+              className={cn(
+                'flex border-x border-b border-neutral-700 px-4 py-4',
+                idx === 0 && 'rounded-t-sm border-t',
+                idx === data.length - 1 && 'rounded-b-sm border-b'
+              )}
+            >
+              {program.name}
+            </Link>
+          ))}
+        </div>
+        <div id="clients-container" className="space-y-4 p-4">
+          <Tp className="text-2xl tracking-wide">Clients</Tp>
+          {clientsData.map((client, idx) => (
+            <Link
+              href={`/home/clients/${client.id}`}
+              key={client.id}
+              className={cn(
+                'flex border-x border-b border-neutral-700 px-4 py-4',
+                idx === 0 && 'rounded-t-sm border-t',
+                idx === data.length - 1 && 'rounded-b-sm border-b'
+              )}
+            >
+              {client.firstName} {client.lastName}
+            </Link>
+          ))}
         </div>
       </div>
     </div>

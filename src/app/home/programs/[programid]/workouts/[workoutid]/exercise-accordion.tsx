@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
-  Exercise,
+  WorkoutExercise,
   ExerciseInstance,
   Workout,
   WorkoutInstance,
@@ -76,7 +76,7 @@ function SetsContent({
   exercise,
   form,
 }: {
-  exercise: Exercise
+  exercise: WorkoutExercise
   exerciseIdx: number
   form: WorkoutForm
 }) {

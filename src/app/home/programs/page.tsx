@@ -1,4 +1,4 @@
-import { Typography } from '@/components/typography'
+import { Tp } from '@/components/typography'
 import { Button } from '@/components/ui/button'
 import { getUserPrograms } from '@/lib/supabase/server/database.operations.queries'
 import { cn } from '@/lib/utils'
@@ -14,9 +14,9 @@ export default async function WorkoutsPage() {
     <div className="">
       <div className="border-b border-b-neutral-800 p-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between sm:px-6 sm:py-6 lg:px-8 lg:py-6">
-          <Typography className="text-2xl tracking-wide" variant="h2">
+          <Tp className="text-2xl tracking-wide" variant="h2">
             Programs
-          </Typography>
+          </Tp>
           <div className="flex w-full justify-end">
             <Button asChild>
               <Link href="/home/programs/new">New program</Link>

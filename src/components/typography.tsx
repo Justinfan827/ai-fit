@@ -23,7 +23,7 @@ export interface TitleProps
   extends React.AllHTMLAttributes<HTMLElement>,
     VariantProps<typeof titleVariants> {}
 
-const Typography = ({ className, variant, ...props }: TitleProps) => {
+const Tp = ({ className, variant, ...props }: TitleProps) => {
   const tagMap: Record<NonNullable<typeof variant>, string> = {
     h1: 'h1',
     h2: 'h2',
@@ -31,6 +31,8 @@ const Typography = ({ className, variant, ...props }: TitleProps) => {
     h4: 'h4',
     p: 'p',
     mutedP: 'p',
+    displaySubtitle: 'h1',
+    display: 'h1',
   }
   const Tag: any = tagMap[variant || 'p'] || 'p'
 
@@ -39,6 +41,6 @@ const Typography = ({ className, variant, ...props }: TitleProps) => {
   )
 }
 
-Typography.displayName = 'Typography'
+Tp.displayName = 'Typography'
 
-export { Typography, titleVariants }
+export { Tp, titleVariants }

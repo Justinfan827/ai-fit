@@ -15,3 +15,5 @@ export interface ErrorRes {
 }
 
 export type Res<T> = SuccessRes<T> | ErrorRes
+
+export type AsyncRes<T> = Promise<Res<T>>

@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { defaultColumns, defaultRowData } from '@/components/grid/columns'
 import MyGrid from '@/components/grid/workout-grid'
 import { Icons } from '@/components/icons'
-import { Typography } from '@/components/typography'
+import { Tp } from '@/components/typography'
 import { Button } from '@/components/ui/button'
 import apiCreateWorkout from '@/fetches/create-workout'
 import apiEditWorkout from '@/fetches/edit-workout'
@@ -288,7 +288,7 @@ const EditableTypography = ({
           )}
         />
       ) : (
-        <Typography
+        <Tp
           className={cn(
             'truncate leading-none tracking-wide underline decoration-neutral-300 decoration-dotted underline-offset-4',
             className && className,
@@ -297,7 +297,7 @@ const EditableTypography = ({
           variant="h3"
         >
           {value || valueDefault}
-        </Typography>
+        </Tp>
       )}
     </div>
   )

@@ -21,6 +21,7 @@ export async function createProgram(
     .insert({
       name: body.name,
       user_id: userId,
+      is_template: true,
     })
     .select('*')
     .single()
@@ -121,6 +122,89 @@ export async function updateProgram(
     },
     error,
   }
+}
+
+// When we assign a program to a user, we need to:
+// - Duplicate the program, workout, workout rows into a new program
+// - Mark the new program as a non template w/ owner being the client.
+// - Create a new row in the `trainer_assigned_programs` table to mark relationship between trainer, client, and program
+//     - `client_id`
+//     - `program_id`
+//     - `trainer_id`
+export async function assignProgramToUser({
+  trainerId,
+  clientId,
+  programId,
+}: {
+  trainerId: string
+  clientId: string
+  programId: string
+}): Promise<Res<undefined>> {
+  const client = await createServerClient()
+  const { data, error } = await client
+    .from('programs')
+    .select('*')
+    .eq('id', programId)
+    .eq('is_template', true)
+    .eq('user_id', trainerId) // Ensure the program is owned by the trainer
+    .single()
+
+  if (error) {
+    return { data: null, error }
+  }
+
+  const { data: newProgram, error: newProgramError } = await client
+    .from('programs')
+    .insert({
+      name: data.name,
+      user_id: clientId,
+      is_template: false,
+    })
+    .select('*')
+    .single()
+
+  if (newProgramError) {
+    return { data: null, error: newProgramError }
+  }
+
+  // Duplicate workouts
+
+  const { data: workouts, error: workoutError } = await client
+    .from('workouts')
+    .select('*')
+    .eq('program_id', programId)
+
+  if (workoutError) {
+    return { data: null, error: workoutError }
+  }
+  const { error: insertWorkoutError } = await client.from('workouts').insert(
+    workouts.map((workout) => ({
+      program_id: newProgram.id,
+      user_id: newProgram.user_id,
+      name: workout.name,
+      program_order: workout.program_order,
+      blocks: workout.blocks,
+    }))
+  )
+  if (insertWorkoutError) {
+    return { data: null, error: insertWorkoutError }
+  }
+
+  // Create relationship between client,  program, and trainer
+
+  const { error: assignError } = await client
+    .from('trainer_assigned_programs')
+    .insert({
+      client_id: clientId,
+      program_id: newProgram.id,
+      trainer_id: trainerId,
+    })
+
+  if (assignError) {
+    return { data: null, error: assignError }
+  }
+  console.log('DONE CREATING')
+  return { data: undefined, error }
 }
 
 export async function updateWorkoutInstance(

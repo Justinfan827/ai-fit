@@ -9,12 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      exercises: {
+        Row: {
+          body_region: string | null
+          created_at: string
+          id: string
+          modifiers: Json | null
+          name: string
+          owner_id: string | null
+          range_of_motion: string | null
+          skill: string | null
+          target_muscles: Json | null
+        }
+        Insert: {
+          body_region?: string | null
+          created_at?: string
+          id?: string
+          modifiers?: Json | null
+          name: string
+          owner_id?: string | null
+          range_of_motion?: string | null
+          skill?: string | null
+          target_muscles?: Json | null
+        }
+        Update: {
+          body_region?: string | null
+          created_at?: string
+          id?: string
+          modifiers?: Json | null
+          name?: string
+          owner_id?: string | null
+          range_of_motion?: string | null
+          skill?: string | null
+          target_muscles?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programs: {
         Row: {
           created_at: string
           id: string
           is_template: boolean
           name: string
+          template_id: string | null
           user_id: string
         }
         Insert: {
@@ -22,6 +67,7 @@ export type Database = {
           id?: string
           is_template: boolean
           name: string
+          template_id?: string | null
           user_id: string
         }
         Update: {
@@ -29,9 +75,17 @@ export type Database = {
           id?: string
           is_template?: boolean
           name?: string
+          template_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "programs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "programs_user_id_fkey"
             columns: ["user_id"]
@@ -92,6 +146,7 @@ export type Database = {
           id: string
           last_name: string | null
           metadata: Json | null
+          trainer_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -100,6 +155,7 @@ export type Database = {
           id: string
           last_name?: string | null
           metadata?: Json | null
+          trainer_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -108,8 +164,17 @@ export type Database = {
           id?: string
           last_name?: string | null
           metadata?: Json | null
+          trainer_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workout_instances: {
         Row: {
@@ -257,10 +322,76 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      gtrgm_compress: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: {
+          "": unknown
+        }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
       is_claims_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      search_exercises_by_name:
+        | {
+            Args: {
+              exercise_name: string
+            }
+            Returns: {
+              id: string
+              created_at: string
+              name: string
+              target_muscles: Json
+              skill: string
+              range_of_motion: string
+              body_region: string
+              owner_id: string
+              modifiers: Json
+              sim_score: number
+            }[]
+          }
+        | {
+            Args: {
+              exercise_name: string
+              threshold: number
+            }
+            Returns: {
+              id: string
+              created_at: string
+              name: string
+              target_muscles: Json
+              skill: string
+              range_of_motion: string
+              body_region: string
+              owner_id: string
+              modifiers: Json
+              sim_score: number
+            }[]
+          }
       set_claim: {
         Args: {
           uid: string
@@ -268,6 +399,22 @@ export type Database = {
           value: Json
         }
         Returns: string
+      }
+      set_limit: {
+        Args: {
+          "": number
+        }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: {
+          "": string
+        }
+        Returns: string[]
       }
     }
     Enums: {

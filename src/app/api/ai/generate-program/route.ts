@@ -1,10 +1,8 @@
 import 'server-only'
 
-import { generateWorkout } from '@/lib/ai/openai/client'
 import { AIWorkout } from '@/lib/domain/workouts'
 import { sleep } from '@/lib/utils/util'
 import { NextRequest, NextResponse } from 'next/server'
-import { InternalError, InternalErrorRes } from '../../errors'
 import { APIRouteHandlerResponse } from '../../types'
 
 const generateInitialUserPrompt = ({
@@ -50,6 +48,7 @@ export async function POST(
   request: NextRequest
 ): Promise<APIRouteHandlerResponse<WorkoutResponse>> {
   await sleep(2000)
+  // mock response
   return NextResponse.json({
     data: JSON.parse(
       `
@@ -245,70 +244,70 @@ export async function POST(
     ),
     error: null,
   })
-  const body = await request.json()
-  console.log({ body })
-  const { totalNumDays, clientInfo } = body
-
-  // Generate the workouts day by day with open ai!
-  const initialContext = {
-    role: user,
-    content: generateInitialUserPrompt({
-      clientProfile: clientInfo,
-      workoutNumber: 1,
-      totalNumDays,
-    }),
-  }
-  console.log(JSON.stringify(initialContext, null, 2))
-  const { data: workoutDay1, error } = await generateWorkout({
-    context: [initialContext],
-  })
-  if (error) {
-    return InternalErrorRes(
-      new InternalError('API network issue', { cause: error })
-    )
-  }
-  const resp: WorkoutResponse = { workouts: [workoutDay1] }
-  let context = [
-    initialContext,
-    {
-      role: assistant,
-      content: workoutAssistantPrompt({ dayNum: 1, workout: workoutDay1 }),
-    },
-  ]
-
-  for (let i = 2; i < totalNumDays + 1; i++) {
-    const workoutDay = i
-    const nextContext = [
-      ...context,
-      {
-        role: user,
-        content: genUserPrompt({
-          workoutNumber: workoutDay,
-          totalNumDays: totalNumDays,
-        }),
-      },
-    ]
-    console.log(JSON.stringify(nextContext, null, 2))
-    const { data, error } = await generateWorkout({
-      context: nextContext,
-    })
-    if (error) {
-      return InternalErrorRes(
-        new InternalError('API network issue', { cause: error })
-      )
-    }
-    resp.workouts = [...resp.workouts, data]
-    context = [
-      ...nextContext,
-      {
-        role: assistant,
-        content: workoutAssistantPrompt({
-          dayNum: workoutDay,
-          workout: workoutDay1,
-        }),
-      },
-    ]
-  }
-  console.log(JSON.stringify(resp, null, 2))
-  return NextResponse.json({ data: resp, error: null })
+  // const body = await request.json()
+  // console.log({ body })
+  // const { totalNumDays, clientInfo } = body
+  //
+  // // Generate the workouts day by day with open ai!
+  // const initialContext = {
+  //   role: user,
+  //   content: generateInitialUserPrompt({
+  //     clientProfile: clientInfo,
+  //     workoutNumber: 1,
+  //     totalNumDays,
+  //   }),
+  // }
+  // console.log(JSON.stringify(initialContext, null, 2))
+  // const { data: workoutDay1, error } = await generateWorkout({
+  //   context: [initialContext],
+  // })
+  // if (error) {
+  //   return InternalErrorRes(
+  //     new InternalError('API network issue', { cause: error })
+  //   )
+  // }
+  // const resp: WorkoutResponse = { workouts: [workoutDay1] }
+  // let context = [
+  //   initialContext,
+  //   {
+  //     role: assistant,
+  //     content: workoutAssistantPrompt({ dayNum: 1, workout: workoutDay1 }),
+  //   },
+  // ]
+  //
+  // for (let i = 2; i < totalNumDays + 1; i++) {
+  //   const workoutDay = i
+  //   const nextContext = [
+  //     ...context,
+  //     {
+  //       role: user,
+  //       content: genUserPrompt({
+  //         workoutNumber: workoutDay,
+  //         totalNumDays: totalNumDays,
+  //       }),
+  //     },
+  //   ]
+  //   console.log(JSON.stringify(nextContext, null, 2))
+  //   const { data, error } = await generateWorkout({
+  //     context: nextContext,
+  //   })
+  //   if (error) {
+  //     return InternalErrorRes(
+  //       new InternalError('API network issue', { cause: error })
+  //     )
+  //   }
+  //   resp.workouts = [...resp.workouts, data]
+  //   context = [
+  //     ...nextContext,
+  //     {
+  //       role: assistant,
+  //       content: workoutAssistantPrompt({
+  //         dayNum: workoutDay,
+  //         workout: workoutDay1,
+  //       }),
+  //     },
+  //   ]
+  // }
+  // console.log(JSON.stringify(resp, null, 2))
+  // return NextResponse.json({ data: resp, error: null })
 }

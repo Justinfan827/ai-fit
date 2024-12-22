@@ -7,7 +7,7 @@ import { useState } from 'react'
 
 import { Icons } from '@/components/icons'
 import LoadingButton from '@/components/loading-button'
-import { Typography } from '@/components/typography'
+import { Tp } from '@/components/typography'
 import { Button } from '@/components/ui/button'
 import apiCreateWorkoutInstance from '@/fetches/create-workout-instance'
 import apiUpdateWorkoutInstance from '@/fetches/update-workout-instance'
@@ -192,9 +192,9 @@ export default function ClientPage({
           </div>
         )}
       </div>
-      <Typography className="text-2xl tracking-wide" variant="h2">
+      <Tp className="text-2xl tracking-wide" variant="h2">
         {workout.name}
-      </Typography>
+      </Tp>
       <div id="workout" className="">
         {workoutInstance ? (
           <WorkoutAccordionInstance

@@ -3,7 +3,7 @@ import 'server-only'
 import { User } from '@supabase/supabase-js'
 
 import {
-  Exercise,
+  WorkoutExercise,
   Program,
   programSchema,
   Workout,
@@ -26,6 +26,91 @@ export async function getUserFirstLast(client: DBClient, user: User) {
     .single()
 }
 
+export interface Client {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+}
+
+export interface ClientWithPrograms extends Client {
+  programs: Program[]
+}
+
+export async function getClientUserWithPrograms(
+  clientId: string
+): Promise<Res<ClientWithPrograms>> {
+  const sb = await createServerClient()
+
+  const { data: userRes, error: getUserError } = await sb.auth.getUser()
+  if (getUserError) {
+    return { data: null, error: getUserError }
+  }
+
+  const { data: client, error: clientError } = await sb
+    .from('users')
+    .select('*')
+    .eq('trainer_id', userRes.user.id)
+    .eq('id', clientId)
+    .single()
+
+  if (clientError) {
+    return { data: null, error: clientError }
+  }
+
+  const { data: pData, error: pErr } = await sb
+    .from('programs')
+    .select('*')
+    .eq('user_id', client.id)
+    .order('created_at', { ascending: false })
+
+  if (pErr) {
+    return { data: null, error: pErr }
+  }
+
+  const { data: progData, error: progErr } = await resolvePrograms(sb, pData)
+  if (progErr) {
+    return { data: null, error: progErr }
+  }
+
+  return {
+    data: {
+      id: client.id,
+      email: client.email || '',
+      firstName: client.first_name || '',
+      lastName: client.last_name || '',
+      programs: progData,
+    },
+    error: null,
+  }
+}
+
+export async function getCurrentUserClients(): Promise<Res<Client[]>> {
+  const client = await createServerClient()
+
+  const { data: userRes, error: getUserError } = await client.auth.getUser()
+  if (getUserError) {
+    return { data: null, error: getUserError }
+  }
+  const { data: clients, error: clientError } = await client
+    .from('users')
+    .select('*')
+    .eq('trainer_id', userRes.user.id)
+
+  if (clientError) {
+    return { data: null, error: clientError }
+  }
+  return {
+    data: clients.map((c) => ({
+      id: c.id,
+      email: c.email || '',
+      firstName: c.first_name || '',
+      lastName: c.last_name || '',
+    })),
+    error: null,
+  }
+}
+
 export interface CurrentUser {
   sbUser: User
   metadata: {
@@ -34,7 +119,6 @@ export interface CurrentUser {
     role: 'trainer' | 'client'
   }
 }
-
 export async function getCurrentUser(): Promise<Res<CurrentUser>> {
   const client = await createServerClient()
   const { data: userRes, error: getUserError } = await client.auth.getUser()
@@ -128,7 +212,7 @@ export async function getUserWorkout(workoutid: string): Promise<Res<Workout>> {
     program_order: pData.program_order,
     program_id: pData.program_id,
     name: pData.name,
-    blocks: pData.blocks as Exercise[],
+    blocks: pData.blocks as WorkoutExercise[],
   }
   const { data: wData, error: wErr } = workoutSchema.safeParse(resData)
   if (wErr) {
@@ -213,7 +297,7 @@ export async function getUserProgram(programId: string): Promise<Res<Program>> {
       program_order: workout.program_order,
       program_id: workout.program_id,
       name: workout.name,
-      blocks: workout.blocks as Exercise[],
+      blocks: workout.blocks as WorkoutExercise[],
     })),
   }
   const { data: programData, error: parseErr } =
@@ -270,7 +354,7 @@ async function resolvePrograms(
           program_order: workout.program_order,
           program_id: workout.program_id,
           name: workout.name,
-          blocks: workout.blocks as Exercise[],
+          blocks: workout.blocks as WorkoutExercise[],
         })),
       }
       const { data: programData, error: parseErr } =
@@ -308,4 +392,23 @@ export async function getAllPrograms(): Promise<Res<Program[]>> {
     return { data: null, error: wErr }
   }
   return resolvePrograms(client, wData)
+}
+export async function getAllCurrentUserUnassignedPrograms(): Promise<
+  Res<Program[]>
+> {
+  const sb = await createServerClient()
+  const { data: userRes, error: getUserError } = await sb.auth.getUser()
+  if (getUserError) {
+    return { data: null, error: getUserError }
+  }
+
+  const { data: wData, error: wErr } = await sb
+    .from('programs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .eq('user_id', userRes.user.id)
+  if (wErr) {
+    return { data: null, error: wErr }
+  }
+  return resolvePrograms(sb, wData)
 }

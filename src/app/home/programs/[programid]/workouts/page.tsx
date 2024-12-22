@@ -1,4 +1,4 @@
-import { Typography } from '@/components/typography'
+import { Tp } from '@/components/typography'
 import {
   getUserProgram,
   getWorkoutInstances,
@@ -34,7 +34,7 @@ export default async function WorkoutPage({
       </div>
       <div className="mx-auto max-w-7xl space-y-8 px-4 pt-6">
         <div className="space-y-2">
-          <Typography variant="h3">Workouts</Typography>
+          <Tp variant="h3">Workouts</Tp>
           <div id="workouts-container" className="">
             {workouts.data.workouts.map((workout, idx) => (
               <Link
@@ -58,7 +58,7 @@ export default async function WorkoutPage({
           </div>
         </div>
         <div className="space-y-2">
-          <Typography variant="h3">Active</Typography>
+          <Tp variant="h3">Active</Tp>
           <div id="history-container">
             {instances.data
               .filter((instance) => !instance.end_at)
@@ -86,7 +86,7 @@ export default async function WorkoutPage({
           </div>
         </div>
         <div className="space-y-2">
-          <Typography variant="h3">Completed</Typography>
+          <Tp variant="h3">Completed</Tp>
           <div id="history-container">
             {instances.data
               .filter((instance) => instance.end_at)
