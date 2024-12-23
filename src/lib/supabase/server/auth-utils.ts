@@ -49,7 +49,7 @@ export const checkServerUserAuth = async (): Promise<AuthCheck> => {
 export const serverRedirectToHomeIfAuthorized = async () => {
   const { user } = await checkServerUserAuth()
   if (isClient(user)) {
-    redirect(`/clients/${user?.id}/home`)
+    redirect(`/clients/${user?.id}`)
   }
   if (user) {
     redirect('/home')

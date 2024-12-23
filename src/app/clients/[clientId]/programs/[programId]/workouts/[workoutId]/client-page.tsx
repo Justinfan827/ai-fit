@@ -7,6 +7,7 @@ import { useState } from 'react'
 
 import { Icons } from '@/components/icons'
 import LoadingButton from '@/components/loading-button'
+import TimeDisplay, { DATE_FORMAT } from '@/components/time-display'
 import { Tp } from '@/components/typography'
 import { Button } from '@/components/ui/button'
 import apiCreateWorkoutInstance from '@/fetches/create-workout-instance'
@@ -113,6 +114,7 @@ export default function ClientPage({
         title: 'Workout ended!',
         description: 'Great job!',
       })
+      router.push(`/clients/${clientId}`)
     }
   }
 
@@ -143,70 +145,95 @@ export default function ClientPage({
           }
         }),
       }
+
   // TODO: add default values from workoutInstance if present
   const form = useForm<WorkoutInstanceFormValues>({
     resolver: zodResolver(WorkoutInstanceFormSchema),
     defaultValues: defaultValues,
   })
+  const finished = workoutInstance?.end_at ? true : false
   return (
     <div className="w-full space-y-2">
-      <div className="flex w-full items-center justify-between">
-        <Button asChild size="icon" variant="ghost">
-          <Link href={`/clients/${clientId}`}>
-            <Icons.arrowLeft className="h-8 w-8" />
-          </Link>
-        </Button>
-
-        {!workoutInstance ? (
-          <LoadingButton
-            className="w-20"
-            isLoading={isPending}
-            variant="outline"
-            onClick={() => handleCreateWorkoutInstance()}
-          >
-            Start
-          </LoadingButton>
-        ) : (
-          <div className="space-x-2">
-            <LoadingButton
-              className="w-20"
-              isLoading={isPending}
-              variant="outline"
-              onClick={() =>
-                form.handleSubmit((data) => handleWorkoutUpdate(data, 'save'))()
-              }
-            >
-              Save
-            </LoadingButton>
-            <LoadingButton
-              className="w-20"
-              isLoading={isFinishPending}
-              variant="default"
-              type="button"
-              onClick={() =>
-                form.handleSubmit((data) =>
-                  handleWorkoutUpdate(data, 'finish')
-                )()
-              }
-            >
-              Finish
-            </LoadingButton>
+      {finished && (
+        <div className="flex items-center justify-center border-b py-1">
+          <p className="text-sm text-neutral-400">
+            Finished on{' '}
+            <TimeDisplay
+              dateString={workoutInstance!.end_at!}
+              dateFormat={DATE_FORMAT}
+            />
+          </p>
+        </div>
+      )}
+      <div className="px-4">
+        <div className="flex w-full items-center justify-between">
+          <div className="pb-2 pt-1">
+            <Button asChild size="icon" variant="outline">
+              <Link href={`/clients/${clientId}`}>
+                <Icons.arrowLeft className="h-8 w-8" />
+              </Link>
+            </Button>
           </div>
-        )}
-      </div>
-      <Tp className="text-2xl tracking-wide" variant="h2">
-        {workout.name}
-      </Tp>
-      <div id="workout" className="">
-        {workoutInstance ? (
-          <WorkoutAccordionInstance
-            form={form}
-            workoutInstance={workoutInstance}
-          />
-        ) : (
-          <WorkoutAccordion form={form} workout={workout} />
-        )}
+
+          {!finished && (
+            <>
+              {!workoutInstance ? (
+                <LoadingButton
+                  className="w-20"
+                  isLoading={isPending}
+                  variant="outline"
+                  onClick={() => handleCreateWorkoutInstance()}
+                >
+                  Start
+                </LoadingButton>
+              ) : (
+                <div className="space-x-2">
+                  <LoadingButton
+                    className="w-20"
+                    isLoading={isPending}
+                    variant="outline"
+                    onClick={() =>
+                      form.handleSubmit((data) =>
+                        handleWorkoutUpdate(data, 'save')
+                      )()
+                    }
+                  >
+                    Save
+                  </LoadingButton>
+                  <LoadingButton
+                    className="w-20"
+                    isLoading={isFinishPending}
+                    variant="default"
+                    type="button"
+                    onClick={() =>
+                      form.handleSubmit((data) =>
+                        handleWorkoutUpdate(data, 'finish')
+                      )()
+                    }
+                  >
+                    Finish
+                  </LoadingButton>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        <Tp className="text-xl tracking-wide" variant="h2">
+          {workout.name}
+        </Tp>
+        <div id="workout" className="">
+          {workoutInstance ? (
+            <WorkoutAccordionInstance
+              form={form}
+              workoutInstance={workoutInstance}
+            />
+          ) : (
+            <WorkoutAccordion form={form} workout={workout} />
+          )}
+        </div>
       </div>
     </div>
   )
 }
+
+function ButtonActions() {}

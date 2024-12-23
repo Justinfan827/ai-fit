@@ -111,7 +111,7 @@ export async function ClientProgramWorkoutList({
               href={`/clients/${clientId}/programs/${programId}/workouts/${instance.workout_id}/run/${instance.id}`}
               key={instance.id}
               className={cn(
-                'flex border-x border-b border-neutral-700 px-4 py-2 transition-colors ease-in-out hover:bg-neutral-800',
+                'flex border-x border-b border-neutral-700 px-4 py-4 transition-colors ease-in-out hover:bg-neutral-800',
                 idx === 0 && 'rounded-t-sm border-t',
                 idx === instances.data.length - 1 && 'rounded-b-sm border-b'
               )}

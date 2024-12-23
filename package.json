@@ -5,6 +5,7 @@
   "scripts": {
     "ctl": "DOTENV_CONFIG_PATH=./.env.local tsx -r dotenv/config ./scripts/aictl.ts",
     "staging-types": "npx supabase gen types typescript --project-id \"xtrtsnjmfknhouvtulaw\" --schema public > ./src/lib/supabase/database.types.ts",
+    "ctl-prod": "DOTENV_CONFIG_PATH=./.env.prod tsx -r dotenv/config ./scripts/portalctl.ts",
     "format:fix": "./node_modules/.bin/prettier --write .",
     "local-types": "npx supabase gen types typescript --local --schema public > ./src/lib/supabase/database.types.ts",
     "dev": "next dev",
