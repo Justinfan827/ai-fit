@@ -1,12 +1,12 @@
 'use client'
 
-import { Button, buttonVariants } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { useSupabase } from '@/lib/supabase/use-supabase'
 import { VariantProps } from 'class-variance-authority'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
-import { Icons } from './icons'
+import LoadingButton from './loading-button'
 
 export interface SignOutButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -30,12 +30,16 @@ export default function SignOutButton({
         description: error.message,
       })
     }
-    router.push('/signin')
+    router.push('/login')
   }
   return (
-    <Button className={className} variant={variant} onClick={handleOnClick}>
-      {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+    <LoadingButton
+      isLoading={isLoading}
+      className={className}
+      variant={variant}
+      onClick={handleOnClick}
+    >
       Sign out
-    </Button>
+    </LoadingButton>
   )
 }

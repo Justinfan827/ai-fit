@@ -1,4 +1,4 @@
-import { exerciseSchema } from '@/lib/domain/exercises'
+import { exerciseSchema } from '@/lib/domain/workouts'
 import { getError } from '@/lib/utils/util'
 
 export default async function apiGetExercises(body: { searchString: string }) {

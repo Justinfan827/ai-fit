@@ -12,6 +12,7 @@ import {
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import useExercises from '@/hooks/use-exercises'
+import { Exercise } from '@/lib/domain/workouts'
 
 interface Position {
   row: number
@@ -49,7 +50,7 @@ export default function WorkoutGrid({
   const [grid, setGrid] = useState(newGrid(rowDataS, columns))
   const [editingCell, setEditingCell] = useState<Position | null>(null) // Tracks the editing cell
 
-  const pendingFocusRef = useRef(null)
+  const pendingFocusRef = useRef<Position | null>(null)
   const gridRefs = useRef<HTMLDivElement[][]>([]) // Ref array for all cells
 
   useEffect(() => {
@@ -93,9 +94,9 @@ export default function WorkoutGrid({
     let newRow = row
     let newCol = col
 
-    console.log('naviagting grid', e.key, e.metaKey);
+    console.log('naviagting grid', e.key, e.metaKey)
     if (e.altKey) {
-      console.log('breaking early. alt key pressed');
+      console.log('breaking early. alt key pressed')
       //  disable meta keybindings when editing
       return
     }
@@ -251,12 +252,15 @@ export default function WorkoutGrid({
               <div
                 key={`${rowIndex}-${colIndex}`}
                 ref={(el) => {
-                  gridRefs.current[rowIndex] = gridRefs.current[rowIndex] || []
-                  gridRefs.current[rowIndex][colIndex] = el
+                  if (el) {
+                    gridRefs.current[rowIndex] =
+                      gridRefs.current[rowIndex] || []
+                    gridRefs.current[rowIndex][colIndex] = el
+                  }
                 }}
                 tabIndex={0}
                 className={cn(
-                  `overflow-hidden relative shrink-0 flex-grow cursor-pointer border-b border-r border-neutral-800 p-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500`,
+                  `relative shrink-0 flex-grow cursor-pointer overflow-hidden border-b border-r border-neutral-800 p-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500`,
                   rowIndex === 0 && 'border-t',
                   colIndex === 0 && 'border-l',
                   // colIndex !== 0 && "focus-within:-ml-px",
@@ -332,7 +336,8 @@ function ExInput({
   onKeyDown: (e: KeyboardEvent) => void
   onBlur: () => void
 }) {
-  const { isPending, exercises } = useExercises({ searchTerm: value })
+  const { isPending, exercises: ex } = useExercises({ searchTerm: value })
+  const exercises: Exercise[] = ex || []
 
   return (
     <Combobox value={value} onChange={onSelect}>
@@ -352,7 +357,7 @@ function ExInput({
         transition
         className="w-[calc(var(--input-width)+2px)] rounded-b-sm border border-border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"
       >
-        {exercises?.map((exercise) => {
+        {exercises.map((exercise) => {
           return (
             <ComboboxOption
               value={exercise.name}

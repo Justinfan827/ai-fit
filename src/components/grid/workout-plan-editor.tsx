@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { ChangeEventHandler, useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 import { defaultColumns, defaultRowData } from '@/components/grid/columns'
@@ -266,7 +266,7 @@ const EditableTypography = ({
     setIsEditing(false)
   }
 
-  const handleInputChange = (e) => {
+  const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     onChange(e.target.value)
   }
 

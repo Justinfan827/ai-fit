@@ -4,6 +4,7 @@ import { User } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 
 import { createServerClient } from '../create-server-client'
+import { isClient } from '../utils'
 
 type AuthCheck = AuthCheckFailed | AuthCheckSuccess
 
@@ -47,9 +48,17 @@ export const checkServerUserAuth = async (): Promise<AuthCheck> => {
  **/
 export const serverRedirectToHomeIfAuthorized = async () => {
   const { user } = await checkServerUserAuth()
+  if (isClient(user)) {
+    redirect(`/clients/${user?.id}/home`)
+  }
   if (user) {
     redirect('/home')
-  } else {
-    redirect('/login')
+  }
+}
+
+export const redirectClientHomePage = async () => {
+  const { user } = await checkServerUserAuth()
+  if (user) {
+    redirect(`/clients/${user?.id}/home`)
   }
 }

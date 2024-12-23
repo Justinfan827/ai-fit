@@ -43,7 +43,7 @@ export default async function HomeLayout({
   }
   return (
     <AIProgramProvider>
-      <SupabaseProvider user={user}>
+      <SupabaseProvider user={user.sbUser}>
         <main className="">{children}</main>
       </SupabaseProvider>
     </AIProgramProvider>

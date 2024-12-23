@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 
 import { createServerClient } from '@/lib/supabase/create-server-client'
-import type { NextRequest } from 'next/server'
+import { getCurrentUser } from '@/lib/supabase/server/database.operations.queries'
+import { isClient } from '@/lib/supabase/utils'
 import { EmailOtpType } from '@supabase/supabase-js'
+import type { NextRequest } from 'next/server'
 
 /**
  * This endpoint handles the code exchange in the supabase auth flow:
@@ -47,10 +49,19 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  if (original) {
-    return NextResponse.redirect(`${origin}${original}`)
+  const { data, error: userErr } = await getCurrentUser()
+  if (userErr) {
+    return redirectToSigninWithErrors(request.nextUrl, {
+      errorTitle: 'Error fetching user',
+      errorCode: 'error_fetching_user',
+      errorDescription: userErr.message,
+    })
   }
-  return NextResponse.redirect(`${origin}/home/customers/segments`)
+  // redirect to the appropriate page based on user type
+  if (isClient(data.sbUser)) {
+    return NextResponse.redirect(`${origin}/clients/${data.sbUser.id}`)
+  }
+  return NextResponse.redirect(`${origin}/home`)
 }
 
 type errorSearchParams = {

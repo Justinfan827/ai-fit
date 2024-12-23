@@ -2,10 +2,10 @@ import 'server-only'
 
 import { AIWorkout, aiWorkoutSchema } from '@/lib/domain/workouts'
 import { APIResponse } from '@/lib/types/apires'
+import { getError } from '@/lib/utils/util'
 import OpenAI from 'openai'
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
-import { z } from 'zod'
 import { v1 } from '../prompts/prompts'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -44,8 +44,9 @@ async function generateWorkout({
       console.log('successful plan generation')
       console.log(JSON.stringify(aiGeneratedPlan.parsed, null, 2))
       console.log('\n\n\n')
-      const { data: verifiedPlan, error } =
-        aiWorkoutSchema.safeParse(aiGeneratedPlan.parsed)
+      const { data: verifiedPlan, error } = aiWorkoutSchema.safeParse(
+        aiGeneratedPlan.parsed
+      )
       if (error) {
         console.log('error in generating workout schema')
         console.log(JSON.stringify(error, null, 2))
@@ -75,17 +76,17 @@ async function generateWorkout({
     console.log('catching error')
     console.log({ e })
     console.log('\n\n\n')
-    if (e instanceof z.ZodError) {
-      console.log(e.errors)
-    } else if (e.constructor.name == 'LengthFinishReasonError') {
-      // Retry with a higher max tokens
-      console.log('Too many tokens: ', e.message)
-    } else {
-      // Handle other exceptions
-      console.log('An error occurred: ', e.message)
-    }
+    // if (e instanceof z.ZodError) {
+    //   console.log(e.errors)
+    // } else if (e.constructor.name == 'LengthFinishReasonError') {
+    //   // Retry with a higher max tokens
+    //   console.log('Too many tokens: ', e.message)
+    // } else {
+    //   // Handle other exceptions
+    //   console.log('An error occurred: ', e.message)
+    // }
     return {
-      error: new Error(e?.message || "Couldn't generate workout"),
+      error: getError(e),
       data: null,
     }
   }

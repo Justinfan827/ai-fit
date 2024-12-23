@@ -1,5 +1,5 @@
 import WorkoutPlanEditor from '@/components/grid/workout-plan-editor'
-import { getUserProgram } from '@/lib/supabase/server/database.operations.queries'
+import { getProgramById } from '@/lib/supabase/server/database.operations.queries'
 import { ProgramNavigationMenu } from './program-nav-menu'
 
 export default async function Page({
@@ -8,7 +8,7 @@ export default async function Page({
   params: Promise<{ programid: string }>
 }) {
   const programid = (await params).programid
-  const { data, error } = await getUserProgram(programid)
+  const { data, error } = await getProgramById(programid)
   if (error) {
     return <div>error: {error.message}</div>
   }

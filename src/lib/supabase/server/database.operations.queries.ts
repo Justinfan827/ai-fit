@@ -3,10 +3,10 @@ import 'server-only'
 import { User } from '@supabase/supabase-js'
 
 import {
-  WorkoutExercise,
   Program,
   programSchema,
   Workout,
+  WorkoutExercise,
   WorkoutInstance,
   WorkoutInstanceBlock,
   workoutInstanceSchema,
@@ -17,14 +17,7 @@ import { z } from 'zod'
 import { createServerClient } from '../create-server-client'
 import { Database } from '../database.types'
 import { DBClient } from '../types'
-
-export async function getUserFirstLast(client: DBClient, user: User) {
-  return client
-    .from('users')
-    .select('first_name, last_name')
-    .eq('id', user.id)
-    .single()
-}
+import { isClient } from '../utils'
 
 export interface Client {
   id: string
@@ -37,6 +30,10 @@ export interface ClientWithPrograms extends Client {
   programs: Program[]
 }
 
+/*
+ *
+ * When logged into the client account, get the client user and their assigned programs from a trainer
+ */
 export async function getClientUserWithPrograms(
   clientId: string
 ): Promise<Res<ClientWithPrograms>> {
@@ -142,7 +139,7 @@ export async function getCurrentUser(): Promise<Res<CurrentUser>> {
         firstName: dbUser.first_name || '',
         lastName: dbUser.last_name || '',
         // @ts-ignore TODO: fix type
-        role: dbUser.metadata['roles'][0],
+        role: isClient(userRes) ? 'client' : 'trainer',
       },
     },
     error: null,
@@ -262,36 +259,37 @@ export async function getWorkoutInstances(
     error: null,
   }
 }
-export async function getUserProgram(programId: string): Promise<Res<Program>> {
+export async function getProgramById(programId: string): Promise<Res<Program>> {
   const client = await createServerClient()
-  const { data, error } = await client.auth.getUser()
-  if (error) {
-    return { data: null, error }
-  }
   const { data: pData, error: pErr } = await client
     .from('programs')
     .select('*')
-    .eq('user_id', data.user.id)
     .eq('id', programId)
     .single()
 
   if (pErr) {
     return { data: null, error: pErr }
   }
+  return resolveProgram(pData)
+}
 
+async function resolveProgram(
+  dbProgram: Database['public']['Tables']['programs']['Row']
+): Promise<Res<Program>> {
+  const client = await createServerClient()
   const { data: wData, error: wErr } = await client
     .from('workouts')
     .select('*')
-    .eq('program_id', programId)
+    .eq('program_id', dbProgram.id)
     .order('program_order', { ascending: true })
 
   if (wErr) {
     return { data: null, error: wErr }
   }
   const program: Program = {
-    id: pData.id,
-    name: pData.name,
-    created_at: pData.created_at,
+    id: dbProgram.id,
+    name: dbProgram.name,
+    created_at: dbProgram.created_at,
     workouts: wData.map((workout) => ({
       id: workout.id,
       program_order: workout.program_order,
@@ -411,4 +409,28 @@ export async function getAllCurrentUserUnassignedPrograms(): Promise<
     return { data: null, error: wErr }
   }
   return resolvePrograms(sb, wData)
+}
+
+/*
+ * As the logged in client user, get the active program.
+ * Currently, just the latest assigned program
+ */
+export async function getClientActiveProgram() {
+  const client = await createServerClient()
+  const { data, error } = await client.auth.getUser()
+  if (error) {
+    return { data: null, error }
+  }
+  const { data: pData, error: pErr } = await client
+    .from('programs')
+    .select('*')
+    .eq('user_id', data.user.id)
+    .order('created_at', { ascending: false })
+    .limit(1) // get the latest program
+    .single()
+
+  if (pErr) {
+    return { data: null, error: pErr }
+  }
+  return resolveProgram(pData)
 }

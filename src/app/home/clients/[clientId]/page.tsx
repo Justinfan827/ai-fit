@@ -29,7 +29,6 @@ export default async function ClientPage({
   const { data: programs, error: programsError } =
     await getAllCurrentUserUnassignedPrograms()
   if (programsError) {
-    console.log({ programsError })
     return <div>error: {programsError.message}</div>
   }
   return (
@@ -58,7 +57,7 @@ export default async function ClientPage({
           </div>
         </div>
         <div id="programs-container" className="space-y-4 p-4">
-          <Tp className="text-2xl tracking-wide">Programs</Tp>
+          <Tp className="text-2xl tracking-wide">Assigned Programs</Tp>
           {data.programs.map((program, idx) => (
             <Link
               href={`/home/programs/${program.id}`}

@@ -29,8 +29,8 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
   )
 }
 
-function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
-  if (isErrorWithMessage(maybeError)) return maybeError
+function toErrorWithMessage(maybeError: unknown): Error {
+  if (isErrorWithMessage(maybeError)) return new Error(maybeError.message)
   try {
     return new Error(JSON.stringify(maybeError))
   } catch {

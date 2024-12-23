@@ -453,9 +453,10 @@ export function IntakeForm() {
                           <Checkbox
                             checked={field.value?.includes(typeOfWorkout.id)}
                             onCheckedChange={(checked) => {
+                              const existingValues = field.value || []
                               return checked
                                 ? field.onChange([
-                                    ...field.value,
+                                    ...existingValues,
                                     typeOfWorkout.id,
                                   ])
                                 : field.onChange(
