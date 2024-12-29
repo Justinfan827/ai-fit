@@ -41,6 +41,7 @@ export default async function runUserCreation({
       const { data: userData, error: createUserErr } =
         await adminAuthClient.createUser({
           email,
+          password: email,
           email_confirm: true,
           app_metadata: {
             provider: 'email',

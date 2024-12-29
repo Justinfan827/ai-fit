@@ -138,6 +138,32 @@ export type Database = {
           },
         ]
       }
+      user_codes: {
+        Row: {
+          code: string
+          id: number
+          user_id: string
+        }
+        Insert: {
+          code: string
+          id?: number
+          user_id?: string
+        }
+        Update: {
+          code?: string
+          id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string | null
@@ -238,7 +264,7 @@ export type Database = {
           workout_id: string | null
         }
         Insert: {
-          id: string
+          id?: string
           row_data?: Json | null
           workout_id?: string | null
         }
@@ -356,42 +382,24 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
-      search_exercises_by_name:
-        | {
-            Args: {
-              exercise_name: string
-            }
-            Returns: {
-              id: string
-              created_at: string
-              name: string
-              target_muscles: Json
-              skill: string
-              range_of_motion: string
-              body_region: string
-              owner_id: string
-              modifiers: Json
-              sim_score: number
-            }[]
-          }
-        | {
-            Args: {
-              exercise_name: string
-              threshold: number
-            }
-            Returns: {
-              id: string
-              created_at: string
-              name: string
-              target_muscles: Json
-              skill: string
-              range_of_motion: string
-              body_region: string
-              owner_id: string
-              modifiers: Json
-              sim_score: number
-            }[]
-          }
+      search_exercises_by_name: {
+        Args: {
+          exercise_name: string
+          threshold: number
+        }
+        Returns: {
+          id: string
+          created_at: string
+          name: string
+          target_muscles: Json
+          skill: string
+          range_of_motion: string
+          body_region: string
+          owner_id: string
+          modifiers: Json
+          sim_score: number
+        }[]
+      }
       set_claim: {
         Args: {
           uid: string

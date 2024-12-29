@@ -9,15 +9,15 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { siteConfig } from '@/config/site'
 import { useToast } from '@/hooks/use-toast'
 import { createBrowserClient } from '@/lib/supabase/create-browser-client'
+import { isClient } from '@/lib/supabase/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 import { Icons } from './icons'
+import { PasswordInput } from './password-input'
 import {
   Form,
   FormControl,
@@ -26,6 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from './ui/form'
+import { useRouter } from 'next/navigation'
 
 type Inputs = z.infer<typeof authSchema>
 export const authSchema = z.object({
@@ -37,58 +38,71 @@ export const authSchema = z.object({
     .min(6, {
       message: 'Password must be at least 8 characters long',
     })
-    .max(100)
-    .optional(),
+    .max(100),
 })
 export function LoginForm() {
   const { toast } = useToast()
-  const [isPending, setPending] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
   const client = createBrowserClient()
-  const searchParams = useSearchParams()
-  const originalPath = searchParams.get('original_path') || ''
-
   const form = useForm<Inputs>({
     resolver: zodResolver(authSchema),
     defaultValues: {
-      email: '',
+      email: 'vinson@test.com',
+      password: 'vinson@test.com',
     },
   })
 
+  // const searchParams = useSearchParams()
+  // const originalPath = searchParams.get('original_path') || ''
   const onSubmit = async (data: Inputs) => {
-    setPending(true)
-    const authURL = siteConfig.auth.callbackURL({
-      query: new URLSearchParams({
-        original_path: originalPath || '/home',
-      }),
-    })
-
-    try {
-      const { error } = await client.auth.signInWithOtp({
-        email: data.email,
-        options: {
-          shouldCreateUser: false,
-          emailRedirectTo: authURL,
-        },
-      })
-      if (error) {
-        throw error
-      }
-      toast({
-        title: 'Check your email',
-        description:
-          'We sent you an email! Click the link there to sign in. You may close this tab.',
-      })
-    } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          variant: 'destructive',
-          title: 'Email sign in failed',
-          description: `Something went wrong, please try again`,
+    startTransition(async () => {
+      // const authURL = siteConfig.auth.callbackURL({
+      //   query: new URLSearchParams({
+      //     // original_path: originalPath,
+      //   }),
+      // })
+      try {
+        const { error } = await client.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
         })
+        // const { error } = await client.auth.signInWithOtp({
+        //   email: data.email,
+        //   options: {
+        //     shouldCreateUser: false,
+        //     emailRedirectTo: authURL,
+        //   },
+        // })
+        if (error) {
+          throw error
+        }
+        // toast({
+        //   title: 'Check your email',
+        //   description:
+        //     'We sent you an email! Click the link there to sign in. You may close this tab.',
+        // })
+
+        const { data: uData, error: uErr } = await client.auth.getUser()
+        if (uErr) {
+          throw uErr
+        }
+        if (isClient(uData.user)) {
+          router.push(`/clients/${uData.user.id}`)
+        } else {
+          router.push(`/home`)
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          toast({
+            variant: 'destructive',
+            title: 'Email sign in failed',
+            description: `Something went wrong, please try again`,
+          })
+        }
+        return
       }
-    } finally {
-      setPending(false)
-    }
+    })
   }
   return (
     <Card className="mx-auto max-w-sm">
@@ -109,9 +123,22 @@ export function LoginForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="sr-only">Email</FormLabel>
+                  <FormLabel className="">Email</FormLabel>
                   <FormControl>
                     <Input type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <PasswordInput placeholder="••••••••••" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

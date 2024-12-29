@@ -37,21 +37,21 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
   const currentPath = request.nextUrl.pathname
-  if (
-    !user &&
-    !currentPath.startsWith('/login') &&
-    !currentPath.startsWith('/api/auth/callback') &&
-    !currentPath.startsWith('/api/status')
-  ) {
-    const url = new URL(request.nextUrl.origin + `/login`)
-    if (request.nextUrl.pathname !== '/') {
-      url.searchParams.set(
-        'original_path',
-        request.nextUrl.pathname + request.nextUrl.search
-      )
-    }
-    return NextResponse.redirect(url)
-  }
+  // if (
+  //   !user &&
+  //   !currentPath.startsWith('/login') &&
+  //   !currentPath.startsWith('/api/auth/callback') &&
+  //   !currentPath.startsWith('/api/status')
+  // ) {
+  //   const url = new URL(request.nextUrl.origin + `/login`)
+  //   if (request.nextUrl.pathname !== '/') {
+  //     url.searchParams.set(
+  //       'original_path',
+  //       request.nextUrl.pathname + request.nextUrl.search
+  //     )
+  //   }
+  //   return NextResponse.redirect(url)
+  // }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:

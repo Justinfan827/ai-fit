@@ -415,7 +415,9 @@ export async function getAllCurrentUserUnassignedPrograms(): Promise<
  * As the logged in client user, get the active program.
  * Currently, just the latest assigned program
  */
-export async function getClientActiveProgram() {
+export async function getClientActiveProgram(): Promise<
+  Res<Program | undefined | null>
+> {
   const client = await createServerClient()
   const { data, error } = await client.auth.getUser()
   if (error) {
@@ -427,10 +429,38 @@ export async function getClientActiveProgram() {
     .eq('user_id', data.user.id)
     .order('created_at', { ascending: false })
     .limit(1) // get the latest program
-    .single()
 
   if (pErr) {
     return { data: null, error: pErr }
   }
-  return resolveProgram(pData)
+  if (pData.length === 0 || !pData) {
+    return { data: undefined, error: null }
+  }
+  return resolveProgram(pData[0])
+}
+
+export async function signInUserCode({ code }: { code: string }): Promise<
+  Res<{
+    userId: string
+  }>
+> {
+  const client = await createServerClient()
+  const { data, error } = await client
+    .from('user_codes')
+    .select('*, users (email)')
+    .eq('code', code)
+    .single()
+  if (error) {
+    return { data: null, error }
+  }
+
+  console.log({ da: data.users })
+  const { error: userErr } = await client.auth.signInWithPassword({
+    email: data.users?.email || '',
+    password: data.users?.email || '',
+  })
+  if (userErr) {
+    return { data: null, error: userErr }
+  }
+  return { data: { userId: data.user_id }, error: null }
 }

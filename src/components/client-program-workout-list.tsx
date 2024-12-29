@@ -6,6 +6,7 @@ import {
 import { cn } from '@/lib/utils'
 import dayjs from 'dayjs'
 import Link from 'next/link'
+import ShineBorder from './ui/shine-border'
 
 export async function ClientProgramWorkoutList({
   programId,
@@ -60,13 +61,11 @@ export async function ClientProgramWorkoutList({
             <Link
               href={`/clients/${clientId}/programs/${programId}/workouts/${instance.workout_id}/run/${instance.id}`}
               key={instance.id}
-              className={cn(
-                'flex border-x border-b border-neutral-700 px-4 py-4 transition-colors ease-in-out hover:bg-neutral-800',
-                idx === 0 && 'rounded-t-sm border-t',
-                idx === instances.data.length - 1 && 'rounded-b-sm border-b'
-              )}
             >
-              <div>
+              <ShineBorder
+                className="flex w-full flex-col justify-start px-4 py-4 hover:bg-neutral-800"
+                color={'green'}
+              >
                 <p>{instance.workout_name}</p>
                 <p className="font-mono text-xs text-neutral-400">
                   Day{' '}
@@ -74,7 +73,7 @@ export async function ClientProgramWorkoutList({
                     (w) => w.id === instance.workout_id
                   )!.program_order + 1}
                 </p>
-              </div>
+              </ShineBorder>
             </Link>
           ))}
         </div>

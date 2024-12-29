@@ -131,4 +131,3 @@ function EmptyStateCard() {
     </div>
   )
 }
-
