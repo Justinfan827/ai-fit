@@ -129,6 +129,7 @@ export async function updateProgram(
   return {
     data: {
       id: dbProgramData.id,
+      type: dbProgramData.type as 'weekly' | 'splits',
       created_at: dbProgramData.created_at,
       name: program.name,
       workouts: program.workouts,

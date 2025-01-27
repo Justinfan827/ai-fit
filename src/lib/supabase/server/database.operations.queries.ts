@@ -260,6 +260,12 @@ export async function getWorkoutInstances(
     error: null,
   }
 }
+
+export async function getExercises() {
+  const client = await createServerClient()
+  return client.from('exercises').select('*')
+}
+
 export async function getProgramById(programId: string): Promise<Res<Program>> {
   const client = await createServerClient()
   const { data: pData, error: pErr } = await client

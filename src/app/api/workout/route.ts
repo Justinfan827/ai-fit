@@ -62,5 +62,6 @@ export async function PUT(request: NextRequest) {
     )
   }
   const resp = await updateProgram(data.user.id, bData)
+  console.log({resp});
   return NextResponse.json(resp)
 }

@@ -1,4 +1,4 @@
-import WorkoutPlanEditor from '@/components/grid/workout-plan-editor'
+import ProgramEditor from '@/components/grid/ProgramEditor'
 import { ProgramEditorSidebar } from '@/components/program-editor-sidebar'
 import {
   Breadcrumb,
@@ -33,7 +33,7 @@ export default function Page() {
         </header>
         {/* height is calculated as the height of the screen (dvh) - h-16, where 16 = 4rem*/}
         <div className="flex h-[calc(100dvh-4rem)] w-full overflow-auto">
-          <WorkoutPlanEditor />
+          <ProgramEditor />
         </div>
       </div>
     </SidebarProvider>

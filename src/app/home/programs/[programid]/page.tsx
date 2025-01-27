@@ -1,4 +1,4 @@
-import WorkoutPlanEditor from '@/components/grid/workout-plan-editor'
+import ProgramEditorContainer from '@/components/grid/ProgramEditorContainer'
 import { ProgramEditorSidebar } from '@/components/program-editor-sidebar'
 import {
   Breadcrumb,
@@ -10,7 +10,10 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { getProgramById } from '@/lib/supabase/server/database.operations.queries'
+import {
+  getExercises,
+  getProgramById,
+} from '@/lib/supabase/server/database.operations.queries'
 
 export default async function Page({
   params,
@@ -18,9 +21,15 @@ export default async function Page({
   params: Promise<{ programid: string }>
 }) {
   const programid = (await params).programid
-  const { data, error } = await getProgramById(programid)
-  if (error) {
-    return <div>error: {error.message}</div>
+  const [program, exercises] = await Promise.all([
+    getProgramById(programid),
+    getExercises(),
+  ])
+  if (program.error) {
+    return <div>error: {program.error.message}</div>
+  }
+  if (exercises.error) {
+    return <div>error: {exercises.error.message}</div>
   }
   return (
     <SidebarProvider>
@@ -36,14 +45,17 @@ export default async function Page({
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>{data.name}</BreadcrumbPage>
+                <BreadcrumbPage>{program.data.name}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </header>
         {/* height is calculated as the height of the screen (dvh) - h-16, where 16 = 4rem*/}
-        <div className="flex h-[calc(100dvh-4rem)] w-full overflow-auto">
-          <WorkoutPlanEditor serverProgram={data} />
+        <div className="flex h-[calc(100dvh-4rem)] overflow-auto">
+          <ProgramEditorContainer
+            serverProgram={program.data}
+            serverExercises={exercises.data}
+          />
         </div>
       </div>
     </SidebarProvider>

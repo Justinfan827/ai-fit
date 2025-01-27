@@ -1,10 +1,9 @@
 import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
 
+import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useExerciseActions } from '@/store/exercises'
-import ExerciseInput from './exercise-input'
 
 interface Position {
   row: number
@@ -44,11 +43,6 @@ export default function WorkoutGrid({
 
   const pendingFocusRef = useRef<Position | null>(null)
   const gridRefs = useRef<HTMLDivElement[][]>([]) // Ref array for all cells
-
-  const { getExercises } = useExerciseActions()
-  useEffect(() => {
-    getExercises()
-  }, [])
 
   useEffect(() => {
     if (pendingFocusRef.current) {
@@ -204,17 +198,7 @@ export default function WorkoutGrid({
   return (
     <div className="text-sm">
       <div id="column-names" className="flex w-full">
-        <div id="action menu" className="flex px-2">
-          <div className="">
-            <Button size="icon" variant="ghost" className="invisible h-6 w-6">
-              <Icons.plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="">
-            <Button size="icon" variant="ghost" className="invisible h-6 w-6">
-              <Icons.gripVertical className="h-4 w-4" />
-            </Button>
-          </div>
+        <div id="dummy-action-menu" className="flex px-2 ml-[48px]">
         </div>
         {columns.map((col, idx) => {
           return (
