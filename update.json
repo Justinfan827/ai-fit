@@ -1,0 +1,456 @@
+[
+  {
+    "id": "113e8073-a56e-4760-a537-971d37960603",
+    "type": "exercise",
+    "exercise": {
+      "id": "febcfb4f-eede-4072-a046-d641013a28e4",
+      "name": "Incline Dumbbell Press",
+      "sets": [
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "50.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "50.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "50.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "50.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "676a9fc0-4718-4bf3-a9e5-541f10cd156f",
+    "type": "exercise",
+    "exercise": {
+      "id": "f32dbe01-2921-4fc2-ae08-146461ac41c0",
+      "name": "Single-Leg Leg Press",
+      "sets": [
+        {
+          "planned": {
+            "reps": "10-12",
+            "rest": "60s",
+            "notes": "",
+            "weight": "70.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "10-12",
+            "rest": "60s",
+            "notes": "",
+            "weight": "70.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "10-12",
+            "rest": "60s",
+            "notes": "",
+            "weight": "70.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "028355a7-c171-4ad9-8130-5a57f4a6f937",
+    "type": "exercise",
+    "exercise": {
+      "id": "d21dda3f-d64a-4c4c-873f-c22b29116d73",
+      "name": "Bent-Over Dumbbell Row",
+      "sets": [
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "45.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "45.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "45.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "45.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "03693dfd-7516-4924-833a-e442a3b1d59b",
+    "type": "exercise",
+    "exercise": {
+      "id": "1523a3ce-b266-452f-9488-765f560d7c6b",
+      "name": "Dumbbell Romanian Deadlift",
+      "sets": [
+        {
+          "planned": {
+            "reps": "10-12",
+            "rest": "60s",
+            "notes": "",
+            "weight": "40.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "10-12",
+            "rest": "60s",
+            "notes": "",
+            "weight": "40.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "10-12",
+            "rest": "60s",
+            "notes": "",
+            "weight": "40.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "3218f38a-2721-4b56-af12-3dbbee7061a9",
+    "type": "exercise",
+    "exercise": {
+      "id": "644503b3-792f-4916-8aa7-ffd3864255dc",
+      "name": "Standing Dumbbell Shoulder Press (Neutral Grip)",
+      "sets": [
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "35.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "35.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "8-10",
+            "rest": "90s",
+            "notes": "",
+            "weight": "35.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "60bdd7a1-8dfd-441f-9068-0b5e35034f41",
+    "type": "exercise",
+    "exercise": {
+      "id": "57e710f1-3f0b-4d09-8f52-1c2e9d4bc13d",
+      "name": "Plank (Weighted Optional)",
+      "sets": [
+        {
+          "planned": {
+            "reps": "30-45s",
+            "rest": "60s",
+            "notes": "",
+            "weight": "0.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "30-45s",
+            "rest": "60s",
+            "notes": "",
+            "weight": "0.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "30-45s",
+            "rest": "60s",
+            "notes": "",
+            "weight": "0.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "dd2a1401-e1ca-4ba3-816f-1d0dadea2c50",
+    "type": "exercise",
+    "exercise": {
+      "id": "983fd288-1abc-424a-84bc-24ac0acb83bd",
+      "name": "Seated Calf Raise",
+      "sets": [
+        {
+          "planned": {
+            "reps": "12-15",
+            "rest": "60s",
+            "notes": "",
+            "weight": "30.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "12-15",
+            "rest": "60s",
+            "notes": "",
+            "weight": "30.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "12-15",
+            "rest": "60s",
+            "notes": "",
+            "weight": "30.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        },
+        {
+          "planned": {
+            "reps": "12-15",
+            "rest": "60s",
+            "notes": "",
+            "weight": "30.00",
+            "completed": false
+          },
+          "actual": {
+            "reps": "",
+            "rest": "",
+            "notes": "",
+            "weight": "",
+            "completed": false
+          }
+        }
+      ]
+    }
+  }
+]

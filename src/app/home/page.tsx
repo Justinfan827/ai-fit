@@ -9,6 +9,7 @@ import {
   getCurrentUserClients,
 } from '@/lib/supabase/server/database.operations.queries'
 import { cn } from '@/lib/utils'
+import dayjs from 'dayjs'
 import Link from 'next/link'
 
 export default async function WorkoutsPage() {

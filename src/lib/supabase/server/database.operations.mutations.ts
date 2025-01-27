@@ -11,6 +11,19 @@ import { v4 } from 'uuid'
 import { createServerClient } from '../create-server-client'
 import { Database } from '../database.types'
 
+export async function saveWorkoutInstance(instance: WorkoutInstance) {
+  const client = await createServerClient()
+  return await client.from('workout_instances').insert({
+    id: instance.id,
+    user_id: instance.userId,
+    start_at: instance.startAt,
+    end_at: instance.endAt,
+    program_id: instance.programId,
+    workout_id: instance.workoutId,
+    blocks: instance.blocks,
+  })
+}
+
 export async function createProgram(
   userId: string,
   body: Program

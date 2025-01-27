@@ -60,6 +60,7 @@ export type Database = {
           is_template: boolean
           name: string
           template_id: string | null
+          type: string
           user_id: string
         }
         Insert: {
@@ -68,6 +69,7 @@ export type Database = {
           is_template: boolean
           name: string
           template_id?: string | null
+          type: string
           user_id: string
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           is_template?: boolean
           name?: string
           template_id?: string | null
+          type?: string
           user_id?: string
         }
         Relationships: [
@@ -284,6 +287,7 @@ export type Database = {
           program_id: string
           program_order: number
           user_id: string
+          week: number | null
         }
         Insert: {
           blocks: Json
@@ -293,6 +297,7 @@ export type Database = {
           program_id: string
           program_order: number
           user_id: string
+          week?: number | null
         }
         Update: {
           blocks?: Json
@@ -302,6 +307,7 @@ export type Database = {
           program_id?: string
           program_order?: number
           user_id?: string
+          week?: number | null
         }
         Relationships: [
           {

@@ -53,6 +53,7 @@ export async function PUT(request: NextRequest) {
     )
   }
   const { data: bData, error: bError } = programSchema.safeParse(body)
+  console.log({bError});
   if (bError) {
     return BadRequestRes(
       new BadRequestError(

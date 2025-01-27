@@ -154,6 +154,7 @@ export async function getLatestWorkoutInstance(
   if (error) {
     return { data: null, error }
   }
+
   const { data: pData, error: pErr } = await client
     .from('workout_instances')
     .select('*, workouts (name)')
@@ -288,6 +289,7 @@ async function resolveProgram(
   }
   const program: Program = {
     id: dbProgram.id,
+    type: dbProgram.type as 'weekly' | 'splits',
     name: dbProgram.name,
     created_at: dbProgram.created_at,
     workouts: wData.map((workout) => ({

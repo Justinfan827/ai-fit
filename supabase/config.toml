@@ -16,7 +16,7 @@ extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [api.tls]
-enabled = true
+enabled = false
 
 [db]
 # Port to use for the local database URL.

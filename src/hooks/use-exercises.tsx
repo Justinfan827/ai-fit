@@ -5,12 +5,16 @@ import { Exercise } from '@/lib/domain/workouts'
 import { getError } from '@/lib/utils/util'
 import { useEffect, useState } from 'react'
 
+/*
+ * TODO: cache exercise search results
+ *
+ */
 function useExercises({ searchTerm }: { searchTerm: string }) {
   const debouncedTerm = useDebouncedValue(searchTerm, 150)
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<Error | undefined>(undefined)
   // undefined to distinguish between no data yet vs. no results
-  const [exercises, setExercises] = useState<Exercise[] | undefined>(undefined)
+  const [exercises, setExercises] = useState<Exercise[]>([])
 
   // TODO: debounce the search term and signal cancel the previous request
   useEffect(() => {

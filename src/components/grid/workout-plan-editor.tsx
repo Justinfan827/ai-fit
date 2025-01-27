@@ -1,31 +1,31 @@
 'use client'
 
-import { ChangeEventHandler, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
+import EditableTypography from '@/components/EditableTypeography'
 import { defaultColumns, defaultRowData } from '@/components/grid/columns'
-import MyGrid from '@/components/grid/workout-grid'
+import { ProgramSelect } from '@/components/grid/ProgramSelect'
 import { Icons } from '@/components/icons'
-import { Tp } from '@/components/typography'
 import { Button } from '@/components/ui/button'
 import apiCreateWorkout from '@/fetches/create-workout'
 import apiEditWorkout from '@/fetches/edit-workout'
 import { toast } from '@/hooks/use-toast'
 import { useAIProgram } from '@/hooks/use-workout'
 import { Program, Workout } from '@/lib/domain/workouts'
-import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import LoadingButton from '../loading-button'
+import WorkoutGrid from './WorkoutGrid'
 
 export default function ProgramEditor({
-  workoutPlan,
+  serverProgram,
 }: {
-  workoutPlan?: Program
+  serverProgram?: Program
 }) {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
-  const defaultWorkouts: Workout[] = workoutPlan
-    ? workoutPlan.workouts
+  const defaultWorkouts: Workout[] = serverProgram
+    ? serverProgram.workouts
     : [
         {
           id: uuidv4().toString(),
@@ -36,12 +36,15 @@ export default function ProgramEditor({
         },
       ]
 
-  const isUpdatingExisting = !!workoutPlan
+  const isUpdatingExisting = !!serverProgram
 
+  const [programType, setProgramType] = useState(
+    serverProgram?.type || 'weekly'
+  )
   const [workouts, setWorkouts] = useState<Workout[]>(defaultWorkouts)
   const defaultProgramName = 'my new program'
   const [programName, setProgramName] = useState(
-    workoutPlan?.name || defaultProgramName
+    serverProgram?.name || defaultProgramName
   )
 
   // update grid when ai program gets generated
@@ -66,13 +69,14 @@ export default function ProgramEditor({
     }
   }, [program])
 
-  const handleNewWorkout = () => {
+  const handleNewWorkout = ({ week }: { week?: number }) => {
     setWorkouts([
       ...workouts,
       {
         id: uuidv4().toString(),
         name: `workout ${workouts.length + 1}`,
         program_order: workouts.length,
+        week: week,
         program_id: uuidv4().toString(), // populated on create
         blocks: defaultRowData,
       },
@@ -88,6 +92,7 @@ export default function ProgramEditor({
     setIsPending(true)
     const { data, error } = await apiCreateWorkout({
       body: {
+        type: programType,
         id: uuidv4().toString(),
         created_at: new Date().toISOString(),
         name: programName,
@@ -119,8 +124,9 @@ export default function ProgramEditor({
     setIsPending(true)
     const { error } = await apiEditWorkout({
       body: {
-        id: workoutPlan!.id,
-        created_at: workoutPlan!.created_at,
+        id: serverProgram!.id,
+        type: programType,
+        created_at: serverProgram!.created_at,
         name: programName,
         workouts,
       },
@@ -138,11 +144,24 @@ export default function ProgramEditor({
     toast({
       variant: 'default',
       title: 'Success',
-      description: <pre>{workoutPlan!.name} saved</pre>,
+      description: <pre>{serverProgram!.name} saved</pre>,
     })
     setIsPending(false)
     router.refresh()
   }
+
+  const handleSelect = (v: 'weekly' | 'splits') => {
+    setProgramType(v)
+  }
+
+  const workoutsByWeek = workouts.reduce((acc, w) => {
+    const week = w.week || 0
+    if (!acc[week]) {
+      acc[week] = []
+    }
+    acc[week].push(w)
+    return acc
+  }, [] as Workout[][])
 
   return (
     <div className="relative w-full overflow-x-auto">
@@ -156,7 +175,7 @@ export default function ProgramEditor({
           </div>
         </div>
       )}
-      <div className="mb-4 flex w-full items-center justify-end pl-[72px] pt-4">
+      <div className="mb-4 flex w-full items-center justify-end pl-[72px] pr-8 pt-4">
         <div className="flex-grow">
           <EditableTypography
             className="text-2xl"
@@ -165,6 +184,7 @@ export default function ProgramEditor({
           />
         </div>
         <div className="flex items-center justify-center space-x-2">
+          <ProgramSelect value={programType} onValueChange={handleSelect} />
           <LoadingButton
             isLoading={isPending}
             className="w-20"
@@ -177,128 +197,96 @@ export default function ProgramEditor({
           </LoadingButton>
         </div>
       </div>
-      <div id="workout-ui" className="w-[1000px]">
-        <div id="workout-grid" className="w-full space-y-8">
-          {workouts.map((workout) => {
-            return (
-              <div key={workout.id} className="space-y-4">
-                <div className="ml-[72px] flex items-center justify-between">
-                  <EditableTypography
-                    value={workout.name}
-                    onChange={(value) => {
-                      const newWorkouts = workouts.map((w) => {
-                        if (w.id === workout.id) {
-                          return {
-                            ...w,
-                            name: value,
-                          }
-                        }
-                        return w
-                      })
-                      setWorkouts(newWorkouts)
-                    }}
-                  />
-                  <div
-                    id="action menu"
-                    className="flex items-center justify-center pl-2"
-                  >
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
-                      onClick={() => handleDeletion(workout.id)}
-                    >
-                      <Icons.x className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <MyGrid
-                  rowData={workout.blocks}
-                  columns={defaultColumns}
-                  onGridChange={(rows) => {
-                    const newWorkouts = workouts.map((w) => {
-                      if (w.id === workout.id) {
-                        const workoutRows = rows as Workout['blocks']
-                        return {
-                          ...w,
-                          blocks: workoutRows,
-                        }
-                      }
-                      return w
-                    })
-                    setWorkouts(newWorkouts)
-                  }}
-                />
-              </div>
-            )
-          })}
-        </div>
-        <div className="flex w-full items-center justify-end pt-4">
-          <Button
-            variant="dashed"
-            size="sm"
-            className="text-sm font-normal"
-            onClick={handleNewWorkout}
+      {workoutsByWeek.map((workouts, idx) => {
+        return (
+          <div
+            key={`by-week-workout-${idx}`}
+            id="workout-ui"
+            className="w-[1000px]"
           >
-            <Icons.plus className="h-4 w-4 rounded-full" />
-            Add workout day
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const EditableTypography = ({
-  value,
-  valueDefault = 'Untitled',
-  onChange,
-  className,
-}: {
-  value: string
-  valueDefault?: string
-  onChange: (value: string) => void
-  className?: string
-}) => {
-  const [isEditing, setIsEditing] = useState(false)
-
-  const handleBlur = () => {
-    setIsEditing(false)
-  }
-
-  const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    onChange(e.target.value)
-  }
-
-  return (
-    <div
-      className="flex h-8 w-fit min-w-[100px] max-w-[200px] items-center justify-start sm:min-w-[100px] sm:max-w-[400px]"
-      onClick={() => !isEditing && setIsEditing(true)}
-    >
-      {isEditing ? (
-        <input
-          type="text"
-          value={value}
-          onChange={handleInputChange}
-          onBlur={handleBlur}
-          autoFocus
-          className={cn(
-            'w-[200px] bg-background text-lg font-semibold leading-7 tracking-normal focus:border-0 focus:outline-none focus:ring-0 sm:w-[400px]',
-            className && className
-          )}
-        />
-      ) : (
-        <Tp
-          className={cn(
-            'truncate leading-none tracking-wide underline decoration-neutral-300 decoration-dotted underline-offset-4',
-            className && className,
-            !value && 'text-neutral-500'
-          )}
-          variant="h3"
-        >
-          {value || valueDefault}
-        </Tp>
-      )}
+            <div className="flex gap-4">
+              <div id="workout-grid" className="w-full space-y-8">
+                {workouts.map((workout) => {
+                  return (
+                    <div key={workout.id} className="flex gap-4">
+                      <div className="flex-grow space-y-4">
+                        <div className="ml-[72px] flex items-center justify-between">
+                          <EditableTypography
+                            value={workout.name}
+                            onChange={(value) => {
+                              const newWorkouts = workouts.map((w) => {
+                                if (w.id === workout.id) {
+                                  return {
+                                    ...w,
+                                    name: value,
+                                  }
+                                }
+                                return w
+                              })
+                              setWorkouts(newWorkouts)
+                            }}
+                          />
+                          <div
+                            id="action menu"
+                            className="flex items-center justify-center pl-2"
+                          >
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
+                              onClick={() => handleDeletion(workout.id)}
+                            >
+                              <Icons.x className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <WorkoutGrid
+                          rowData={workout.blocks}
+                          columns={defaultColumns}
+                          onGridChange={(rows) => {
+                            const newWorkouts = workouts.map((w) => {
+                              if (w.id === workout.id) {
+                                const workoutRows = rows as Workout['blocks']
+                                return {
+                                  ...w,
+                                  blocks: workoutRows,
+                                }
+                              }
+                              return w
+                            })
+                            setWorkouts(newWorkouts)
+                          }}
+                        />
+                      </div>
+                      <div className="mt-[48px] flex flex-col items-stretch">
+                        <Button
+                          variant="dashed"
+                          size="icon"
+                          className="flex-grow text-sm font-normal"
+                          onClick={() => handleNewWorkout({ week: idx + 1 })}
+                        >
+                          <Icons.plus className="h-4 w-4 rounded-full" />
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+            <div className="flex w-full items-center justify-end pt-4">
+              <Button
+                variant="dashed"
+                size="sm"
+                className="text-sm font-normal"
+                onClick={handleNewWorkout}
+              >
+                <Icons.plus className="h-4 w-4 rounded-full" />
+                Add Workout
+              </Button>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

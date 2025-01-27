@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   // query params
   const query = request.nextUrl.searchParams.get('query')
   if (!query) {
-    return NextResponse.json([])
+    return NextResponse.json({ data: [] })
   }
   const resp = await searchExercises({ query: query })
   return NextResponse.json(resp)
@@ -50,6 +50,7 @@ async function searchExercises({
     }
   }
 
+  console.log({ exercisesValidated })
   return {
     data: exercisesValidated,
     error: null,

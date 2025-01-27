@@ -1,18 +1,10 @@
-import { cn } from '@/lib/utils'
-
 import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
-
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxOption,
-  ComboboxOptions,
-} from '@headlessui/react'
 
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
-import useExercises from '@/hooks/use-exercises'
-import { Exercise } from '@/lib/domain/workouts'
+import { cn } from '@/lib/utils'
+import { useExerciseActions } from '@/store/exercises'
+import ExerciseInput from './exercise-input'
 
 interface Position {
   row: number
@@ -52,6 +44,11 @@ export default function WorkoutGrid({
 
   const pendingFocusRef = useRef<Position | null>(null)
   const gridRefs = useRef<HTMLDivElement[][]>([]) // Ref array for all cells
+
+  const { getExercises } = useExerciseActions()
+  useEffect(() => {
+    getExercises()
+  }, [])
 
   useEffect(() => {
     if (pendingFocusRef.current) {
@@ -94,9 +91,7 @@ export default function WorkoutGrid({
     let newRow = row
     let newCol = col
 
-    console.log('naviagting grid', e.key, e.metaKey)
     if (e.altKey) {
-      console.log('breaking early. alt key pressed')
       //  disable meta keybindings when editing
       return
     }
@@ -104,45 +99,45 @@ export default function WorkoutGrid({
       case 'ArrowUp':
         newRow = Math.max(0, row - 1)
         break
-      case 'k':
-        if (editingCell) return // disable vim keybindings when editing
-        if (e.ctrlKey) {
-          // move the current row up
-          const newRowData = swapArrayElements(rowDataS, row, row - 1)
-          setRowData(newRowData)
-          onGridChange(newRowData)
-          setGrid(newGrid(newRowData, columns))
-        }
-        newRow = Math.max(0, row - 1)
-        break
       case 'ArrowDown':
-        newRow = Math.min(rows - 1, row + 1)
-        break
-      case 'j':
-        if (editingCell) return // disable vim keybindings when editing
-        if (e.ctrlKey) {
-          // move the current row down
-          const newRowData = swapArrayElements(rowDataS, row, row + 1)
-          setRowData(newRowData)
-          onGridChange(newRowData)
-          setGrid(newGrid(newRowData, columns))
-        }
         newRow = Math.min(rows - 1, row + 1)
         break
       case 'ArrowLeft':
         newCol = Math.max(0, col - 1)
         break
-      case 'h':
-        if (editingCell) return // disable vim keybindings when editing
-        newCol = Math.max(0, col - 1)
-        break
       case 'ArrowRight':
         newCol = Math.min(cols - 1, col + 1)
         break
-      case 'l':
-        if (editingCell) return // disable vim keybindings when editing
-        newCol = Math.min(cols - 1, col + 1)
-        break
+      // case 'k':
+      //   if (editingCell) return // disable vim keybindings when editing
+      //   if (e.ctrlKey) {
+      //     // move the current row up
+      //     const newRowData = swapArrayElements(rowDataS, row, row - 1)
+      //     setRowData(newRowData)
+      //     onGridChange(newRowData)
+      //     setGrid(newGrid(newRowData, columns))
+      //   }
+      //   newRow = Math.max(0, row - 1)
+      //   break
+      // case 'j':
+      //   if (editingCell) return // disable vim keybindings when editing
+      //   if (e.ctrlKey) {
+      //     // move the current row down
+      //     const newRowData = swapArrayElements(rowDataS, row, row + 1)
+      //     setRowData(newRowData)
+      //     onGridChange(newRowData)
+      //     setGrid(newGrid(newRowData, columns))
+      //   }
+      //   newRow = Math.min(rows - 1, row + 1)
+      //   break
+      // case 'h':
+      //   if (editingCell) return // disable vim keybindings when editing
+      //   newCol = Math.max(0, col - 1)
+      //   break
+      // case 'l':
+      //   if (editingCell) return // disable vim keybindings when editing
+      //   newCol = Math.min(cols - 1, col + 1)
+      //   break
       default:
         return
     }
@@ -160,7 +155,18 @@ export default function WorkoutGrid({
     col: number
   ) => {
     const value = e.target.value
-    handleOnSelectInput(value, row, col)
+    const colType = grid[row][col].colType
+    const newRows = rowDataS.map((r, idx) => {
+      if (row !== idx) return r
+      return {
+        ...r,
+        [colType]: value,
+      }
+    })
+
+    setRowData(newRows)
+    onGridChange(newRows)
+    setGrid(newGrid(newRows, columns))
   }
 
   const handleOnSelectInput = (value: string, row: number, col: number) => {
@@ -176,6 +182,8 @@ export default function WorkoutGrid({
     setRowData(newRows)
     onGridChange(newRows)
     setGrid(newGrid(newRows, columns))
+    gridRefs.current[editingCell!.row][editingCell!.col]?.focus()
+    setEditingCell(null)
   }
 
   // Handles blur of the input
@@ -194,7 +202,7 @@ export default function WorkoutGrid({
   }
 
   return (
-    <div className="flex-row text-sm">
+    <div className="text-sm">
       <div id="column-names" className="flex w-full">
         <div id="action menu" className="flex px-2">
           <div className="">
@@ -227,12 +235,12 @@ export default function WorkoutGrid({
       {grid.map((row, rowIndex) => {
         return (
           <div key={`row-${rowIndex}`} className="group flex h-9 w-full">
-            <div id="action menu" className="flex px-2">
+            <div id="action menu" className="flex items-center px-2">
               <div className="">
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out group-hover:opacity-100"
+                  className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out focus:opacity-100 group-hover:opacity-100"
                   onClick={() => handleAddRow(rowIndex, 0)}
                 >
                   <Icons.plus className="h-4 w-4" />
@@ -242,7 +250,7 @@ export default function WorkoutGrid({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out group-hover:opacity-100"
+                  className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out focus:opacity-100 group-hover:opacity-100"
                 >
                   <Icons.gripVertical className="h-4 w-4" />
                 </Button>
@@ -286,19 +294,15 @@ export default function WorkoutGrid({
                 {editingCell?.row === rowIndex &&
                 editingCell?.col === colIndex ? (
                   colIndex === 0 ? (
-                    <ExInput
-                      onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+                    <ExerciseInput
                       value={cell.value || ''}
-                      onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
-                      onSelect={(v) =>
+                      onSelect={(v) => {
                         handleOnSelectInput(v, rowIndex, colIndex)
-                      }
-                      onBlur={handleInputBlur}
+                      }}
                     />
                   ) : (
                     <input
                       className="h-full w-full bg-neutral-950 p-2 text-sm focus-within:outline-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500"
-                      onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
                       value={cell.value || ''}
                       onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
                       onBlur={handleInputBlur}
@@ -323,56 +327,9 @@ export default function WorkoutGrid({
   )
 }
 
-function ExInput({
-  value,
-  onChange,
-  onSelect,
-  onBlur,
-  onKeyDown,
-}: {
-  value: string
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void
-  onSelect: (v: string) => void
-  onKeyDown: (e: KeyboardEvent) => void
-  onBlur: () => void
-}) {
-  const { isPending, exercises: ex } = useExercises({ searchTerm: value })
-  const exercises: Exercise[] = ex || []
-
-  return (
-    <Combobox value={value} onChange={onSelect}>
-      <ComboboxInput
-        onChange={onChange}
-        onBlur={onBlur}
-        autoFocus
-        onKeyDown={onKeyDown}
-        value={value}
-        className="h-full w-full bg-neutral-950 p-2 text-sm focus-within:outline-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500"
-      />
-      <ComboboxOptions
-        anchor={{
-          to: 'bottom start',
-          offset: '-1px',
-        }}
-        transition
-        className="w-[calc(var(--input-width)+2px)] rounded-b-sm border border-border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"
-      >
-        {exercises.map((exercise) => {
-          return (
-            <ComboboxOption
-              value={exercise.name}
-              key={exercise.id}
-              className="cursor-default select-none rounded-sm bg-neutral-950 p-1 focus:outline-none data-[focus]:bg-neutral-900 data-[selected]:text-accent-foreground"
-            >
-              {exercise.name}
-            </ComboboxOption>
-          )
-        })}
-      </ComboboxOptions>
-    </Combobox>
-  )
-}
-
+/*
+ *
+ */
 function swapArrayElements(arr: any[], idx1: number, idx2: number) {
   if (idx1 < 0 || idx2 < 0 || idx1 >= arr.length || idx2 >= arr.length) {
     return arr

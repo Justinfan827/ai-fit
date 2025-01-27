@@ -21,6 +21,7 @@ export const workoutExerciseSchema = z.object({
 export const workoutSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string
   program_order: z.number(),
+  week: z.number().optional(),
   program_id: z.string().uuid(), // Validates a UUID string
   name: z.string(),
   blocks: z.array(workoutExerciseSchema), // Array of exercises
@@ -50,6 +51,7 @@ export const programSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime({ offset: true }),
   name: z.string(),
+  type: z.enum(['weekly', 'splits']),
   workouts: z.array(workoutSchema),
 })
 
@@ -82,11 +84,12 @@ export const workoutInstanceBlockSchema = z.object({
 
 export const workoutInstanceSchema = z.object({
   id: z.string().uuid(),
+  workoutId: z.string().uuid(),
+  userId: z.string().uuid(),
+  programId: z.string().uuid(),
   // supabase times are offset 0 at UTC
-  start_at: z.string().datetime({ offset: true }).nullable(),
-  end_at: z.string().datetime({ offset: true }).nullable().optional(),
-  workout_name: z.string(),
-  workout_id: z.string().uuid(),
+  startAt: z.string().datetime({ offset: true }).nullable(),
+  endAt: z.string().datetime({ offset: true }).nullable().optional(),
   blocks: z.array(workoutInstanceBlockSchema),
 })
 
