@@ -15,9 +15,11 @@ export type ExerciseInputPopoverProps = {
 export default function ExerciseInput({
   value,
   onSelect,
+  onBlur,
 }: {
   value: string
   onSelect: (v: string) => void
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
 }) {
   const { search } = usezEditorActions()
   const [exercises, setExercises] = useState(() => search(value)) // Initialize with the current search results
@@ -39,6 +41,7 @@ export default function ExerciseInput({
       <ComboboxInput
         ref={ref}
         onChange={onChange}
+        onBlur={onBlur}
         className="h-full w-full bg-neutral-950 p-2 text-sm focus-within:outline-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500"
       />
       <ComboboxOptions

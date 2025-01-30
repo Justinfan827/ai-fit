@@ -355,6 +355,7 @@ async function resolvePrograms(
         id: p.id,
         name: p.name,
         created_at: p.created_at,
+        type: p.type as 'weekly' | 'splits',
         workouts: wData.map((workout) => ({
           id: workout.id,
           program_order: workout.program_order,

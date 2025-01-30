@@ -1,4 +1,4 @@
-import ProgramEditor from '@/components/grid/ProgramEditor'
+import ProgramEditorContainer from '@/components/grid/ProgramEditorContainer'
 import { ProgramEditorSidebar } from '@/components/program-editor-sidebar'
 import {
   Breadcrumb,
@@ -10,10 +10,15 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { getExercises } from '@/lib/supabase/server/database.operations.queries'
 
-export default function Page() {
+export default async function Page() {
+  const [exercises] = await Promise.all([getExercises()])
+  if (exercises.error) {
+    return <div>error: {exercises.error.message}</div>
+  }
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <ProgramEditorSidebar side="left" />
       <div className="w-full overflow-auto">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -33,7 +38,7 @@ export default function Page() {
         </header>
         {/* height is calculated as the height of the screen (dvh) - h-16, where 16 = 4rem*/}
         <div className="flex h-[calc(100dvh-4rem)] w-full overflow-auto">
-          <ProgramEditor />
+          <ProgramEditorContainer serverExercises={exercises.data} />
         </div>
       </div>
     </SidebarProvider>

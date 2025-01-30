@@ -40,6 +40,7 @@ export default function WorkoutGrid({
   const cols = columns.length
   const [grid, setGrid] = useState(newGrid(rowDataS, columns))
   const [editingCell, setEditingCell] = useState<Position | null>(null) // Tracks the editing cell
+  console.log('editing cell', editingCell)
 
   const pendingFocusRef = useRef<Position | null>(null)
   const gridRefs = useRef<HTMLDivElement[][]>([]) // Ref array for all cells
@@ -67,16 +68,10 @@ export default function WorkoutGrid({
     } else if (e.key === 'Escape') {
       setEditingCell(null)
       gridRefs.current[row][col]?.focus()
-    } else if (e.key === 'Backspace') {
-      if (e.metaKey) {
-        // delete current row
-        const newRowData = rowDataS.filter((_, idx) => idx !== row)
-        setRowData(newRowData)
-        onGridChange(newRowData)
-        setGrid(newGrid(newRowData, columns))
-      }
     } else {
-      navigateGrid(e, row, col)
+      if (!editingCell) {
+        navigateGrid(e, row, col)
+      }
     }
   }
 
@@ -89,6 +84,8 @@ export default function WorkoutGrid({
       //  disable meta keybindings when editing
       return
     }
+
+    // enable arrow keys to navigate the rows
     switch (e.key) {
       case 'ArrowUp':
         newRow = Math.max(0, row - 1)
@@ -102,45 +99,21 @@ export default function WorkoutGrid({
       case 'ArrowRight':
         newCol = Math.min(cols - 1, col + 1)
         break
-      // case 'k':
-      //   if (editingCell) return // disable vim keybindings when editing
-      //   if (e.ctrlKey) {
-      //     // move the current row up
-      //     const newRowData = swapArrayElements(rowDataS, row, row - 1)
-      //     setRowData(newRowData)
-      //     onGridChange(newRowData)
-      //     setGrid(newGrid(newRowData, columns))
-      //   }
-      //   newRow = Math.max(0, row - 1)
-      //   break
-      // case 'j':
-      //   if (editingCell) return // disable vim keybindings when editing
-      //   if (e.ctrlKey) {
-      //     // move the current row down
-      //     const newRowData = swapArrayElements(rowDataS, row, row + 1)
-      //     setRowData(newRowData)
-      //     onGridChange(newRowData)
-      //     setGrid(newGrid(newRowData, columns))
-      //   }
-      //   newRow = Math.min(rows - 1, row + 1)
-      //   break
-      // case 'h':
-      //   if (editingCell) return // disable vim keybindings when editing
-      //   newCol = Math.max(0, col - 1)
-      //   break
-      // case 'l':
-      //   if (editingCell) return // disable vim keybindings when editing
-      //   newCol = Math.min(cols - 1, col + 1)
-      //   break
       default:
         return
     }
     e.preventDefault()
     gridRefs.current[newRow][newCol]?.focus()
-    if (!!editingCell) {
-      setEditingCell({ row: newRow, col: newCol })
-    }
   }
+  // To ensure that focus moves correctly after state updates, use the useEffect hook to detect
+  // when editingCell becomes null and then move the focus.
+  useEffect(() => {
+    if (editingCell === null && pendingFocusRef.current) {
+      const { row, col } = pendingFocusRef.current
+      gridRefs.current[row]?.[col]?.focus()
+      pendingFocusRef.current = null // Clear the pending focus
+    }
+  }, [editingCell])
 
   // Handles cell content change
   const handleInputChange = (
@@ -163,6 +136,20 @@ export default function WorkoutGrid({
     setGrid(newGrid(newRows, columns))
   }
 
+  const handleInputKeyDown = (e: KeyboardEvent, row: number, col: number) => {
+    if (e.key === 'Enter') {
+      e.preventDefault() // Prevent any unintended form submission or behavior
+      console.log('handleInputKeyDown', e.key)
+      // Blur the input field
+      if (document.activeElement instanceof HTMLElement) {
+        console.log('blurring')
+        document.activeElement.blur()
+      }
+      pendingFocusRef.current = { row: row + 1, col: col }
+      setEditingCell(null)
+    }
+  }
+
   const handleOnSelectInput = (value: string, row: number, col: number) => {
     const colType = grid[row][col].colType
     const newRows = rowDataS.map((r, idx) => {
@@ -181,8 +168,18 @@ export default function WorkoutGrid({
   }
 
   // Handles blur of the input
-  const handleInputBlur = () => {
-    gridRefs.current[editingCell!.row][editingCell!.col]?.focus()
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (e.relatedTarget) {
+      console.log('Focus moved to:', e.relatedTarget)
+    } else {
+      console.log('Blurred due to clicking outside the component')
+    }
+    // console.log('input blurring')
+    // pendingFocusRef.current = {
+    //   row: editingCell!.row,
+    //   col: editingCell!.col + 1,
+    // }
+    // gridRefs.current[editingCell!.row][editingCell!.col]?.focus()
     setEditingCell(null)
   }
 
@@ -198,8 +195,7 @@ export default function WorkoutGrid({
   return (
     <div className="text-sm">
       <div id="column-names" className="flex w-full">
-        <div id="dummy-action-menu" className="flex px-2 ml-[48px]">
-        </div>
+        <div id="dummy-action-menu" className="ml-[48px] flex px-2"></div>
         {columns.map((col, idx) => {
           return (
             <div
@@ -283,6 +279,7 @@ export default function WorkoutGrid({
                       onSelect={(v) => {
                         handleOnSelectInput(v, rowIndex, colIndex)
                       }}
+                      onBlur={handleInputBlur}
                     />
                   ) : (
                     <input

@@ -11,13 +11,12 @@ export default function ProgramEditorContainer({
   serverProgram?: Program
   serverExercises: Exercise[]
 }) {
-  console.log(JSON.stringify(serverProgram, null, 2))
   return (
     <EditorProgramProvider
       initialProgram={serverProgram}
       exercises={serverExercises}
     >
-      <ProgramEditor serverProgram={serverProgram} />
+      <ProgramEditor />
     </EditorProgramProvider>
   )
 }

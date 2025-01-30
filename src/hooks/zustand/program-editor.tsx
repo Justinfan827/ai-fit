@@ -5,7 +5,7 @@ import { create, StoreApi, UseBoundStore, useStore } from 'zustand'
 import { Exercise, Program, Workouts } from '@/lib/domain/workouts'
 import Fuse from 'fuse.js'
 
-const BearStoreContext = createContext<UseBoundStore<
+const EditorStoreContext = createContext<UseBoundStore<
   StoreApi<EditorState>
 > | null>(null)
 
@@ -116,14 +116,14 @@ const EditorProgramProvider = ({
   )
 
   return (
-    <BearStoreContext.Provider value={store}>
+    <EditorStoreContext.Provider value={store}>
       {children}
-    </BearStoreContext.Provider>
+    </EditorStoreContext.Provider>
   )
 }
 
 const useEditorStore = <T,>(selector: (state: EditorState) => T): T => {
-  const store = useContext(BearStoreContext)
+  const store = useContext(EditorStoreContext)
   if (!store) {
     throw new Error('Missing BearStoreProvider')
   }

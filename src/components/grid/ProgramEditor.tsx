@@ -23,6 +23,7 @@ import {
   usezProgramWorkouts,
 } from '@/hooks/zustand/program-editor'
 import { Program, programSchema, Workout } from '@/lib/domain/workouts'
+import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import LoadingButton from '../loading-button'
 import WorkoutGrid from './WorkoutGrid'
@@ -36,6 +37,14 @@ export default function ProgramEditor({}) {
   const programCreatedAt = usezProgramCreatedAt()
   const programId = usezProgramId()
   const { setProgramType, setProgramName, setWorkouts } = usezEditorActions()
+  const workoutsByWeek = workouts.reduce((acc, w) => {
+    const week = w.week || 0
+    if (!acc[week]) {
+      acc[week] = []
+    }
+    acc[week].push(w)
+    return acc
+  }, [] as Workout[][])
 
   const isNewProgram = usezIsNewProgram()
 
@@ -61,15 +70,47 @@ export default function ProgramEditor({}) {
     }
   }, [program])
 
-  const handleNewWorkout = ({ week }: { week?: number }) => {
+  const addNewWorkoutToWeek = ({ week }: { week?: number }) => {
+    /*
+     *  TODO: should i change the meaning of program order? I.e.
+     *  week: 1
+     *   program_order:0
+     *   week:2
+     *   program_order: 0
+     *   two workouts have the same program order, but they are in different weeks.
+     *
+     *  For a split, the program order should not be duplicated.
+     *
+     *  If i force deletion of anything after week 1 when you switch to a split,
+     *  this should be fine! i just need to make sure when i fetch programs, i order by
+     *  week, and then program_order, for weekly programs.
+     *
+     */
+
+    if (week === undefined) {
+      setWorkouts([
+        ...workouts,
+        {
+          id: uuidv4().toString(),
+          program_id: programId,
+          name: `workout ${workouts.length + 1}`,
+          program_order: workouts.length,
+          week: week,
+          blocks: defaultRowData,
+        },
+      ])
+      return
+    }
+
+    const workoutsInTheWeek = workoutsByWeek[week] || []
     setWorkouts([
       ...workouts,
       {
         id: uuidv4().toString(),
-        name: `workout ${workouts.length + 1}`,
-        program_order: workouts.length,
+        program_id: programId,
+        name: `Week: ${week + 1} Workout ${workoutsInTheWeek.length + 1}`,
+        program_order: workoutsInTheWeek.length,
         week: week,
-        program_id: uuidv4().toString(), // populated on create
         blocks: defaultRowData,
       },
     ])
@@ -155,15 +196,6 @@ export default function ProgramEditor({}) {
     setProgramType(v)
   }
 
-  const workoutsByWeek = workouts.reduce((acc, w) => {
-    const week = w.week || 0
-    if (!acc[week]) {
-      acc[week] = []
-    }
-    acc[week].push(w)
-    return acc
-  }, [] as Workout[][])
-
   return (
     <div className="relative w-full overflow-x-auto">
       {isAIGenPending && (
@@ -202,11 +234,11 @@ export default function ProgramEditor({}) {
             <div
               key={`by-week-workout-${weekIdx}`}
               id="workout-ui"
-              className="min-w-[1200px] pr-10"
+              className="min-w-[1200px] pr-4"
             >
               <div className="flex gap-4">
                 <div id="workout-grid" className="w-full flex-grow space-y-8">
-                  {weeksWorkouts.map((workout) => {
+                  {weeksWorkouts.map((workout, workoutIdx) => {
                     return (
                       <div key={workout.id} className="flex gap-4">
                         <div className="flex-grow space-y-4">
@@ -244,40 +276,58 @@ export default function ProgramEditor({}) {
                             rowData={workout.blocks}
                             columns={defaultColumns}
                             onGridChange={(rows) => {
-                              const newWorkouts = weeksWorkouts.map((w) => {
-                                if (w.id === workout.id) {
-                                  const workoutRows: Workout['blocks'] =
-                                    rows.map((row) => {
-                                      return {
-                                        id: uuidv4().toString(),
-                                        exercise_name: row.exercise_name,
-                                        sets: row.sets,
-                                        reps: row.reps,
-                                        weight: row.weight || '',
-                                        rest: row.rest || '',
-                                        notes: row.notes || '',
-                                      }
-                                    })
-                                  console.log({ workoutRows })
+                              // The grid updated. Right now, it's a little circular, might have to clean this up a little later,
+                              // but grid updates update the global workout store, which cause a re-render of the grid.
+                              //
+                              const workoutToUpdate = workouts.find(
+                                (w) => w.id === workout.id
+                              )
+                              if (!workoutToUpdate) {
+                                return
+                              }
+
+                              const workoutRows: Workout['blocks'] = rows.map(
+                                (row) => {
                                   return {
-                                    ...w,
-                                    blocks: workoutRows,
+                                    id: uuidv4().toString(),
+                                    exercise_name: row.exercise_name,
+                                    sets: row.sets,
+                                    reps: row.reps,
+                                    weight: row.weight || '',
+                                    rest: row.rest || '',
+                                    notes: row.notes || '',
                                   }
+                                }
+                              )
+                              const newWorkout = {
+                                ...workoutToUpdate,
+                                blocks: workoutRows,
+                              }
+
+                              const updatedworkouts = workouts.map((w) => {
+                                if (w.id === workout.id) {
+                                  return newWorkout
                                 }
                                 return w
                               })
-                              setWorkouts(newWorkouts)
+
+                              setWorkouts(updatedworkouts)
                             }}
                           />
                         </div>
-                        <div className="mt-[48px] flex flex-col items-stretch">
+                        <div
+                          className={cn(
+                            'invisible mt-[48px] flex flex-col items-stretch',
+                            workoutIdx === weeksWorkouts.length - 1 && 'visible'
+                          )}
+                        >
                           <Button
                             id="next-week-workout-btn"
                             variant="dashed"
                             size="icon"
                             className="flex-grow text-sm font-normal"
                             onClick={() =>
-                              handleNewWorkout({ week: weekIdx + 1 })
+                              addNewWorkoutToWeek({ week: weekIdx + 1 })
                             }
                           >
                             <Icons.plus className="h-4 w-4 rounded-full" />
@@ -293,7 +343,7 @@ export default function ProgramEditor({}) {
                   variant="dashed"
                   size="sm"
                   className="text-sm font-normal"
-                  onClick={() => handleNewWorkout({ week: weekIdx })}
+                  onClick={() => addNewWorkoutToWeek({ week: weekIdx })}
                 >
                   <Icons.plus className="h-4 w-4 rounded-full" />
                   Add Workout
@@ -303,7 +353,7 @@ export default function ProgramEditor({}) {
           )
         })}
       </div>
-
+      {/* Debug container */}
       <div className="p-10">
         <div className="flex gap-4">
           <div>
@@ -311,6 +361,7 @@ export default function ProgramEditor({}) {
             <JSONContainer className="w-[300px]" json={error} />
           </div>
           <div>
+            Workouts by week
             <JSONContainer json={workoutsByWeek} />
           </div>
         </div>
