@@ -65,21 +65,23 @@ export default async function WorkoutsPage() {
               </Button>
             </div>
           </div>
-          <div id="programs-container" className="space-y-4 p-4">
+          <div id="programs-container" className="p-4 space-y-4">
             <Tp className="text-2xl tracking-wide">Programs</Tp>
-            {data.map((program, idx) => (
-              <Link
-                href={`/home/programs/${program.id}`}
-                key={program.id}
-                className={cn(
-                  'flex border-x border-b border-neutral-700 px-4 py-4',
-                  idx === 0 && 'rounded-t-sm border-t',
-                  idx === data.length - 1 && 'rounded-b-sm border-b'
-                )}
-              >
-                {program.name}
-              </Link>
-            ))}
+            <div className=''>
+              {data.map((program, idx) => (
+                <Link
+                  href={`/home/programs/${program.id}`}
+                  key={program.id}
+                  className={cn(
+                    'flex border-x border-b border-neutral-700 px-4 py-4',
+                    idx === 0 && 'rounded-t-sm border-t',
+                    idx === data.length - 1 && 'rounded-b-sm border-b'
+                  )}
+                >
+                  {program.name}
+                </Link>
+              ))}
+            </div>
           </div>
           <div id="clients-container" className="space-y-4 p-4">
             <Tp className="text-2xl tracking-wide">Clients</Tp>

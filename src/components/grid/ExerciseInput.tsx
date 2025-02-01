@@ -42,15 +42,16 @@ export default function ExerciseInput({
         ref={ref}
         onChange={onChange}
         onBlur={onBlur}
-        className="h-full w-full bg-neutral-950 p-2 text-sm focus-within:outline-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500"
+        className="h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-none focus:outline-none"
       />
       <ComboboxOptions
         anchor={{
           to: 'bottom start',
-          offset: '-1px',
+          offset: '-9px',
+          gap: '8px'
         }}
         transition
-        className="w-[calc(var(--input-width)+2px)] rounded-b-sm border border-border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"
+        className="w-[calc(var(--input-width)+18px)] rounded-b-sm border border-border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"
       >
         {exercises.map((exercise) => {
           return (

@@ -1,4 +1,4 @@
-import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
+import { ChangeEvent, KeyboardEvent, useRef, useState } from 'react'
 
 import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
@@ -34,88 +34,79 @@ export default function WorkoutGrid({
   rowData: RowData[]
   columns: Columns[]
 }) {
-  // grid is represented by: a[row][col]
   const [rowDataS, setRowData] = useState(rowData)
   const rows = rowDataS.length
   const cols = columns.length
   const [grid, setGrid] = useState(newGrid(rowDataS, columns))
-  const [editingCell, setEditingCell] = useState<Position | null>(null) // Tracks the editing cell
-  console.log('editing cell', editingCell)
+  const [activeCell, setActiveCell] = useState<Position | null>(null) // Renamed from editingCell for clarity
+  const gridRefs = useRef<HTMLDivElement[][]>([])
 
-  const pendingFocusRef = useRef<Position | null>(null)
-  const gridRefs = useRef<HTMLDivElement[][]>([]) // Ref array for all cells
-
-  useEffect(() => {
-    if (pendingFocusRef.current) {
-      const { row, col } = pendingFocusRef.current
-      // Wait for DOM updates to complete before focusing
-      setTimeout(() => {
-        gridRefs.current[row]?.[col]?.focus()
-        pendingFocusRef.current = null // Clear the pending focus
-      }, 0)
-    }
-  }, [grid]) // Trigger effect when grid updates // TODO: make grid a ref?
-
-  // Handles keyboard navigation
+  // Handles keyboard navigation and cell activation
   const handleKeyDown = (e: KeyboardEvent, row: number, col: number) => {
-    if (e.key === 'Enter') {
-      setEditingCell({ row, col })
-      if (e.metaKey) {
-        handleAddRow(row, col)
+    if (activeCell) {
+      if (e.key === 'Tab' && e.shiftKey) {
         e.preventDefault()
-        e.stopPropagation()
+        const newCol = Math.max(0, col - 1)
+        setActiveCell(null)
+        gridRefs.current[row][newCol]?.focus()
+        return
       }
-    } else if (e.key === 'Escape') {
-      setEditingCell(null)
-      gridRefs.current[row][col]?.focus()
-    } else {
-      if (!editingCell) {
-        navigateGrid(e, row, col)
+      // Handle keys while cell is active
+      if (e.key === 'Enter' || e.key === 'Escape') {
+        e.preventDefault()
+        setActiveCell(null)
+        gridRefs.current[row][col]?.focus()
       }
-    }
-  }
-
-  // Navigation logic
-  const navigateGrid = (e: KeyboardEvent, row: number, col: number) => {
-    let newRow = row
-    let newCol = col
-
-    if (e.altKey) {
-      //  disable meta keybindings when editing
       return
     }
 
-    // enable arrow keys to navigate the rows
-    switch (e.key) {
-      case 'ArrowUp':
-        newRow = Math.max(0, row - 1)
-        break
-      case 'ArrowDown':
-        newRow = Math.min(rows - 1, row + 1)
-        break
-      case 'ArrowLeft':
-        newCol = Math.max(0, col - 1)
-        break
-      case 'ArrowRight':
-        newCol = Math.min(cols - 1, col + 1)
-        break
-      default:
-        return
-    }
-    e.preventDefault()
-    gridRefs.current[newRow][newCol]?.focus()
-  }
-  // To ensure that focus moves correctly after state updates, use the useEffect hook to detect
-  // when editingCell becomes null and then move the focus.
-  useEffect(() => {
-    if (editingCell === null && pendingFocusRef.current) {
-      const { row, col } = pendingFocusRef.current
-      gridRefs.current[row]?.[col]?.focus()
-      pendingFocusRef.current = null // Clear the pending focus
-    }
-  }, [editingCell])
+    // Handle navigation when no cell is active
+    const isArrowKey = [
+      'ArrowUp',
+      'ArrowDown',
+      'ArrowLeft',
+      'ArrowRight',
+    ].includes(e.key)
 
-  // Handles cell content change
+    if (isArrowKey) {
+      e.preventDefault()
+      let newRow = row
+      let newCol = col
+
+      switch (e.key) {
+        case 'ArrowUp':
+          newRow = Math.max(0, row - 1)
+          break
+        case 'ArrowDown':
+          newRow = Math.min(rows - 1, row + 1)
+          break
+        case 'ArrowLeft':
+          newCol = Math.max(0, col - 1)
+          break
+        case 'ArrowRight':
+          newCol = Math.min(cols - 1, col + 1)
+          break
+      }
+
+      gridRefs.current[newRow][newCol]?.focus()
+    } else if (e.key === 'Enter') {
+      setActiveCell({ row, col })
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      // If user starts typing, just activate the cell - don't set the value yet
+      e.preventDefault() // Prevent the keypress from being handled twice
+      const colType = grid[row][col].colType
+      const newRows = rowDataS.map((r, idx) =>
+        idx === row ? { ...r, [colType]: e.key } : r
+      )
+      setRowData(newRows)
+      onGridChange(newRows)
+      setGrid(newGrid(newRows, columns))
+      setActiveCell({ row, col })
+      // The input will receive focus and handle the keypress normally
+    }
+  }
+
+  // Simplified input change handler
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement>,
     row: number,
@@ -123,31 +114,13 @@ export default function WorkoutGrid({
   ) => {
     const value = e.target.value
     const colType = grid[row][col].colType
-    const newRows = rowDataS.map((r, idx) => {
-      if (row !== idx) return r
-      return {
-        ...r,
-        [colType]: value,
-      }
-    })
+    const newRows = rowDataS.map((r, idx) =>
+      idx === row ? { ...r, [colType]: value } : r
+    )
 
     setRowData(newRows)
     onGridChange(newRows)
     setGrid(newGrid(newRows, columns))
-  }
-
-  const handleInputKeyDown = (e: KeyboardEvent, row: number, col: number) => {
-    if (e.key === 'Enter') {
-      e.preventDefault() // Prevent any unintended form submission or behavior
-      console.log('handleInputKeyDown', e.key)
-      // Blur the input field
-      if (document.activeElement instanceof HTMLElement) {
-        console.log('blurring')
-        document.activeElement.blur()
-      }
-      pendingFocusRef.current = { row: row + 1, col: col }
-      setEditingCell(null)
-    }
   }
 
   const handleOnSelectInput = (value: string, row: number, col: number) => {
@@ -163,30 +136,14 @@ export default function WorkoutGrid({
     setRowData(newRows)
     onGridChange(newRows)
     setGrid(newGrid(newRows, columns))
-    gridRefs.current[editingCell!.row][editingCell!.col]?.focus()
-    setEditingCell(null)
-  }
-
-  // Handles blur of the input
-  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (e.relatedTarget) {
-      console.log('Focus moved to:', e.relatedTarget)
-    } else {
-      console.log('Blurred due to clicking outside the component')
-    }
-    // console.log('input blurring')
-    // pendingFocusRef.current = {
-    //   row: editingCell!.row,
-    //   col: editingCell!.col + 1,
-    // }
-    // gridRefs.current[editingCell!.row][editingCell!.col]?.focus()
-    setEditingCell(null)
+    gridRefs.current[activeCell!.row][activeCell!.col]?.focus()
+    setActiveCell(null)
   }
 
   const handleAddRow = (rowIndex: number, colIndex: number) => {
     const newRowData = [...rowDataS]
     newRowData.splice(rowIndex + 1, 0, {})
-    pendingFocusRef.current = { row: rowIndex + 1, col: colIndex }
+    setActiveCell({ row: rowIndex + 1, col: colIndex })
     setRowData(newRowData)
     onGridChange(newRowData)
     setGrid(newGrid(newRowData, columns))
@@ -251,49 +208,36 @@ export default function WorkoutGrid({
                   `relative shrink-0 flex-grow cursor-pointer overflow-hidden border-b border-r border-neutral-800 p-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500`,
                   rowIndex === 0 && 'border-t',
                   colIndex === 0 && 'border-l',
-                  // colIndex !== 0 && "focus-within:-ml-px",
-                  // rowIndex !== 0 && "focus-within:-mt-px",
-                  editingCell?.row === rowIndex &&
-                    editingCell.col === colIndex &&
-                    'p-0',
-
                   rowIndex === rows - 1 && colIndex === 0 && 'rounded-bl-sm',
-                  rowIndex === rows - 1 &&
-                    colIndex === cols - 1 &&
-                    'rounded-br-sm'
+                  rowIndex === rows - 1 && colIndex === cols - 1 && 'rounded-br-sm'
                 )}
                 onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}
                 onDoubleClick={() =>
-                  setEditingCell({ row: rowIndex, col: colIndex })
+                  setActiveCell({ row: rowIndex, col: colIndex })
                 }
                 onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
                 style={{
                   flexBasis: cell.width,
                 }}
               >
-                {editingCell?.row === rowIndex &&
-                editingCell?.col === colIndex ? (
+                {activeCell?.row === rowIndex &&
+                activeCell?.col === colIndex ? (
                   colIndex === 0 ? (
                     <ExerciseInput
                       value={cell.value || ''}
                       onSelect={(v) => {
                         handleOnSelectInput(v, rowIndex, colIndex)
+                        gridRefs.current[rowIndex][colIndex]?.focus()
                       }}
-                      onBlur={handleInputBlur}
+                      onBlur={() => setActiveCell(null)}
                     />
                   ) : (
                     <input
-                      className="h-full w-full bg-neutral-950 p-2 text-sm focus-within:outline-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500"
+                      className="h-full w-full m-0 bg-neutral-950 py-2 text-sm focus-within:outline-none focus:outline-none"
                       value={cell.value || ''}
                       onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
-                      onBlur={handleInputBlur}
+                      onBlur={() => setActiveCell(null)}
                       autoFocus
-                      onClick={() =>
-                        gridRefs.current[rowIndex][colIndex]?.focus()
-                      }
-                      onDoubleClick={() =>
-                        setEditingCell({ row: rowIndex, col: colIndex })
-                      }
                     />
                   )
                 ) : (
