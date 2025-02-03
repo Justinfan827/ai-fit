@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   })
   if (error) {
     return redirectToSigninWithErrors(request.nextUrl, {
-      errorTitle: error.code,
+      errorTitle: error.code || 'unknown_supabase_error',
       errorCode: error.code || 'unknown_supabase_error',
       errorDescription: error.message,
     })

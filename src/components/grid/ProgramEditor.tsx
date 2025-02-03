@@ -9,7 +9,7 @@ import { ProgramSelect } from '@/components/grid/ProgramSelect'
 import { Icons } from '@/components/icons'
 import JSONContainer from '@/components/JSONContainer'
 import { Button } from '@/components/ui/button'
-import apiCreateWorkout from '@/fetches/create-workout'
+import apiCreateProgram from '@/fetches/create-program'
 import apiEditWorkout from '@/fetches/edit-workout'
 import { toast } from '@/hooks/use-toast'
 import { useAIProgram } from '@/hooks/use-workout'
@@ -30,7 +30,7 @@ import { Badge } from '../ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import WorkoutGrid from './WorkoutGrid'
 
-export default function ProgramEditor({}) {
+export default function ProgramEditor({ }) {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
   const workouts = usezProgramWorkouts()
@@ -125,7 +125,7 @@ export default function ProgramEditor({}) {
 
   const handleOnCreate = async () => {
     setIsPending(true)
-    const { data, error } = await apiCreateWorkout({
+    const { data, error } = await apiCreateProgram({
       body: {
         type: programType,
         id: uuidv4().toString(),

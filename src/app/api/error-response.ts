@@ -6,9 +6,11 @@ import {
   ErrorResponse,
   fromZodError,
 } from './errors'
+import { AuthError } from '@supabase/supabase-js'
 
 export function handleAPIResponse(e: unknown) {
   const errCodeAndMsg = asError(e)
+  console.log('Server Error:', errCodeAndMsg);
   return NextResponse.json(
     {
       ...errCodeAndMsg,
@@ -21,6 +23,14 @@ export function handleAPIResponse(e: unknown) {
 }
 
 export function asError(e: any): ErrorResponse {
+  if (e instanceof AuthError) {
+    return {
+      error: {
+        code: 'unauthorized',
+        message: e.message,
+      },
+    }
+  }
   if (e instanceof ZodError) {
     return fromZodError(e)
   }

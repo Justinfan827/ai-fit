@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 
 import { createServerClient } from '../create-server-client'
 import { isClient } from '../utils'
+import { APIError } from '@/app/api/errors'
 
 type AuthCheck = AuthCheckFailed | AuthCheckSuccess
 
@@ -37,7 +38,14 @@ export const checkServerUserAuth = async (): Promise<AuthCheck> => {
     return { user: null, error }
   }
   if (!user) {
-    return { user: null, error: new Error('No user found') }
+    return {
+      user: null, error: new APIError(
+        {
+          code: 'unauthorized',
+          message: 'No user found',
+        }
+      )
+    }
   }
   return { user, error: null }
 }

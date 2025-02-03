@@ -5,30 +5,34 @@ import { authUserRequest } from '../auth'
 import { handleAPIResponse } from '../error-response'
 import { APIError } from '../errors'
 
+interface withPublicHandler {
+  ({ req }: { req: NextRequest }): Promise<NextResponse>
+}
+
 interface withAuthHandler {
-  ({ req }: { req: Request; user: User }): Promise<NextResponse>
+  ({ req }: { req: NextRequest; user: User }): Promise<NextResponse>
 }
 interface withAuthBodyHandler {
-  (params: { req: Request; user: User; body: any }): Promise<NextResponse>
+  (params: { req: NextRequest; user: User; body: any }): Promise<NextResponse>
 }
 
-export const withAuth = async (handler: withAuthHandler) => {
+export const withPublic = (handler: withPublicHandler) => {
+  return (req: NextRequest) => {
+    try {
+      return handler({ req })
+    } catch (e) {
+      return handleAPIResponse(e)
+    }
+  }
+}
+
+export const withAuth = (handler: withAuthHandler) => {
   return async (req: NextRequest) => {
     try {
-      const { data, error } = await authUserRequest()
-      if (error) {
-        throw error
-      }
-
-      if (!data) {
-        throw new APIError({
-          code: 'unauthorized',
-          message: 'No user found',
-        })
-      }
+      const user = await authUserRequest()
       return handler({
         req,
-        user: data.user,
+        user,
       })
     } catch (e) {
       return handleAPIResponse(e)
@@ -36,14 +40,10 @@ export const withAuth = async (handler: withAuthHandler) => {
   }
 }
 
-export const withAuthBody = async (handler: withAuthBodyHandler) => {
+export const withAuthBody = (handler: withAuthBodyHandler) => {
   return async (req: NextRequest) => {
     try {
-      const { data, error } = await authUserRequest()
-      if (error) {
-        throw error
-      }
-
+      const user = await authUserRequest()
       const body = await req.json()
       if (!body) {
         throw new APIError({
@@ -51,15 +51,9 @@ export const withAuthBody = async (handler: withAuthBodyHandler) => {
           message: 'Request body is required for this endpoint',
         })
       }
-      if (!data) {
-        throw new APIError({
-          code: 'unauthorized',
-          message: 'No user found',
-        })
-      }
       return handler({
         req,
-        user: data.user,
+        user,
         body,
       })
     } catch (e) {
@@ -72,29 +66,18 @@ interface WithAuthBodyHandler<T> {
   (params: { req: NextRequest; user: User; body: T }): Promise<NextResponse>
 }
 
-export const withAuthBodySchema = async <T extends ZodRawShape>(
+export const withAuthBodySchema = <T extends ZodRawShape>(
   { schema }: { schema: ZodObject<T> },
   handler: WithAuthBodyHandler<ZodInfer<ZodObject<T>>>
 ) => {
   return async (req: NextRequest) => {
     try {
-      const { data, error } = await authUserRequest()
-      if (error) {
-        throw error
-      }
-
+      const user = await authUserRequest()
       const body = await req.json()
       if (!body) {
         throw new APIError({
           code: 'bad_request',
           message: 'Request body is required for this endpoint',
-        })
-      }
-
-      if (!data) {
-        throw new APIError({
-          code: 'unauthorized',
-          message: 'No user found',
         })
       }
 
@@ -105,7 +88,7 @@ export const withAuthBodySchema = async <T extends ZodRawShape>(
 
       return handler({
         req,
-        user: data.user,
+        user,
         body: parsedBody.data,
       })
     } catch (e) {
