@@ -14,9 +14,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
-  WorkoutExercise,
   ExerciseInstance,
   Workout,
+  WorkoutExercise,
   WorkoutInstance,
 } from '@/lib/domain/workouts'
 import { cn } from '@/lib/utils'

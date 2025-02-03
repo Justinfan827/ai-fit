@@ -11,7 +11,7 @@ We automatically generate those types from the OpenAPI spec.
 */
 
 import { NextResponse } from 'next/server'
-import { APIError } from './errors'
+import { APIError, ErrorResponse } from './errors'
 
 export interface APISuccessResponse<T> {
   data: T
@@ -21,6 +21,11 @@ export interface APISuccessResponse<T> {
 export interface APIErrorResponse {
   data: null
   error: APIError
+}
+
+export interface APIErrorResponseV2 {
+  data: null
+  error: ErrorResponse['error']
 }
 
 export type APIResponse<T> = APIErrorResponse | APISuccessResponse<T>

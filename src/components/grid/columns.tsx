@@ -1,6 +1,12 @@
-import { v4 } from "uuid"
+import { v4 } from 'uuid'
 
-export const defaultColumns = [
+export interface Column {
+  field: string // the field of the column (rows use this to identify which column they belong to)
+  header: string // the header name of the column
+  width?: number // the CSS width of the column
+}
+
+export const defaultColumns: Column[] = [
   {
     field: 'exercise_name',
     header: 'Exercise',

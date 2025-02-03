@@ -2,13 +2,13 @@ import { Program, programSchema } from '@/lib/domain/workouts'
 import { APIResponse } from '@/lib/types/apires'
 import { getError } from '@/lib/utils/util'
 
-export default async function apiCreateWorkout({
+export default async function apiCreateProgram({
   body,
 }: {
   body: Program
 }): Promise<APIResponse<Program>> {
   try {
-    const res = await fetch(`/api/workout`, {
+    const res = await fetch(`/api/program`, {
       method: 'POST',
       body: JSON.stringify(body),
       headers: new Headers({ 'Content-Type': 'application/json' }),
@@ -24,7 +24,7 @@ export default async function apiCreateWorkout({
     const { data: apiData } = await res.json()
     const { data, error } = programSchema.safeParse(apiData)
     if (error) {
-      console.log({error});
+      console.log({ error })
       return {
         data: null,
         error: new Error(error.message),

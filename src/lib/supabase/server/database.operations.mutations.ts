@@ -33,6 +33,7 @@ export async function createProgram(
     .from('programs')
     .insert({
       name: body.name,
+      type: body.type,
       user_id: userId,
       is_template: true,
     })

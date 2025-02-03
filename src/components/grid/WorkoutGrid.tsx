@@ -1,23 +1,19 @@
 import { ChangeEvent, KeyboardEvent, useRef, useState } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
 import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { Column } from './columns'
 
 interface Position {
   row: number
   col: number
 }
 
-export interface RowData {
+export interface Row {
   [key: string]: string
-}
-
-interface Columns {
-  field: string // the field of the column (rows use this to identify which column they belong to)
-  header: string // the header name of the column
-  width?: number // the CSS width of the column
 }
 
 interface Cell {
@@ -30,18 +26,60 @@ export default function WorkoutGrid({
   rowData,
   columns,
 }: {
-  onGridChange: (grid: RowData[]) => void
-  rowData: RowData[]
-  columns: Columns[]
+  onGridChange: (grid: Row[]) => void
+  rowData: Row[]
+  columns: Column[]
 }) {
+  return (
+    <div className="text-sm">
+      <GridHeaderRow columns={columns} />
+      <GridContentRows
+        onGridChange={onGridChange}
+        columns={columns}
+        rowData={rowData}
+      />
+    </div>
+  )
+}
+
+function GridHeaderRow({ columns }: { columns: Column[] }) {
+  return (
+    <div id="headers" className="flex w-full">
+      <div id="dummy-action-menu" className="ml-[48px] flex px-2" />
+      {columns.map((col, idx) => {
+        return (
+          <div
+            className={cn(
+              'shrink-0 flex-grow border-r border-t border-neutral-800 bg-neutral-950 p-2 text-sm font-light uppercase tracking-wider text-neutral-400',
+              idx === 0 && 'rounded-tl-sm border-l',
+              idx === columns.length - 1 && 'rounded-tr-sm'
+            )}
+            key={col.field}
+            style={{ flexBasis: col.width }}
+          >
+            {col.header}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+function GridContentRows({
+  columns,
+  rowData,
+  onGridChange,
+}: {
+  columns: Column[]
+  onGridChange: (grid: Row[]) => void
+  rowData: Row[]
+}) {
+  // Handles keyboard navigation and cell activation
   const [rowDataS, setRowData] = useState(rowData)
   const rows = rowDataS.length
   const cols = columns.length
   const [grid, setGrid] = useState(newGrid(rowDataS, columns))
   const [activeCell, setActiveCell] = useState<Position | null>(null) // Renamed from editingCell for clarity
   const gridRefs = useRef<HTMLDivElement[][]>([])
-
-  // Handles keyboard navigation and cell activation
   const handleKeyDown = (e: KeyboardEvent, row: number, col: number) => {
     if (activeCell) {
       if (e.key === 'Tab' && e.shiftKey) {
@@ -142,7 +180,9 @@ export default function WorkoutGrid({
 
   const handleAddRow = (rowIndex: number, colIndex: number) => {
     const newRowData = [...rowDataS]
-    newRowData.splice(rowIndex + 1, 0, {})
+    newRowData.splice(rowIndex + 1, 0, {
+      id: uuidv4().toString(),
+    })
     setActiveCell({ row: rowIndex + 1, col: colIndex })
     setRowData(newRowData)
     onGridChange(newRowData)
@@ -150,25 +190,7 @@ export default function WorkoutGrid({
   }
 
   return (
-    <div className="text-sm">
-      <div id="column-names" className="flex w-full">
-        <div id="dummy-action-menu" className="ml-[48px] flex px-2"></div>
-        {columns.map((col, idx) => {
-          return (
-            <div
-              className={cn(
-                'shrink-0 flex-grow border-r border-t border-neutral-800 bg-neutral-950 p-2 text-sm font-light uppercase tracking-wider text-neutral-400',
-                idx === 0 && 'rounded-tl-sm border-l',
-                idx === cols - 1 && 'rounded-tr-sm'
-              )}
-              key={col.field}
-              style={{ flexBasis: col.width }}
-            >
-              {col.header}
-            </div>
-          )
-        })}
-      </div>
+    <>
       {grid.map((row, rowIndex) => {
         return (
           <div key={`row-${rowIndex}`} className="group flex h-9 w-full">
@@ -209,7 +231,9 @@ export default function WorkoutGrid({
                   rowIndex === 0 && 'border-t',
                   colIndex === 0 && 'border-l',
                   rowIndex === rows - 1 && colIndex === 0 && 'rounded-bl-sm',
-                  rowIndex === rows - 1 && colIndex === cols - 1 && 'rounded-br-sm'
+                  rowIndex === rows - 1 &&
+                    colIndex === cols - 1 &&
+                    'rounded-br-sm'
                 )}
                 onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}
                 onDoubleClick={() =>
@@ -233,7 +257,7 @@ export default function WorkoutGrid({
                     />
                   ) : (
                     <input
-                      className="h-full w-full m-0 bg-neutral-950 py-2 text-sm focus-within:outline-none focus:outline-none"
+                      className="m-0 h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-none focus:outline-none"
                       value={cell.value || ''}
                       onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
                       onBlur={() => setActiveCell(null)}
@@ -248,25 +272,10 @@ export default function WorkoutGrid({
           </div>
         )
       })}
-    </div>
+    </>
   )
 }
-
-/*
- *
- */
-function swapArrayElements(arr: any[], idx1: number, idx2: number) {
-  if (idx1 < 0 || idx2 < 0 || idx1 >= arr.length || idx2 >= arr.length) {
-    return arr
-  }
-  const copy = [...arr]
-  const temp = copy[idx1]
-  copy[idx1] = copy[idx2]
-  copy[idx2] = temp
-  return copy
-}
-
-function newGrid(rowData: RowData[], columns: Columns[]): Cell[][] {
+function newGrid(rowData: Row[], columns: Column[]): Cell[][] {
   const gg = Array.from({ length: rowData.length }, () =>
     Array(columns.length).fill(null)
   )

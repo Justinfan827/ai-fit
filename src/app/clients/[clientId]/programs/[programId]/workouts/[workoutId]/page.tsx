@@ -20,10 +20,7 @@ export default async function ClientWorkoutPage({
 
   return (
     <div className="w-full space-y-2 p-2">
-      <ClientPage
-        workout={workout.data}
-        clientId={clientId}
-      />
+      <ClientPage workout={workout.data} clientId={clientId} />
     </div>
   )
 }

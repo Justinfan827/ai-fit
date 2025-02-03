@@ -47,7 +47,7 @@ const EmptyStateText: React.FC<EmptyStateTextProps> = ({ title, children }) => (
 )
 
 const EmptyStateContent: React.FC<EmptyStateContentProps> = ({ children }) => (
-  <div className="flex justify-center text-center w-2/3">
+  <div className="flex w-2/3 justify-center text-center">
     <p className="text-sm text-neutral-400">{children}</p>
   </div>
 )

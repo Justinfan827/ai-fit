@@ -23,9 +23,18 @@ export default function EditableTypography({
     onChange(e.target.value)
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === 'Escape') {
+      e.preventDefault()
+      e.currentTarget?.blur()
+    }
+  }
+
   return (
     <div
-      className="flex h-8 w-fit min-w-[100px] max-w-[200px] items-center justify-start sm:min-w-[100px] sm:max-w-[400px]"
+      className="flex h-8 w-fit min-w-[100px] max-w-[200px] items-center justify-start rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:min-w-[100px] sm:max-w-[400px]"
+      tabIndex={0}
+      onKeyUp={(e) => e.key === 'Enter' && setIsEditing(true)}
       onClick={() => !isEditing && setIsEditing(true)}
     >
       {isEditing ? (
@@ -33,6 +42,7 @@ export default function EditableTypography({
           type="text"
           value={value}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           autoFocus
           className={cn(
@@ -44,7 +54,7 @@ export default function EditableTypography({
         <Tp
           className={cn(
             'truncate leading-none tracking-wide underline decoration-neutral-300 decoration-dotted underline-offset-4',
-            className && className,
+            className,
             !value && 'text-neutral-500'
           )}
           variant="h3"

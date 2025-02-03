@@ -26,6 +26,8 @@ import { Program, programSchema, Workout } from '@/lib/domain/workouts'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import LoadingButton from '../loading-button'
+import { Badge } from '../ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import WorkoutGrid from './WorkoutGrid'
 
 export default function ProgramEditor({}) {
@@ -196,6 +198,17 @@ export default function ProgramEditor({}) {
     setProgramType(v)
   }
 
+  const handleDuplicateWeek = (weekIdx: number) => {
+    const dupeWorkouts = workoutsByWeek[weekIdx].map((w) => {
+      return {
+        ...w,
+        id: uuidv4().toString(),
+        week: weekIdx + 1,
+      }
+    })
+    setWorkouts([...workouts, ...dupeWorkouts])
+  }
+
   return (
     <div className="relative w-full overflow-x-auto">
       {isAIGenPending && (
@@ -208,7 +221,7 @@ export default function ProgramEditor({}) {
           </div>
         </div>
       )}
-      <div className="mb-4 flex w-full items-center justify-end pl-[72px] pr-8 pt-4">
+      <div className="mb-4 flex w-full items-center justify-end px-[72px] pt-8">
         <div className="flex-grow">
           <EditableTypography
             className="text-2xl"
@@ -236,9 +249,35 @@ export default function ProgramEditor({}) {
               id="workout-ui"
               className="min-w-[1200px] pr-4"
             >
-              <div className="flex gap-4">
-                <div id="workout-grid" className="w-full flex-grow space-y-8">
+              <div className="gap-4">
+                <div className="ml-16 flex items-center justify-between gap-4 pb-6 pr-[52px]">
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-light uppercase tracking-widest text-muted-foreground"
+                  >
+                    Week {weekIdx + 1}
+                  </Badge>
+                  <div id="action menu" className="flex items-center">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-accent-foreground/50 hover:text-accent-foreground"
+                          onClick={() => handleDuplicateWeek(weekIdx)}
+                        >
+                          <Icons.copy className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Duplicate Week</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div id="workouts-data" className="w-full flex-grow space-y-8">
                   {weeksWorkouts.map((workout, workoutIdx) => {
+                    console.log({ workoutIdx, weekIdx })
                     return (
                       <div key={workout.id} className="flex gap-4">
                         <div className="flex-grow space-y-4">
@@ -262,14 +301,16 @@ export default function ProgramEditor({}) {
                               id="action menu"
                               className="flex items-center justify-center pl-2"
                             >
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
-                                onClick={() => handleDeletion(workout.id)}
-                              >
-                                <Icons.x className="h-4 w-4" />
-                              </Button>
+                              {workoutIdx === 0 && weekIdx === 0 ? null : (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
+                                  onClick={() => handleDeletion(workout.id)}
+                                >
+                                  <Icons.x className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
                           </div>
                           <WorkoutGrid
@@ -278,18 +319,16 @@ export default function ProgramEditor({}) {
                             onGridChange={(rows) => {
                               // The grid updated. Right now, it's a little circular, might have to clean this up a little later,
                               // but grid updates update the global workout store, which cause a re-render of the grid.
-                              //
                               const workoutToUpdate = workouts.find(
                                 (w) => w.id === workout.id
                               )
                               if (!workoutToUpdate) {
                                 return
                               }
-
                               const workoutRows: Workout['blocks'] = rows.map(
                                 (row) => {
                                   return {
-                                    id: uuidv4().toString(),
+                                    id: row.id || uuidv4().toString(),
                                     exercise_name: row.exercise_name,
                                     sets: row.sets,
                                     reps: row.reps,

@@ -1,17 +1,11 @@
-import { programSchema } from '@/lib/domain/workouts'
+import { workoutInstanceSchema, workoutSchema } from '@/lib/domain/workouts'
 import {
-  createProgram,
-  updateProgram,
+  createWorkoutInstance,
+  updateWorkoutInstance,
 } from '@/lib/supabase/server/database.operations.mutations'
 import { NextRequest, NextResponse } from 'next/server'
-import { authUserRequest } from '../auth'
-import {
-  BadRequestError,
-  BadRequestRes,
-  InternalError,
-  InternalErrorRes,
-  UnauthorizedRes,
-} from '../errors'
+import { authUserRequest } from '../../auth'
+import { BadRequestError, BadRequestRes, UnauthorizedRes } from '../../errors'
 
 export async function POST(request: NextRequest) {
   const { data, error } = await authUserRequest()
@@ -24,20 +18,15 @@ export async function POST(request: NextRequest) {
       new BadRequestError('Request body is required for this endpoint')
     )
   }
-  const { data: bData, error: bError } = programSchema.safeParse(body)
+  const { data: bData, error: bError } = workoutSchema.safeParse(body)
   if (bError) {
     return BadRequestRes(
       new BadRequestError(
-        `Invalid request body: ${bError.name} ${bError.message}`
+        `Invalid request body: ${bError.code} ${bError.message}`
       )
     )
   }
-  const resp = await createProgram(data.user.id, bData)
-  if (resp.error) {
-    return InternalErrorRes(
-      new InternalError('Failed to create program', { cause: resp.error })
-    )
-  }
+  const resp = await createWorkoutInstance(data.user.id, bData)
   return NextResponse.json(resp)
 }
 
@@ -52,15 +41,14 @@ export async function PUT(request: NextRequest) {
       new BadRequestError('Request body is required for this endpoint')
     )
   }
-  const { data: bData, error: bError } = programSchema.safeParse(body)
-  console.log({bError});
+  const { data: bData, error: bError } = workoutInstanceSchema.safeParse(body)
   if (bError) {
     return BadRequestRes(
       new BadRequestError(
-        `Invalid request body: ${bError.name} ${bError.message}`
+        `Invalid request body: ${bError.code} ${bError.message}`
       )
     )
   }
-  const resp = await updateProgram(data.user.id, bData)
+  const resp = await updateWorkoutInstance(bData)
   return NextResponse.json(resp)
 }

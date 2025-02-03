@@ -20,7 +20,7 @@ export function ProgramEditorSidebar({
         <VersionSwitcher versions={versions} defaultVersion="coach profile 1" />
       </SidebarHeader>
       <SidebarContent>
-        <div className="p-2">
+        <div className="px-8 py-4">
           <IntakeForm />
         </div>
       </SidebarContent>

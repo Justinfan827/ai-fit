@@ -9,7 +9,6 @@ import {
   getCurrentUserClients,
 } from '@/lib/supabase/server/database.operations.queries'
 import { cn } from '@/lib/utils'
-import dayjs from 'dayjs'
 import Link from 'next/link'
 
 export default async function WorkoutsPage() {
@@ -65,9 +64,9 @@ export default async function WorkoutsPage() {
               </Button>
             </div>
           </div>
-          <div id="programs-container" className="p-4 space-y-4">
+          <div id="programs-container" className="space-y-4 p-4">
             <Tp className="text-2xl tracking-wide">Programs</Tp>
-            <div className=''>
+            <div className="">
               {data.map((program, idx) => (
                 <Link
                   href={`/home/programs/${program.id}`}

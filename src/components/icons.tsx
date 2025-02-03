@@ -40,6 +40,7 @@ import {
   Scale,
   Search,
   Settings,
+  Sparkles,
   Undo2,
   UserPlus,
   X,
@@ -47,6 +48,7 @@ import {
 } from 'lucide-react'
 
 export const Icons = {
+  sparkles: Sparkles,
   gripVertical: GripVertical,
   alertCircle: AlertCircle,
   arrowLeft: ArrowLeft,
@@ -97,12 +99,10 @@ export const Icons = {
 // guide for logos
 // https://www.google.com/search?q=jakearchibald+svg&oq=jakearchibald+svg&sourceid=chrome&ie=UTF-8
 // https://www.youtube.com/watch?v=MbUyHQRq2go&list=PL7CcGwsqRpSM3w9BT_21tUU8JN2SnyckR&index=12
-export function Logo({
-  className,
-}: React.SVGAttributes<HTMLOrSVGElement>) {
+export function Logo({ className }: React.SVGAttributes<HTMLOrSVGElement>) {
   return (
     <svg
-    className='h-[32px] w-[32px]'
+      className="h-[32px] w-[32px]"
       viewBox="0 0 53 53"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

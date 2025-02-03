@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast'
 import { createBrowserClient } from '@/lib/supabase/create-browser-client'
 import { isClient } from '@/lib/supabase/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -26,7 +27,6 @@ import {
   FormLabel,
   FormMessage,
 } from './ui/form'
-import { useRouter } from 'next/navigation'
 
 type Inputs = z.infer<typeof authSchema>
 export const authSchema = z.object({

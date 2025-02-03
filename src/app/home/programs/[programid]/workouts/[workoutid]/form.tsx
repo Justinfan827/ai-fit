@@ -1,7 +1,9 @@
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-export type WorkoutInstanceFormValues = z.infer<typeof WorkoutInstanceFormSchema>
+export type WorkoutInstanceFormValues = z.infer<
+  typeof WorkoutInstanceFormSchema
+>
 export const WorkoutInstanceFormSchema = z.object({
   exercises: z.array(
     z.object({
@@ -18,4 +20,3 @@ export const WorkoutInstanceFormSchema = z.object({
   ),
 })
 export type WorkoutForm = ReturnType<typeof useForm<WorkoutInstanceFormValues>>
-

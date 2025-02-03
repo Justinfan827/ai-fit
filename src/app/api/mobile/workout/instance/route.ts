@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     console.log({ bError })
     return BadRequestRes(
       new BadRequestError(
-        `Invalid request body: ${bError.name} ${bError.message}`
+        `Invalid request body: ${bError.code} ${bError.message}`
       )
     )
   }

@@ -12,6 +12,10 @@ export type ExerciseInputPopoverProps = {
   onSelect: (v: string) => void
 }
 
+/*
+ * Exercise input is a smart input that will have a popover dropdown
+ * for users to select exercises.
+ */
 export default function ExerciseInput({
   value,
   onSelect,
@@ -32,7 +36,6 @@ export default function ExerciseInput({
   useEffect(() => {
     ref.current?.focus()
   }, [])
-  console.log('rendering input')
   const onSelectInternal = (v: string) => {
     onSelect(v)
   }
@@ -48,7 +51,7 @@ export default function ExerciseInput({
         anchor={{
           to: 'bottom start',
           offset: '-9px',
-          gap: '8px'
+          gap: '8px',
         }}
         transition
         className="w-[calc(var(--input-width)+18px)] rounded-b-sm border border-border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"

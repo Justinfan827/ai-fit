@@ -14,7 +14,7 @@ export type ErrorOptions = {
 // ErrorBase is a base class for all errors in the application.
 // It provides a consistent way to handle errors.
 export class ErrorBase<T extends string> extends Error {
-  name: T
+  code: T
   message: string
   cause?: Error
   // added as unindexed annotations sentry
@@ -22,20 +22,20 @@ export class ErrorBase<T extends string> extends Error {
   // added as indexed searchable tags in sentry
   labels: Labels
   constructor({
-    name,
+    code,
     message,
     cause, // TODO: this is not serializable so we lose some details
     annotations,
     labels,
   }: {
-    name: T
+    code: T
     message: string
     cause?: Error
     annotations?: Annotations
     labels?: Labels
   }) {
     super(message)
-    this.name = name
+    this.code = code
     this.message = message
     this.cause = cause
     this.annotations = annotations || {}
@@ -45,7 +45,7 @@ export class ErrorBase<T extends string> extends Error {
   // toJSON is used to serialize the error to be sent to the client
   toJSON() {
     return {
-      name: this.name,
+      name: this.code,
       message: this.message,
       annotations: this.annotations,
       labels: this.labels,
