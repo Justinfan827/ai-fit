@@ -75,22 +75,26 @@ function GridContentRows({
 }) {
   // Handles keyboard navigation and cell activation
   const [rowDataS, setRowData] = useState(rowData)
-  const rows = rowDataS.length
-  const cols = columns.length
+  const numRows = rowDataS.length
+  const numCols = columns.length
   const [grid, setGrid] = useState(newGrid(rowDataS, columns))
   const [activeCell, setActiveCell] = useState<Position | null>(null) // Renamed from editingCell for clarity
   const gridRefs = useRef<HTMLDivElement[][]>([])
   const handleKeyDown = (e: KeyboardEvent, row: number, col: number) => {
+    console.log(e.key, row, col, activeCell)
     if (activeCell) {
       if (e.key === 'Tab' && e.shiftKey) {
+        // idk if we need this
+        //e.preventDefault()
+        //const newCol = Math.max(0, col - 1)
+        //setActiveCell(null)
+        //gridRefs.current[row][newCol]?.focus()
+      } else if (e.key === 'Enter') {
         e.preventDefault()
-        const newCol = Math.max(0, col - 1)
         setActiveCell(null)
-        gridRefs.current[row][newCol]?.focus()
-        return
-      }
-      // Handle keys while cell is active
-      if (e.key === 'Enter' || e.key === 'Escape') {
+        const nextRow = Math.min(numRows - 1, row + 1)
+        gridRefs.current[nextRow][col]?.focus()
+      } else if (e.key === 'Escape') {
         e.preventDefault()
         setActiveCell(null)
         gridRefs.current[row][col]?.focus()
@@ -116,13 +120,13 @@ function GridContentRows({
           newRow = Math.max(0, row - 1)
           break
         case 'ArrowDown':
-          newRow = Math.min(rows - 1, row + 1)
+          newRow = Math.min(numRows - 1, row + 1)
           break
         case 'ArrowLeft':
           newCol = Math.max(0, col - 1)
           break
         case 'ArrowRight':
-          newCol = Math.min(cols - 1, col + 1)
+          newCol = Math.min(numCols - 1, col + 1)
           break
       }
 
@@ -130,6 +134,9 @@ function GridContentRows({
     } else if (e.key === 'Enter') {
       setActiveCell({ row, col })
     } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      console.log('\n\n\n')
+      console.log('key', e.key)
+      console.log('\n\n\n')
       // If user starts typing, just activate the cell - don't set the value yet
       e.preventDefault() // Prevent the keypress from being handled twice
       const colType = grid[row][col].colType
@@ -230,9 +237,9 @@ function GridContentRows({
                   `relative shrink-0 flex-grow cursor-pointer overflow-hidden border-b border-r border-neutral-800 p-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500`,
                   rowIndex === 0 && 'border-t',
                   colIndex === 0 && 'border-l',
-                  rowIndex === rows - 1 && colIndex === 0 && 'rounded-bl-sm',
-                  rowIndex === rows - 1 &&
-                    colIndex === cols - 1 &&
+                  rowIndex === numRows - 1 && colIndex === 0 && 'rounded-bl-sm',
+                  rowIndex === numRows - 1 &&
+                    colIndex === numCols - 1 &&
                     'rounded-br-sm'
                 )}
                 onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}

@@ -3,7 +3,6 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
-import { cookies } from 'next/headers'
 import './globals.css'
 
 export const metadata = {
@@ -16,9 +15,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const cookieStore = await cookies()
-  const defaultOpen = cookieStore.get('sidebar:state')?.value === 'true'
-
   return (
     <html
       lang="en"

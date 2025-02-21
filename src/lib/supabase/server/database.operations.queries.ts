@@ -8,12 +8,9 @@ import {
   Workout,
   WorkoutExercise,
   WorkoutInstance,
-  WorkoutInstanceBlock,
-  workoutInstanceSchema,
   workoutSchema,
 } from '@/lib/domain/workouts'
 import { Res } from '@/lib/types/types'
-import { z } from 'zod'
 import { createServerClient } from '../create-server-client'
 import { Database } from '../database.types'
 import { DBClient } from '../types'
@@ -147,45 +144,46 @@ export async function getCurrentUser(): Promise<Res<CurrentUser>> {
 }
 
 export async function getLatestWorkoutInstance(
-  workoutid: string
+  _workoutid: string
 ): Promise<Res<WorkoutInstance | undefined>> {
-  const client = await createServerClient()
-  const { data, error } = await client.auth.getUser()
-  if (error) {
-    return { data: null, error }
-  }
-
-  const { data: pData, error: pErr } = await client
-    .from('workout_instances')
-    .select('*, workouts (name)')
-    .eq('user_id', data.user.id)
-    .eq('workout_id', workoutid)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  if (pErr) {
-    return { data: null, error: pErr }
-  }
-  if (!pData) {
-    return { data: undefined, error: null }
-  }
-  const resData: WorkoutInstance = {
-    id: pData.id,
-    start_at: pData.start_at,
-    end_at: pData.end_at,
-    workout_id: pData.workout_id,
-    workout_name: pData.workouts!.name,
-    blocks: pData.blocks as WorkoutInstanceBlock[],
-  }
-  const { data: wData, error: wErr } = workoutInstanceSchema.safeParse(resData)
-  if (wErr) {
-    return { data: null, error: wErr }
-  }
-  return {
-    data: wData,
-    error: null,
-  }
+  return { data: null, error: new Error('Not implemented') }
+  // const client = await createServerClient()
+  // const { data, error } = await client.auth.getUser()
+  // if (error) {
+  //   return { data: null, error }
+  // }
+  //
+  // const { data: pData, error: pErr } = await client
+  //   .from('workout_instances')
+  //   .select('*, workouts (name)')
+  //   .eq('user_id', data.user.id)
+  //   .eq('workout_id', workoutid)
+  //   .order('created_at', { ascending: false })
+  //   .limit(1)
+  //   .maybeSingle()
+  //
+  // if (pErr) {
+  //   return { data: null, error: pErr }
+  // }
+  // if (!pData) {
+  //   return { data: undefined, error: null }
+  // }
+  // const resData: WorkoutInstance = {
+  //   id: pData.id,
+  //   startAt: pData.start_at,
+  //   endAt: pData.end_at,
+  //   workoutId: pData.workout_id,
+  //   workout_name: pData.workouts!.name,
+  //   blocks: pData.blocks as WorkoutInstanceBlock[],
+  // }
+  // const { data: wData, error: wErr } = workoutInstanceSchema.safeParse(resData)
+  // if (wErr) {
+  //   return { data: null, error: wErr }
+  // }
+  // return {
+  //   data: wData,
+  //   error: null,
+  // }
 }
 
 export async function getUserWorkout(workoutid: string): Promise<Res<Workout>> {
@@ -223,42 +221,43 @@ export async function getUserWorkout(workoutid: string): Promise<Res<Workout>> {
 }
 
 export async function getWorkoutInstances(
-  programId: string
+  _: string
 ): Promise<Res<WorkoutInstance[]>> {
-  const client = await createServerClient()
-  const { data, error } = await client.auth.getUser()
-  if (error) {
-    return { data: null, error }
-  }
-  const { data: pData, error: pErr } = await client
-    .from('workout_instances')
-    .select('*, workouts (name)')
-    .eq('user_id', data.user.id)
-    .eq('program_id', programId)
-
-  if (pErr) {
-    return { data: null, error: pErr }
-  }
-
-  const resData: WorkoutInstance[] = pData.map((p) => ({
-    id: p.id,
-    start_at: p.start_at,
-    end_at: p.end_at,
-    workout_id: p.workout_id,
-    workout_name: p.workouts!.name,
-    blocks: p.blocks as WorkoutInstanceBlock[],
-  }))
-  const { data: wData, error: wErr } = z
-    .array(workoutInstanceSchema)
-    .safeParse(resData)
-  if (wErr) {
-    return { data: null, error: wErr }
-  }
-
-  return {
-    data: wData,
-    error: null,
-  }
+  return { data: null, error: new Error('Not implemented') }
+  // const client = await createServerClient()
+  // const { data, error } = await client.auth.getUser()
+  // if (error) {
+  //   return { data: null, error }
+  // }
+  // const { data: pData, error: pErr } = await client
+  //   .from('workout_instances')
+  //   .select('*, workouts (name)')
+  //   .eq('user_id', data.user.id)
+  //   .eq('program_id', programId)
+  //
+  // if (pErr) {
+  //   return { data: null, error: pErr }
+  // }
+  //
+  // const resData: WorkoutInstance[] = pData.map((p) => ({
+  //   id: p.id,
+  //   start_at: p.start_at,
+  //   end_at: p.end_at,
+  //   workout_id: p.workout_id,
+  //   workout_name: p.workouts!.name,
+  //   blocks: p.blocks as WorkoutInstanceBlock[],
+  // }))
+  // const { data: wData, error: wErr } = z
+  //   .array(workoutInstanceSchema)
+  //   .safeParse(resData)
+  // if (wErr) {
+  //   return { data: null, error: wErr }
+  // }
+  //
+  // return {
+  //   data: wData,
+  //   error: null,
+  // }
 }
 
 export async function getExercises() {

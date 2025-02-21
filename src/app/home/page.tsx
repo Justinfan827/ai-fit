@@ -1,3 +1,4 @@
+import ClientButtonNewClient from '@/components/ClientButtonNewClient'
 import Header from '@/components/header'
 import { Logo } from '@/components/icons'
 import { Tp } from '@/components/typography'
@@ -59,9 +60,12 @@ export default async function WorkoutsPage() {
                   {userData.sbUser.email}
                 </p>
               </div>
-              <Button asChild>
-                <Link href="/home/programs/new">New program</Link>
-              </Button>
+              <div className="space-x-4">
+                <ClientButtonNewClient />
+                <Button asChild>
+                  <Link href="/home/programs/new">New program</Link>
+                </Button>
+              </div>
             </div>
           </div>
           <div id="programs-container" className="space-y-4 p-4">

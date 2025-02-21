@@ -1,14 +1,15 @@
 import { Program, programSchema } from '@/lib/domain/workouts'
+import { ZodSchema, infer as ZodInfer } from 'zod'
 import { APIResponse } from '@/lib/types/apires'
 import { getError } from '@/lib/utils/util'
 
-export default async function apiEditWorkout({
+export default async function apiEditProgram({
   body,
 }: {
   body: Program
 }): Promise<APIResponse<Program>> {
   try {
-    const res = await fetch(`/api/workout`, {
+    const res = await fetch(`/api/program`, {
       method: 'PUT',
       body: JSON.stringify(body),
       headers: new Headers({ 'Content-Type': 'application/json' }),
@@ -40,5 +41,3 @@ export default async function apiEditWorkout({
     }
   }
 }
-
-// generic async fetcher

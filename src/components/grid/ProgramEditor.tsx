@@ -7,10 +7,9 @@ import EditableTypography from '@/components/EditableTypeography'
 import { defaultColumns, defaultRowData } from '@/components/grid/columns'
 import { ProgramSelect } from '@/components/grid/ProgramSelect'
 import { Icons } from '@/components/icons'
-import JSONContainer from '@/components/JSONContainer'
 import { Button } from '@/components/ui/button'
 import apiCreateProgram from '@/fetches/create-program'
-import apiEditWorkout from '@/fetches/edit-workout'
+import apiEditProgram from '@/fetches/edit-program'
 import { toast } from '@/hooks/use-toast'
 import { useAIProgram } from '@/hooks/use-workout'
 import {
@@ -30,7 +29,7 @@ import { Badge } from '../ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import WorkoutGrid from './WorkoutGrid'
 
-export default function ProgramEditor({ }) {
+export default function ProgramEditor() {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
   const workouts = usezProgramWorkouts()
@@ -174,7 +173,7 @@ export default function ProgramEditor({ }) {
 
   const handleOnSave = async () => {
     setIsPending(true)
-    const { error } = await apiEditWorkout({ body: domainProgram })
+    const { error } = await apiEditProgram({ body: domainProgram })
     if (error) {
       console.log({ error })
       toast({
@@ -277,7 +276,6 @@ export default function ProgramEditor({ }) {
                 </div>
                 <div id="workouts-data" className="w-full flex-grow space-y-8">
                   {weeksWorkouts.map((workout, workoutIdx) => {
-                    console.log({ workoutIdx, weekIdx })
                     return (
                       <div key={workout.id} className="flex gap-4">
                         <div className="flex-grow space-y-4">
@@ -393,18 +391,18 @@ export default function ProgramEditor({ }) {
         })}
       </div>
       {/* Debug container */}
-      <div className="p-10">
-        <div className="flex gap-4">
-          <div>
-            ProgramErrors:
-            <JSONContainer className="w-[300px]" json={error} />
-          </div>
-          <div>
-            Workouts by week
-            <JSONContainer json={workoutsByWeek} />
-          </div>
-        </div>
-      </div>
+      {/* <div className="p-10"> */}
+      {/*   <div className="flex gap-4"> */}
+      {/*     <div> */}
+      {/*       ProgramErrors: */}
+      {/*       <JSONContainer className="w-[300px]" json={error} /> */}
+      {/*     </div> */}
+      {/*     <div> */}
+      {/*       Workouts by week */}
+      {/*       <JSONContainer json={workoutsByWeek} /> */}
+      {/*     </div> */}
+      {/*   </div> */}
+      {/* </div> */}
     </div>
   )
 }

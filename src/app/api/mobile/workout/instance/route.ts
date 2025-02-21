@@ -1,16 +1,23 @@
+import { APIError } from '@/app/api/errors'
+import { withPublic } from '@/app/api/middleware/withAuth'
 import { workoutInstanceBlockSchema } from '@/lib/domain/workouts'
 import { saveWorkoutInstance } from '@/lib/supabase/server/database.operations.mutations'
 import { createClient } from '@supabase/supabase-js'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import {
-  BadRequestError,
-  BadRequestRes,
-  InternalError,
-  InternalErrorRes,
-} from '../../../errors'
 
-export async function POST(req: NextRequest) {
+const CompletedWorkoutInstance = z.object({
+  id: z.string(),
+  workoutId: z.string(),
+  programId: z.string(),
+  startAt: z.string(),
+  endAt: z.string(),
+  blocks: z.array(workoutInstanceBlockSchema),
+})
+
+
+export const POST = withPublic(async ({ req }) => {
+
   const client = createClient(
     // this is http://kong:8000 on localhost. Interesting.
     process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
@@ -22,32 +29,20 @@ export async function POST(req: NextRequest) {
   const token = authHeader.replace('Bearer ', '')
   const { data: userdata, error } = await client.auth.getUser(token)
   if (!userdata) {
-    return BadRequestRes(
-      new BadRequestError('Request body is required for this endpoint')
-    )
+    throw new APIError({
+      code: 'unauthorized',
+      message: 'No user found from auth token',
+    })
   }
   if (error) {
-    return InternalErrorRes(
-      new InternalError('Failed to get user data', { cause: error })
-    )
-  }
-  const { data: bData, error: bError } = z
-    .object({
-      id: z.string(),
-      workoutId: z.string(),
-      programId: z.string(),
-      startAt: z.string(),
-      endAt: z.string(),
-      blocks: z.array(workoutInstanceBlockSchema),
+    throw new APIError({
+      code: 'unauthorized',
+      message: 'Failed to get user from auth token',
     })
-    .safeParse(body)
+  }
+  const { data: bData, error: bError } = CompletedWorkoutInstance.safeParse(body)
   if (bError) {
-    console.log({ bError })
-    return BadRequestRes(
-      new BadRequestError(
-        `Invalid request body: ${bError.code} ${bError.message}`
-      )
-    )
+    throw bError
   }
   const { error: saveErr } = await saveWorkoutInstance({
     id: bData.id,
@@ -58,11 +53,8 @@ export async function POST(req: NextRequest) {
     programId: bData.programId,
     userId: userdata.user.id,
   })
-  console.log({ saveErr })
   if (saveErr) {
-    return InternalErrorRes(
-      new InternalError('Failed to create program', { cause: saveErr })
-    )
+    throw saveErr
   }
   return NextResponse.json({ saved: true })
-}
+})

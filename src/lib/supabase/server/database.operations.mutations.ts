@@ -1,13 +1,7 @@
 import 'server-only'
 
-import {
-  Program,
-  Workout,
-  WorkoutInstance,
-  WorkoutInstanceBlock,
-} from '@/lib/domain/workouts'
+import { Program, Workout, WorkoutInstance } from '@/lib/domain/workouts'
 import { Res } from '@/lib/types/types'
-import { v4 } from 'uuid'
 import { createServerClient } from '../create-server-client'
 import { Database } from '../database.types'
 
@@ -59,6 +53,7 @@ export async function createProgram(
     data: {
       created_at: data.created_at,
       id: data.id,
+      type: data.type as 'weekly' | 'splits',
       name: body.name,
       workouts: body.workouts,
     },
@@ -172,6 +167,7 @@ export async function assignProgramToUser({
     .from('programs')
     .insert({
       name: data.name,
+      type: data.type,
       user_id: clientId,
       is_template: false,
     })
@@ -223,79 +219,81 @@ export async function assignProgramToUser({
 }
 
 export async function updateWorkoutInstance(
-  workoutInstance: WorkoutInstance
+  _workoutInstance: WorkoutInstance
 ): Promise<Res<undefined>> {
-  const client = await createServerClient()
-  const { error } = await client
-    .from('workout_instances')
-    .update({
-      blocks: workoutInstance.blocks,
-      ...(workoutInstance.end_at && { end_at: workoutInstance.end_at }),
-    })
-    .eq('id', workoutInstance.id)
-  if (error) {
-    return { data: null, error: new Error('Failed to end workout instance') }
-  }
-  return { data: undefined, error }
+  return { data: null, error: new Error('Not implemented') }
+  // const client = await createServerClient()
+  // const { error } = await client
+  //   .from('workout_instances')
+  //   .update({
+  //     blocks: workoutInstance.blocks,
+  //     ...(workoutInstance.end_at && { end_at: workoutInstance.end_at }),
+  //   })
+  //   .eq('id', workoutInstance.id)
+  // if (error) {
+  //   return { data: null, error: new Error('Failed to end workout instance') }
+  // }
+  // return { data: undefined, error }
 }
 
 export async function createWorkoutInstance(
-  userId: string,
-  workout: Workout
+  _userId: string,
+  _workout: Workout
 ): Promise<Res<WorkoutInstance>> {
-  const exerciseSets: WorkoutInstanceBlock[] = workout.blocks.map(
-    (exercise) => {
-      const numSets = Number(exercise.sets)
-      return {
-        id: v4().toString(),
-        type: 'exercise' as const,
-        exercise: {
-          id: v4().toString(),
-          name: exercise.exercise_name,
-          sets: Array.from({ length: numSets }).map(() => {
-            return {
-              planned: {
-                reps: exercise.reps,
-                rest: exercise.rest,
-                weight: exercise.weight,
-                notes: exercise.notes,
-              },
-              actual: {
-                reps: '',
-                rest: '',
-                weight: '',
-                notes: '',
-              },
-            }
-          }),
-        },
-      }
-    }
-  )
-
-  const client = await createServerClient()
-  const { data, error } = await client
-    .from('workout_instances')
-    .insert({
-      user_id: userId,
-      start_at: new Date().toISOString(),
-      program_id: workout.program_id,
-      workout_id: workout.id,
-      blocks: exerciseSets,
-    })
-    .select('*')
-    .single()
-  if (error) {
-    return { data: null, error: new Error('Failed to create workout instance') }
-  }
-  return {
-    data: {
-      id: data.id,
-      workout_id: workout.id,
-      workout_name: workout.name,
-      start_at: data.start_at,
-      blocks: exerciseSets,
-    },
-    error,
-  }
+  return { data: null, error: new Error('Not implemented') }
+  // const exerciseSets: WorkoutInstanceBlock[] = workout.blocks.map(
+  //   (exercise) => {
+  //     const numSets = Number(exercise.sets)
+  //     return {
+  //       id: v4().toString(),
+  //       type: 'exercise' as const,
+  //       exercise: {
+  //         id: v4().toString(),
+  //         name: exercise.exercise_name,
+  //         sets: Array.from({ length: numSets }).map(() => {
+  //           return {
+  //             planned: {
+  //               reps: exercise.reps,
+  //               rest: exercise.rest,
+  //               weight: exercise.weight,
+  //               notes: exercise.notes,
+  //             },
+  //             actual: {
+  //               reps: '',
+  //               rest: '',
+  //               weight: '',
+  //               notes: '',
+  //             },
+  //           }
+  //         }),
+  //       },
+  //     }
+  //   }
+  // )
+  //
+  // const client = await createServerClient()
+  // const { data, error } = await client
+  //   .from('workout_instances')
+  //   .insert({
+  //     user_id: userId,
+  //     start_at: new Date().toISOString(),
+  //     program_id: workout.program_id,
+  //     workout_id: workout.id,
+  //     blocks: exerciseSets,
+  //   })
+  //   .select('*')
+  //   .single()
+  // if (error) {
+  //   return { data: null, error: new Error('Failed to create workout instance') }
+  // }
+  // return {
+  //   data: {
+  //     id: data.id,
+  //     workout_id: workout.id,
+  //     workout_name: workout.name,
+  //     start_at: data.start_at,
+  //     blocks: exerciseSets,
+  //   },
+  //   error,
+  // }
 }

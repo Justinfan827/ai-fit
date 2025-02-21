@@ -3,52 +3,21 @@ import {
   createWorkoutInstance,
   updateWorkoutInstance,
 } from '@/lib/supabase/server/database.operations.mutations'
-import { NextRequest, NextResponse } from 'next/server'
-import { authUserRequest } from '../../auth'
-import { BadRequestError, BadRequestRes, UnauthorizedRes } from '../../errors'
+import { NextResponse } from 'next/server'
+import { withAuthBodySchema } from '../../middleware/withAuth'
 
-export async function POST(request: NextRequest) {
-  const { data, error } = await authUserRequest()
-  if (error) {
-    return UnauthorizedRes(error)
+export const POST = withAuthBodySchema(
+  { schema: workoutSchema },
+  async ({ req, user, body }) => {
+    const resp = await createWorkoutInstance(user.id, body)
+    return NextResponse.json(resp)
   }
-  const body = await request.json()
-  if (!body) {
-    return BadRequestRes(
-      new BadRequestError('Request body is required for this endpoint')
-    )
-  }
-  const { data: bData, error: bError } = workoutSchema.safeParse(body)
-  if (bError) {
-    return BadRequestRes(
-      new BadRequestError(
-        `Invalid request body: ${bError.code} ${bError.message}`
-      )
-    )
-  }
-  const resp = await createWorkoutInstance(data.user.id, bData)
-  return NextResponse.json(resp)
-}
+)
 
-export async function PUT(request: NextRequest) {
-  const { data, error } = await authUserRequest()
-  if (error) {
-    return UnauthorizedRes(error)
+export const PUT = withAuthBodySchema(
+  { schema: workoutInstanceSchema },
+  async ({ req, user, body }) => {
+    const resp = await updateWorkoutInstance(body)
+    return NextResponse.json(resp)
   }
-  const body = await request.json()
-  if (!body) {
-    return BadRequestRes(
-      new BadRequestError('Request body is required for this endpoint')
-    )
-  }
-  const { data: bData, error: bError } = workoutInstanceSchema.safeParse(body)
-  if (bError) {
-    return BadRequestRes(
-      new BadRequestError(
-        `Invalid request body: ${bError.code} ${bError.message}`
-      )
-    )
-  }
-  const resp = await updateWorkoutInstance(bData)
-  return NextResponse.json(resp)
-}
+)
