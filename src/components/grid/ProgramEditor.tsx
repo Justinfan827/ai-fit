@@ -253,7 +253,7 @@ export default function ProgramEditor() {
                 className="min-w-[1200px] pr-4"
               >
                 <div className="gap-4">
-                  <div className="ml-16 flex items-center justify-between gap-4 pb-6 pr-[52px]">
+                  <div className="ml-16 flex items-center justify-between gap-4 pb-3 pr-[52px]">
                     <Badge
                       variant="outline"
                       className="text-xs font-light uppercase tracking-widest text-muted-foreground"

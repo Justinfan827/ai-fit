@@ -1,5 +1,15 @@
+import { Logo } from '@/components/icons'
 import { Tp } from '@/components/typography'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { getUserPrograms } from '@/lib/supabase/server/database.operations.queries'
 import { cn } from '@/lib/utils'
 import dayjs from 'dayjs'
@@ -11,7 +21,24 @@ export default async function WorkoutsPage() {
     return <div>error: {error.message}</div>
   }
   return (
-    <div className="">
+    <div>
+      <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
+        <div className="flex items-center">
+          <Logo />
+          <Separator orientation="vertical" className="mx-4 h-6" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink href="/home">Home</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbPage>Programs</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </header>
       <div className="border-b border-b-neutral-800 p-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between sm:px-6 sm:py-6 lg:px-8 lg:py-6">
           <Tp className="text-2xl tracking-wide" variant="h2">
