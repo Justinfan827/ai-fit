@@ -12,8 +12,6 @@ type TimerActions = {
   getExercises: () => void
 }
 
-// useTimerStore provides a timer that is shared
-// globally across the application
 const useExerciseStore = create<TimerState>((set, get) => ({
   exercises: [],
   actions: {
@@ -38,7 +36,9 @@ const useExerciseStore = create<TimerState>((set, get) => ({
         ],
       }
       const fuse = new Fuse(exercises, options)
-      const result = fuse.search(query)
+      const result = fuse.search(query, {
+        limit: 10,
+      })
       return result.map((r) => r.item)
     },
   },

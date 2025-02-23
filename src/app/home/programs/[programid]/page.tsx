@@ -1,4 +1,5 @@
 import ProgramEditorContainer from '@/components/grid/ProgramEditorContainer'
+import { Logo } from '@/components/icons'
 import { ProgramEditorSidebar } from '@/components/program-editor-sidebar'
 import {
   Breadcrumb,
@@ -33,22 +34,26 @@ export default async function Page({
   }
   return (
     <SidebarProvider>
-      <ProgramEditorSidebar side="left" />
       <div className="w-full overflow-auto">
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
+          <div className="flex items-center">
+            <Logo />
+            <Separator orientation="vertical" className="mx-4 h-6" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="/home/programs">
+                    Programs
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{program.data.name}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="/home/programs">Programs</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{program.data.name}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
         </header>
         {/* height is calculated as the height of the screen (dvh) - h-16, where 16 = 4rem*/}
         <div className="flex h-[calc(100dvh-4rem)] overflow-auto">
@@ -58,6 +63,7 @@ export default async function Page({
           />
         </div>
       </div>
+      <ProgramEditorSidebar side="right" />
     </SidebarProvider>
   )
 }

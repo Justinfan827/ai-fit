@@ -98,7 +98,7 @@ const EditorProgramProvider = ({
         },
         search: (query = '') => {
           const { exercises } = get()
-          const options = {
+          const fuse = new Fuse(exercises, {
             includeScore: true,
             keys: [
               {
@@ -106,9 +106,10 @@ const EditorProgramProvider = ({
                 weight: 1,
               },
             ],
-          }
-          const fuse = new Fuse(exercises, options)
-          const result = fuse.search(query)
+          })
+          const result = fuse.search(query, {
+            limit: 10,
+          })
           return result.map((r) => r.item)
         },
       },

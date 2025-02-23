@@ -36,10 +36,7 @@ export default async function Page() {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        {/* height is calculated as the height of the screen (dvh) - h-16, where 16 = 4rem*/}
-        <div className="flex h-[calc(100dvh-4rem)] w-full overflow-auto">
-          <ProgramEditorContainer serverExercises={exercises.data} />
-        </div>
+        <ProgramEditorContainer serverExercises={exercises.data} />
       </div>
     </SidebarProvider>
   )

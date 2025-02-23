@@ -22,7 +22,6 @@ import {
   usezProgramWorkouts,
 } from '@/hooks/zustand/program-editor'
 import { Program, programSchema, Workout } from '@/lib/domain/workouts'
-import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import LoadingButton from '../loading-button'
 import { Badge } from '../ui/badge'
@@ -209,200 +208,204 @@ export default function ProgramEditor() {
   }
 
   return (
-    <div className="relative w-full overflow-x-auto">
-      {isAIGenPending && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-neutral-950/10 pb-14 backdrop-blur-sm">
-          <p className="animate-pulse font-light tracking-wide text-neutral-100">
-            Generating program...
-          </p>
-          <div className="flex flex-col items-center justify-center gap-4">
-            <Icons.spinner className="h-8 w-8 animate-spin text-neutral-50" />
+    <div className="w-full">
+      <div className="border-b px-12 py-8">
+        <div className="flex items-center">
+          <div className="flex-grow">
+            <EditableTypography
+              className="text-2xl"
+              value={programName}
+              onChange={setProgramName}
+            />
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            <ProgramSelect value={programType} onValueChange={handleSelect} />
+            <LoadingButton
+              isLoading={isPending}
+              className="w-20"
+              variant="outline"
+              onClick={() =>
+                !isNewProgram ? handleOnSave() : handleOnCreate()
+              }
+            >
+              {!isNewProgram ? 'Save' : 'Create'}
+            </LoadingButton>
           </div>
         </div>
-      )}
-      <div className="mb-4 flex w-full items-center justify-end px-[72px] pt-8">
-        <div className="flex-grow">
-          <EditableTypography
-            className="text-2xl"
-            value={programName}
-            onChange={setProgramName}
-          />
-        </div>
-        <div className="flex items-center justify-center space-x-2">
-          <ProgramSelect value={programType} onValueChange={handleSelect} />
-          <LoadingButton
-            isLoading={isPending}
-            className="w-20"
-            variant="outline"
-            onClick={() => (!isNewProgram ? handleOnSave() : handleOnCreate())}
-          >
-            {!isNewProgram ? 'Save' : 'Create'}
-          </LoadingButton>
-        </div>
       </div>
-      <div className="flex gap-8">
-        {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
-          return (
-            <div
-              key={`by-week-workout-${weekIdx}`}
-              id="workout-ui"
-              className="min-w-[1200px] pr-4"
-            >
-              <div className="gap-4">
-                <div className="ml-16 flex items-center justify-between gap-4 pb-6 pr-[52px]">
-                  <Badge
-                    variant="outline"
-                    className="text-xs font-light uppercase tracking-widest text-muted-foreground"
-                  >
-                    Week {weekIdx + 1}
-                  </Badge>
-                  <div id="action menu" className="flex items-center">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-accent-foreground/50 hover:text-accent-foreground"
-                          onClick={() => handleDuplicateWeek(weekIdx)}
-                        >
-                          <Icons.copy className="h-5 w-5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Duplicate Week</p>
-                      </TooltipContent>
-                    </Tooltip>
+      <div className="overflow-x-auto p-4">
+        {isAIGenPending && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-neutral-950/10 pb-14 backdrop-blur-sm">
+            <p className="animate-pulse font-light tracking-wide text-neutral-100">
+              Generating program...
+            </p>
+            <div className="flex flex-col items-center justify-center gap-4">
+              <Icons.spinner className="h-8 w-8 animate-spin text-neutral-50" />
+            </div>
+          </div>
+        )}
+        <div className="flex gap-8">
+          {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
+            return (
+              <div
+                key={`by-week-workout-${weekIdx}`}
+                id="workout-ui"
+                className="min-w-[1200px] pr-4"
+              >
+                <div className="gap-4">
+                  <div className="ml-16 flex items-center justify-between gap-4 pb-6 pr-[52px]">
+                    <Badge
+                      variant="outline"
+                      className="text-xs font-light uppercase tracking-widest text-muted-foreground"
+                    >
+                      Week {weekIdx + 1}
+                    </Badge>
+                    <div id="action menu" className="flex items-center">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-accent-foreground/50 hover:text-accent-foreground"
+                            onClick={() => handleDuplicateWeek(weekIdx)}
+                          >
+                            <Icons.copy className="h-5 w-5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Duplicate Week</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                   </div>
-                </div>
-                <div id="workouts-data" className="w-full flex-grow space-y-8">
-                  {weeksWorkouts.map((workout, workoutIdx) => {
-                    return (
-                      <div key={workout.id} className="flex gap-4">
-                        <div className="flex-grow space-y-4">
-                          <div className="ml-[72px] flex items-center justify-between">
-                            <EditableTypography
-                              value={workout.name}
-                              onChange={(value) => {
-                                const newWorkouts = weeksWorkouts.map((w) => {
-                                  if (w.id === workout.id) {
-                                    return {
-                                      ...w,
-                                      name: value,
+                  <div
+                    id="workouts-data"
+                    className="w-full flex-grow space-y-8"
+                  >
+                    {weeksWorkouts.map((workout, workoutIdx) => {
+                      return (
+                        <div key={workout.id} className="flex gap-4">
+                          <div className="flex-grow space-y-4">
+                            <div className="ml-[72px] flex items-center justify-between">
+                              <EditableTypography
+                                value={workout.name}
+                                onChange={(value) => {
+                                  const newWorkouts = weeksWorkouts.map((w) => {
+                                    if (w.id === workout.id) {
+                                      return {
+                                        ...w,
+                                        name: value,
+                                      }
                                     }
+                                    return w
+                                  })
+                                  setWorkouts(newWorkouts)
+                                }}
+                              />
+                              <div
+                                id="action menu"
+                                className="flex items-center justify-center pl-2"
+                              >
+                                {workoutIdx === 0 && weekIdx === 0 ? null : (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
+                                    onClick={() => handleDeletion(workout.id)}
+                                  >
+                                    <Icons.x className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            <WorkoutGrid
+                              rowData={workout.blocks}
+                              columns={defaultColumns}
+                              onGridChange={(rows) => {
+                                // The grid updated. Right now, it's a little circular, might have to clean this up a little later,
+                                // but grid updates update the global workout store, which cause a re-render of the grid.
+                                const workoutToUpdate = workouts.find(
+                                  (w) => w.id === workout.id
+                                )
+                                if (!workoutToUpdate) {
+                                  return
+                                }
+                                const workoutRows: Workout['blocks'] = rows.map(
+                                  (row) => {
+                                    return {
+                                      id: row.id || uuidv4().toString(),
+                                      exercise_name: row.exercise_name,
+                                      sets: row.sets,
+                                      reps: row.reps,
+                                      weight: row.weight || '',
+                                      rest: row.rest || '',
+                                      notes: row.notes || '',
+                                    }
+                                  }
+                                )
+                                const newWorkout = {
+                                  ...workoutToUpdate,
+                                  blocks: workoutRows,
+                                }
+
+                                const updatedworkouts = workouts.map((w) => {
+                                  if (w.id === workout.id) {
+                                    return newWorkout
                                   }
                                   return w
                                 })
-                                setWorkouts(newWorkouts)
+
+                                setWorkouts(updatedworkouts)
                               }}
                             />
-                            <div
-                              id="action menu"
-                              className="flex items-center justify-center pl-2"
-                            >
-                              {workoutIdx === 0 && weekIdx === 0 ? null : (
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
-                                  onClick={() => handleDeletion(workout.id)}
-                                >
-                                  <Icons.x className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
                           </div>
-                          <WorkoutGrid
-                            rowData={workout.blocks}
-                            columns={defaultColumns}
-                            onGridChange={(rows) => {
-                              // The grid updated. Right now, it's a little circular, might have to clean this up a little later,
-                              // but grid updates update the global workout store, which cause a re-render of the grid.
-                              const workoutToUpdate = workouts.find(
-                                (w) => w.id === workout.id
-                              )
-                              if (!workoutToUpdate) {
-                                return
+                          <div className="mt-[48px] flex flex-col items-stretch">
+                            <Button
+                              id="next-week-workout-btn"
+                              variant="dashed"
+                              size="icon"
+                              className="flex-grow text-sm font-normal"
+                              onClick={() =>
+                                addNewWorkoutToWeek({ week: weekIdx + 1 })
                               }
-                              const workoutRows: Workout['blocks'] = rows.map(
-                                (row) => {
-                                  return {
-                                    id: row.id || uuidv4().toString(),
-                                    exercise_name: row.exercise_name,
-                                    sets: row.sets,
-                                    reps: row.reps,
-                                    weight: row.weight || '',
-                                    rest: row.rest || '',
-                                    notes: row.notes || '',
-                                  }
-                                }
-                              )
-                              const newWorkout = {
-                                ...workoutToUpdate,
-                                blocks: workoutRows,
-                              }
-
-                              const updatedworkouts = workouts.map((w) => {
-                                if (w.id === workout.id) {
-                                  return newWorkout
-                                }
-                                return w
-                              })
-
-                              setWorkouts(updatedworkouts)
-                            }}
-                          />
+                            >
+                              <Icons.plus className="h-4 w-4 rounded-full" />
+                            </Button>
+                          </div>
                         </div>
-                        <div
-                          className={cn(
-                            'invisible mt-[48px] flex flex-col items-stretch',
-                            workoutIdx === weeksWorkouts.length - 1 && 'visible'
-                          )}
-                        >
-                          <Button
-                            id="next-week-workout-btn"
-                            variant="dashed"
-                            size="icon"
-                            className="flex-grow text-sm font-normal"
-                            onClick={() =>
-                              addNewWorkoutToWeek({ week: weekIdx + 1 })
-                            }
-                          >
-                            <Icons.plus className="h-4 w-4 rounded-full" />
-                          </Button>
-                        </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
+                </div>
+                <div className="flex w-full items-center justify-end pt-4">
+                  <Button
+                    variant="dashed"
+                    size="sm"
+                    className="text-sm font-normal"
+                    onClick={() => addNewWorkoutToWeek({ week: weekIdx })}
+                  >
+                    <Icons.plus className="h-4 w-4 rounded-full" />
+                    Add Workout
+                  </Button>
                 </div>
               </div>
-              <div className="flex w-full items-center justify-end pt-4">
-                <Button
-                  variant="dashed"
-                  size="sm"
-                  className="text-sm font-normal"
-                  onClick={() => addNewWorkoutToWeek({ week: weekIdx })}
-                >
-                  <Icons.plus className="h-4 w-4 rounded-full" />
-                  Add Workout
-                </Button>
-              </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
+        {/* Debug container */}
+        {/* <div className="p-10"> */}
+        {/*   <div className="flex gap-4"> */}
+        {/*     <div> */}
+        {/*       ProgramErrors: */}
+        {/*       <JSONContainer className="w-[300px]" json={error} /> */}
+        {/*     </div> */}
+        {/*     <div> */}
+        {/*       Workouts by week */}
+        {/*       <JSONContainer json={workoutsByWeek} /> */}
+        {/*     </div> */}
+        {/*   </div> */}
+        {/* </div> */}
       </div>
-      {/* Debug container */}
-      {/* <div className="p-10"> */}
-      {/*   <div className="flex gap-4"> */}
-      {/*     <div> */}
-      {/*       ProgramErrors: */}
-      {/*       <JSONContainer className="w-[300px]" json={error} /> */}
-      {/*     </div> */}
-      {/*     <div> */}
-      {/*       Workouts by week */}
-      {/*       <JSONContainer json={workoutsByWeek} /> */}
-      {/*     </div> */}
-      {/*   </div> */}
-      {/* </div> */}
     </div>
   )
 }
