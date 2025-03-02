@@ -1,3 +1,5 @@
+import { PostgrestError } from '@supabase/postgrest-js'
+import { AuthError } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 import {
@@ -6,11 +8,9 @@ import {
   ErrorResponse,
   fromZodError,
 } from './errors'
-import { AuthError } from '@supabase/supabase-js'
 
 export function handleAPIResponse(e: unknown) {
   const errCodeAndMsg = asError(e)
-  console.log('Server Error:', errCodeAndMsg);
   return NextResponse.json(
     {
       ...errCodeAndMsg,
@@ -38,6 +38,15 @@ export function asError(e: any): ErrorResponse {
     return {
       error: {
         code: e.code,
+        message: e.message,
+      },
+    }
+  }
+  if (e instanceof PostgrestError) {
+    return {
+      error: {
+        // TODO: handle different postgres codes differently
+        code: 'internal_server_error',
         message: e.message,
       },
     }

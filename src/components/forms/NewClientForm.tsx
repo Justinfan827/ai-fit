@@ -1,5 +1,3 @@
-'use client'
-
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -14,9 +12,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { toast } from '@/hooks/use-toast'
 
-const FormSchema = z.object({
+export const CreateClientFormScham = z.object({
   firstName: z.string().min(2, {
     message: 'First name must be at least 2 characters.',
   }),
@@ -28,30 +25,23 @@ const FormSchema = z.object({
   }),
 })
 
+export type CreateClientFormType = z.infer<typeof CreateClientFormScham>
+
 type NewClientFormProps = {
   formName: string
+  onSubmit: (data: CreateClientFormType) => void
 }
 
-export function NewClientForm({ formName }: NewClientFormProps) {
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-    },
-  })
-
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    toast({
-      title: 'You submitted the following values:',
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
+export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
+  const initialState = {
+    firstName: '',
+    lastName: '',
+    email: '',
   }
+  const form = useForm<z.infer<typeof CreateClientFormScham>>({
+    resolver: zodResolver(CreateClientFormScham),
+    defaultValues: initialState,
+  })
 
   return (
     <Form {...form}>

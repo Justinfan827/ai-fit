@@ -21,6 +21,7 @@
     "@headlessui/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.1",
     "@inquirer/prompts": "^7.1.0",
+    "@next-safe-action/adapter-react-hook-form": "^1.0.13",
     "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-aspect-ratio": "^1.1.0",
@@ -50,6 +51,7 @@
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.3",
     "@react-spring/web": "^9.7.5",
+    "@supabase/postgrest-js": "^1.19.2",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.1",
     "@tanstack/react-query": "^5.66.0",
@@ -82,6 +84,7 @@
     "log-symbols": "^7.0.0",
     "lucide-react": "^0.454.0",
     "next": "15.0.2",
+    "next-safe-action": "^7.10.4",
     "next-themes": "^0.4.3",
     "openai": "^4.71.0",
     "postcss": "8.4.47",
@@ -104,6 +107,7 @@
     "vaul": "^1.1.1",
     "web-push": "^3.6.7",
     "zod": "^3.24.1",
+    "zod-error": "^1.5.0",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

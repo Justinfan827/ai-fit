@@ -3,9 +3,9 @@ import 'server-only'
 import { User } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 
+import { APIError } from '@/app/api/errors'
 import { createServerClient } from '../create-server-client'
 import { isClient } from '../utils'
-import { APIError } from '@/app/api/errors'
 
 type AuthCheck = AuthCheckFailed | AuthCheckSuccess
 
@@ -39,12 +39,11 @@ export const checkServerUserAuth = async (): Promise<AuthCheck> => {
   }
   if (!user) {
     return {
-      user: null, error: new APIError(
-        {
-          code: 'unauthorized',
-          message: 'No user found',
-        }
-      )
+      user: null,
+      error: new APIError({
+        code: 'unauthorized',
+        message: 'No user found',
+      }),
     }
   }
   return { user, error: null }
