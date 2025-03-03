@@ -1,11 +1,11 @@
 import ClientButtonNewClient from '@/components/ClientButtonNewClient'
+import { EmptyStateCard } from '@/components/empty-state'
 import Header from '@/components/header'
+import { PageHeader } from '@/components/page-header'
+import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
 import { Tp } from '@/components/typography'
 import { BreadcrumbItem, BreadcrumbPage } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
-import { EmptyStateCard } from '@/components/empty-state'
-import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
-import { PageHeader } from '@/components/page-header'
 import {
   getAllPrograms,
   getCurrentUser,
@@ -46,19 +46,19 @@ export default async function WorkoutsPage() {
 
   return (
     <PageLayout>
-      <Header>
-        <BreadcrumbItem className="hidden md:block">
-          <BreadcrumbPage>Home</BreadcrumbPage>
-        </BreadcrumbItem>
-      </Header>
-      <div id="home content">
-        <PageHeader 
+      <div id="home content" className="w-full">
+        <Header>
+          <BreadcrumbItem className="hidden md:block">
+            <BreadcrumbPage>Home</BreadcrumbPage>
+          </BreadcrumbItem>
+        </Header>
+        <PageHeader
           title={`Welcome ${userData.metadata.firstName} ${userData.metadata.lastName}`}
           subtitle={userData.sbUser.email}
           actions={headerActions}
         />
         <PageContent>
-          <PageSection id="programs-container">
+          <PageSection>
             <Tp className="text-2xl tracking-wide">Programs</Tp>
             {programData.length === 0 ? (
               <EmptyStateCard
@@ -87,7 +87,7 @@ export default async function WorkoutsPage() {
               </div>
             )}
           </PageSection>
-          <PageSection id="clients-container">
+          <PageSection>
             <Tp className="text-2xl tracking-wide">Clients</Tp>
 
             {clientsData.length === 0 ? (

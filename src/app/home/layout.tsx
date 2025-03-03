@@ -1,3 +1,4 @@
+import { AppSidebar } from '@/components/nav/sidebar'
 import SignOutButton from '@/components/sign-out-button'
 import {
   Card,
@@ -6,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { SidebarProvider } from '@/components/ui/sidebar'
 import AIProgramProvider from '@/hooks/use-workout'
 import { getCurrentUser } from '@/lib/supabase/server/database.operations.queries'
 import SupabaseProvider from '@/lib/supabase/use-supabase'
@@ -44,7 +46,10 @@ export default async function HomeLayout({
   return (
     <AIProgramProvider>
       <SupabaseProvider user={user.sbUser}>
-        <main className="">{children}</main>
+        <SidebarProvider defaultOpen={true}>
+          <AppSidebar />
+          <main className="w-full">{children}</main>
+        </SidebarProvider>
       </SupabaseProvider>
     </AIProgramProvider>
   )

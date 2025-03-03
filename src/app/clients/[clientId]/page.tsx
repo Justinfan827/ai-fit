@@ -1,27 +1,21 @@
 import { ClientProgramWorkoutList } from '@/components/client-program-workout-list'
-import {
-  EmptyStateCard,
-  EmptyStateContent,
-  EmptyStateLogo,
-  EmptyStateText,
-} from '@/components/empty-state'
+import { EmptyStateCard } from '@/components/empty-state'
 import Header from '@/components/header'
+import { PageHeader } from '@/components/page-header'
+import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
 import { Tp } from '@/components/typography'
 import { BreadcrumbItem, BreadcrumbPage } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
 import NumberTicker from '@/components/ui/number-ticker'
 import { Ping } from '@/components/ui/ping'
 import { Separator } from '@/components/ui/separator'
 import { Program } from '@/lib/domain/workouts'
 import {
   getClientActiveProgram,
-  getCurrentUser,
   getClientById,
+  getCurrentUser,
 } from '@/lib/supabase/server/database.operations.queries'
 import SupabaseProvider from '@/lib/supabase/use-supabase'
-import { Suspense } from 'react'
-import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
-import { PageHeader } from '@/components/page-header'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
 /*
@@ -34,7 +28,7 @@ export default async function ClientPage({
 }) {
   const clientId = (await params).clientId
   const { data: client, error } = await getClientById(clientId)
-  
+
   if (error) {
     return <div>error: {error.message}</div>
   }
@@ -53,7 +47,7 @@ export default async function ClientPage({
         </BreadcrumbItem>
       </Header>
       <div id="client content">
-        <PageHeader 
+        <PageHeader
           title={`${client.firstName} ${client.lastName}`}
           subtitle={client.email}
           actions={headerActions}
