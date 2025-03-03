@@ -50,7 +50,7 @@ export function AssignProgramSidesheet({ clientId, programs }: Props) {
     router.refresh()
   }
   return (
-    <Sheet open={isOpen}>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <LoadingButton
           variant="outline"

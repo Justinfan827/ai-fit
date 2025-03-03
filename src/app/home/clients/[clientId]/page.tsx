@@ -3,8 +3,10 @@ import { Tp } from '@/components/typography'
 import {
   Breadcrumb,
   BreadcrumbItem,
+  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
+  BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -14,6 +16,11 @@ import {
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { AssignProgramSidesheet } from './assign-program-sidesheet'
+import Header from '@/components/header'
+import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
+import { PageHeader } from '@/components/page-header'
+import { Button } from '@/components/ui/button'
+import { EmptyStateCard } from '@/components/empty-state'
 
 export default async function ClientPage({
   params,
@@ -32,47 +39,59 @@ export default async function ClientPage({
     return <div>error: {programsError.message}</div>
   }
   return (
-    <div>
-      <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4">
-        <Logo />
-        <Separator orientation="vertical" className="h-4" />
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbPage>Home</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </header>
+    <PageLayout>
+      <Header>
+        <BreadcrumbItem className="hidden md:block">
+          <BreadcrumbLink href="/home">Home</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator className="hidden md:block" />
+        <BreadcrumbItem className="hidden md:block">
+          <BreadcrumbLink href="/home/clients">Clients</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator className="hidden md:block" />
+        <BreadcrumbItem>
+          <BreadcrumbPage>{`${data.firstName} ${data.lastName}`}</BreadcrumbPage>
+        </BreadcrumbItem>
+      </Header>
       <div id="home content">
-        <div className="border-b border-b-neutral-800 p-4">
-          <div className="mx-auto flex max-w-7xl items-center justify-between sm:px-6 sm:py-6 lg:px-8 lg:py-6">
-            <div>
-              <Tp className="text-2xl tracking-wide" variant="h2">
-                Client: {data.firstName} {data.lastName}
-              </Tp>
-              <p className="leading-none text-neutral-500">{data.email}</p>
-            </div>
+        <PageHeader 
+          title={`Client: ${data.firstName} ${data.lastName}`}
+          subtitle={data.email}
+          actions={
             <AssignProgramSidesheet clientId={clientId} programs={programs} />
-          </div>
-        </div>
-        <div id="programs-container" className="space-y-4 p-4">
-          <Tp className="text-2xl tracking-wide">Assigned Programs</Tp>
-          {data.programs.map((program, idx) => (
-            <Link
-              href={`/home/programs/${program.id}`}
-              key={program.id}
-              className={cn(
-                'flex border-x border-b border-neutral-700 px-4 py-4',
-                idx === 0 && 'rounded-t-sm border-t',
-                idx === data.programs.length - 1 && 'rounded-b-sm border-b'
-              )}
-            >
-              {program.name}
-            </Link>
-          ))}
-        </div>
+          }
+        />
+        <PageContent>
+          <PageSection id="programs-container">
+            <Tp className="text-2xl tracking-wide">Programs</Tp>
+            {data.programs.length === 0 ? (
+              <EmptyStateCard
+                title="Assign a program"
+                subtitle="Assign a program to this client to help them reach their goals."
+                buttonText="Assign Program"
+                className="w-full"
+              />
+            ) : (
+              <div className="flex flex-col">
+                {data.programs.map((program, idx) => (
+                  <Link
+                    href={`/home/programs/${program.id}`}
+                    key={program.id}
+                    className={cn(
+                      'flex border-x border-neutral-700 px-4 py-4',
+                      idx === 0 && 'rounded-t-sm border-t border-neutral-700',
+                      idx === data.programs.length - 1 && 'rounded-b-sm',
+                      'border-b border-neutral-700'
+                    )}
+                  >
+                    {program.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </PageSection>
+        </PageContent>
       </div>
-    </div>
+    </PageLayout>
   )
 }

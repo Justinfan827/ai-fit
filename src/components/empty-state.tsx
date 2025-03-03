@@ -1,11 +1,15 @@
 import Link from 'next/link'
 import React, { ReactNode } from 'react'
-import { Logo } from './icons'
-import { Button } from './ui/button'
+import { Logo } from '@/components/icons'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 // Type definitions
 interface EmptyStateCardProps {
-  children: ReactNode
+  title: string
+  subtitle: string
+  buttonText?: string
+  buttonHref?: string
 }
 
 interface EmptyStateTextProps {
@@ -22,13 +26,39 @@ interface EmptyStateActionProps {
   linkText: string
 }
 
-const EmptyStateCard: React.FC<EmptyStateCardProps> = ({ children }) => {
+function EmptyStateCard({
+  title,
+  subtitle,
+  buttonText,
+  buttonHref,
+  className,
+  ...props
+}: EmptyStateCardProps & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       id="empty-state-card"
-      className="flex w-full flex-col items-center justify-center gap-6 rounded-md border border-neutral-800 py-8"
+      className={cn(
+        "flex flex-col items-center justify-center gap-6 rounded-md border border-neutral-800 py-8",
+        className
+      )}
+      {...props}
     >
-      {children}
+      <div className="rounded-md border border-neutral-800 p-4">
+        <Logo />
+      </div>
+      <div className="flex flex-col items-center justify-center gap-2">
+        <p className="text-md">{title}</p>
+        <div className="flex max-w-[250px] justify-center text-center">
+          <p className="text-sm text-neutral-400">{subtitle}</p>
+        </div>
+      </div>
+      {buttonText && buttonHref && (
+        <div className="flex w-full justify-center pt-2">
+          <Button variant="outline" asChild>
+            <Link href={buttonHref}>{buttonText}</Link>
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

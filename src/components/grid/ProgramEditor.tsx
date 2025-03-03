@@ -27,6 +27,7 @@ import LoadingButton from '../loading-button'
 import { Badge } from '../ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import WorkoutGrid from './WorkoutGrid'
+import { PageHeader } from '@/components/page-header'
 
 export default function ProgramEditor() {
   const [isPending, setIsPending] = useState(false)
@@ -207,32 +208,33 @@ export default function ProgramEditor() {
     setWorkouts([...workouts, ...dupeWorkouts])
   }
 
+  // Create header actions for the PageHeader
+  const headerActions = (
+    <div className="flex items-center justify-center space-x-2">
+      <ProgramSelect value={programType} onValueChange={handleSelect} />
+      <LoadingButton
+        isLoading={isPending}
+        className="w-20"
+        variant="outline"
+        onClick={() => !isNewProgram ? handleOnSave() : handleOnCreate()}
+      >
+        {!isNewProgram ? 'Save' : 'Create'}
+      </LoadingButton>
+    </div>
+  )
+
   return (
     <div className="w-full">
-      <div className="border-b px-12 py-8">
-        <div className="flex items-center">
-          <div className="flex-grow">
-            <EditableTypography
-              className="text-2xl"
-              value={programName}
-              onChange={setProgramName}
-            />
-          </div>
-          <div className="flex items-center justify-center space-x-2">
-            <ProgramSelect value={programType} onValueChange={handleSelect} />
-            <LoadingButton
-              isLoading={isPending}
-              className="w-20"
-              variant="outline"
-              onClick={() =>
-                !isNewProgram ? handleOnSave() : handleOnCreate()
-              }
-            >
-              {!isNewProgram ? 'Save' : 'Create'}
-            </LoadingButton>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={
+          <EditableTypography
+            className="text-2xl"
+            value={programName}
+            onChange={setProgramName}
+          />
+        }
+        actions={headerActions}
+      />
       <div className="overflow-x-auto p-4">
         {isAIGenPending && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-neutral-950/10 pb-14 backdrop-blur-sm">
@@ -392,19 +394,6 @@ export default function ProgramEditor() {
             )
           })}
         </div>
-        {/* Debug container */}
-        {/* <div className="p-10"> */}
-        {/*   <div className="flex gap-4"> */}
-        {/*     <div> */}
-        {/*       ProgramErrors: */}
-        {/*       <JSONContainer className="w-[300px]" json={error} /> */}
-        {/*     </div> */}
-        {/*     <div> */}
-        {/*       Workouts by week */}
-        {/*       <JSONContainer json={workoutsByWeek} /> */}
-        {/*     </div> */}
-        {/*   </div> */}
-        {/* </div> */}
       </div>
     </div>
   )
