@@ -6,7 +6,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import { IntakeForm } from './forms/intake-form'
+import { IntakeForm } from './forms/ClientIntakeForm'
 import { VersionSwitcher } from './version-switcher'
 
 const versions = ['coach profile 1', 'coach profile 2']

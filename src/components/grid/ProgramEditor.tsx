@@ -7,6 +7,7 @@ import EditableTypography from '@/components/EditableTypeography'
 import { defaultColumns, defaultRowData } from '@/components/grid/columns'
 import { ProgramSelect } from '@/components/grid/ProgramSelect'
 import { Icons } from '@/components/icons'
+import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import apiCreateProgram from '@/fetches/create-program'
 import apiEditProgram from '@/fetches/edit-program'
@@ -23,11 +24,11 @@ import {
 } from '@/hooks/zustand/program-editor'
 import { Program, programSchema, Workout } from '@/lib/domain/workouts'
 import { useRouter } from 'next/navigation'
+import PlusButton from '../buttons/PlusButton'
 import LoadingButton from '../loading-button'
 import { Badge } from '../ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import WorkoutGrid from './WorkoutGrid'
-import { PageHeader } from '@/components/page-header'
 
 export default function ProgramEditor() {
   const [isPending, setIsPending] = useState(false)
@@ -216,7 +217,7 @@ export default function ProgramEditor() {
         isLoading={isPending}
         className="w-20"
         variant="outline"
-        onClick={() => !isNewProgram ? handleOnSave() : handleOnCreate()}
+        onClick={() => (!isNewProgram ? handleOnSave() : handleOnCreate())}
       >
         {!isNewProgram ? 'Save' : 'Create'}
       </LoadingButton>
@@ -380,15 +381,10 @@ export default function ProgramEditor() {
                   </div>
                 </div>
                 <div className="flex w-full items-center justify-end pt-4">
-                  <Button
-                    variant="dashed"
-                    size="sm"
-                    className="text-sm font-normal"
+                  <PlusButton
+                    text="Add Workout"
                     onClick={() => addNewWorkoutToWeek({ week: weekIdx })}
-                  >
-                    <Icons.plus className="h-4 w-4 rounded-full" />
-                    Add Workout
-                  </Button>
+                  />
                 </div>
               </div>
             )

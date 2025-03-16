@@ -109,3 +109,10 @@ export function parseBool(str: string): boolean | undefined {
       return undefined
   }
 }
+
+/*
+ * Trims all leading and trailing whitespace from a string.
+ */
+export function inputTrim(input: string): string {
+  return input.replace(/^\s+|\s+$/g, '')
+}

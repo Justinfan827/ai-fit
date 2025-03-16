@@ -2,9 +2,9 @@ import 'server-only'
 
 import { User } from '@supabase/supabase-js'
 
+import { Client } from '@/lib/domain/clients'
 import {
   Program,
-  programSchema,
   Workout,
   WorkoutExercise,
   WorkoutInstance,
@@ -12,72 +12,8 @@ import {
 } from '@/lib/domain/workouts'
 import { Res } from '@/lib/types/types'
 import { createServerClient } from '../create-server-client'
-import { Database } from '../database.types'
-import { DBClient } from '../types'
 import { isClient } from '../utils'
-
-export interface Client {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-}
-
-export interface ClientWithPrograms extends Client {
-  programs: Program[]
-}
-
-/*
- *
- * When logged into the client account, get the client user and their assigned programs from a trainer
- */
-export async function getClientUserWithPrograms(
-  clientId: string
-): Promise<Res<ClientWithPrograms>> {
-  const sb = await createServerClient()
-
-  const { data: userRes, error: getUserError } = await sb.auth.getUser()
-  if (getUserError) {
-    return { data: null, error: getUserError }
-  }
-
-  const { data: client, error: clientError } = await sb
-    .from('users')
-    .select('*')
-    .eq('trainer_id', userRes.user.id)
-    .eq('id', clientId)
-    .single()
-
-  if (clientError) {
-    return { data: null, error: clientError }
-  }
-
-  const { data: pData, error: pErr } = await sb
-    .from('programs')
-    .select('*')
-    .eq('user_id', client.id)
-    .order('created_at', { ascending: false })
-
-  if (pErr) {
-    return { data: null, error: pErr }
-  }
-
-  const { data: progData, error: progErr } = await resolvePrograms(sb, pData)
-  if (progErr) {
-    return { data: null, error: progErr }
-  }
-
-  return {
-    data: {
-      id: client.id,
-      email: client.email || '',
-      firstName: client.first_name || '',
-      lastName: client.last_name || '',
-      programs: progData,
-    },
-    error: null,
-  }
-}
+import { resolveProgram, resolvePrograms } from './programs/utils'
 
 export async function getCurrentUserClients(): Promise<Res<Client[]>> {
   const client = await createServerClient()
@@ -279,43 +215,6 @@ export async function getProgramById(programId: string): Promise<Res<Program>> {
   return resolveProgram(pData)
 }
 
-async function resolveProgram(
-  dbProgram: Database['public']['Tables']['programs']['Row']
-): Promise<Res<Program>> {
-  const client = await createServerClient()
-  const { data: wData, error: wErr } = await client
-    .from('workouts')
-    .select('*')
-    .eq('program_id', dbProgram.id)
-    .order('program_order', { ascending: true })
-
-  if (wErr) {
-    return { data: null, error: wErr }
-  }
-  const program: Program = {
-    id: dbProgram.id,
-    type: dbProgram.type as 'weekly' | 'splits',
-    name: dbProgram.name,
-    created_at: dbProgram.created_at,
-    workouts: wData.map((workout) => ({
-      id: workout.id,
-      program_order: workout.program_order,
-      program_id: workout.program_id,
-      name: workout.name,
-      blocks: workout.blocks as WorkoutExercise[],
-    })),
-  }
-  const { data: programData, error: parseErr } =
-    programSchema.safeParse(program)
-  if (parseErr) {
-    return { data: null, error: parseErr }
-  }
-  return {
-    data: programData,
-    error: null,
-  }
-}
-
 export async function getUserPrograms(): Promise<Res<Program[]>> {
   const client = await createServerClient()
   const { data, error } = await client.auth.getUser()
@@ -332,60 +231,6 @@ export async function getUserPrograms(): Promise<Res<Program[]>> {
     return { data: null, error: pErr }
   }
   return resolvePrograms(client, pData)
-}
-
-async function resolvePrograms(
-  client: DBClient,
-  pData: Database['public']['Tables']['programs']['Row'][]
-): Promise<Res<Program[]>> {
-  const returnData: Program[] = []
-  const res = await Promise.all(
-    pData.map(async (p) => {
-      const { data: wData, error: wErr } = await client
-        .from('workouts')
-        .select('*')
-        .eq('program_id', p.id)
-        .order('program_order', { ascending: true })
-
-      if (wErr) {
-        return { error: wErr }
-      }
-      const program: Program = {
-        id: p.id,
-        name: p.name,
-        created_at: p.created_at,
-        type: p.type as 'weekly' | 'splits',
-        workouts: wData.map((workout) => ({
-          id: workout.id,
-          program_order: workout.program_order,
-          program_id: workout.program_id,
-          name: workout.name,
-          blocks: workout.blocks as WorkoutExercise[],
-        })),
-      }
-      const { data: programData, error: parseErr } =
-        programSchema.safeParse(program)
-      if (parseErr) {
-        return { error: parseErr }
-      }
-      returnData.push(programData)
-      return { error: null }
-    })
-  )
-
-  for (const r of res) {
-    if (r.error) {
-      return { data: null, error: r.error }
-    }
-  }
-  // need to sort the programs by created_at
-  returnData.sort((a, b) => {
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  })
-  return {
-    data: returnData,
-    error: null,
-  }
 }
 
 export async function getAllPrograms(): Promise<Res<Program[]>> {
