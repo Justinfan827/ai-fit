@@ -4,6 +4,8 @@ import { z } from 'zod'
 export const exerciseSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string
   name: z.string(),
+  muscleGroup: z.string(),
+  ownerId: z.string().uuid().nullable(),
 })
 
 export const exercisesSchema = z.array(exerciseSchema)

@@ -11,7 +11,6 @@ import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import apiCreateProgram from '@/fetches/create-program'
 import apiEditProgram from '@/fetches/edit-program'
-import { toast } from '@/hooks/use-toast'
 import { useAIProgram } from '@/hooks/use-workout'
 import {
   usezEditorActions,
@@ -24,6 +23,7 @@ import {
 } from '@/hooks/zustand/program-editor'
 import { Program, programSchema, Workout } from '@/lib/domain/workouts'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import PlusButton from '../buttons/PlusButton'
 import LoadingButton from '../loading-button'
 import { Badge } from '../ui/badge'
@@ -136,23 +136,11 @@ export default function ProgramEditor() {
     })
     setIsPending(false)
     if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error creating workout',
-        description: error.message,
-      })
+      toast('Error creating workout')
       return
     }
     router.push(`/home/programs/${data.id}`)
-    toast({
-      variant: 'default',
-      title: 'Workout created',
-      description: (
-        <div>
-          <pre>{JSON.stringify({ workouts }, null, 2)}</pre>,
-        </div>
-      ),
-    })
+    toast('Workout created')
   }
 
   const [error, setError] = useState(new Error())

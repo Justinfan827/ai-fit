@@ -1,14 +1,20 @@
-import Header from '@/components/header'
-import { Tp } from '@/components/typography'
-import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
+import ClientButtonNewClient from '@/components/ClientButtonNewClient'
 import { EmptyStateCard } from '@/components/empty-state'
-import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
+import Header from '@/components/header'
 import { PageHeader } from '@/components/page-header'
-import { getCurrentUser, getCurrentUserClients } from '@/lib/supabase/server/database.operations.queries'
+import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
+import {
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+import {
+  getCurrentUser,
+  getCurrentUserClients,
+} from '@/lib/supabase/server/database.operations.queries'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import ClientButtonNewClient from '@/components/ClientButtonNewClient'
 
 export default async function ClientsPage() {
   // Get current user and clients data
@@ -27,9 +33,7 @@ export default async function ClientsPage() {
     return <div>error: {clientsError.message}</div>
   }
 
-  const headerActions = (
-    <ClientButtonNewClient />
-  )
+  const headerActions = <ClientButtonNewClient />
 
   return (
     <PageLayout>
@@ -43,7 +47,7 @@ export default async function ClientsPage() {
         </BreadcrumbItem>
       </Header>
       <div id="clients content">
-        <PageHeader 
+        <PageHeader
           title="My Clients"
           subtitle="Manage your clients and their programs"
           actions={headerActions}
@@ -81,4 +85,5 @@ export default async function ClientsPage() {
       </div>
     </PageLayout>
   )
-} 
+}
+

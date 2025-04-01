@@ -12,13 +12,16 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '../ui/textarea'
+import { Textarea } from '@/components/ui/textarea'
+import { Exercise, exercisesSchema } from '@/lib/domain/workouts'
+import { ExerciseSelectionDialog } from './ExerciseSelectionDialog'
 
 const ProgramParametersFormSchema = z
   .object({
     lengthOfWorkout: z.string(),
     lengthOfProgram: z.string(),
     daysPerWeek: z.string(),
+    preferredExercises: exercisesSchema,
     otherNotes: z.string(),
   })
   .superRefine((data, ctx) => {
@@ -122,9 +125,11 @@ export type ProgramParametersFormType = z.infer<
 export function ProgramParametersForm({
   onSubmit,
   formName,
+  exercises: serverExercises,
 }: {
   formName: string
   onSubmit: (data: ProgramParametersFormType) => void
+  exercises: Exercise[]
 }) {
   const form = useForm<ProgramParametersFormType>({
     resolver: zodResolver(ProgramParametersFormSchema),
@@ -133,6 +138,7 @@ export function ProgramParametersForm({
       daysPerWeek: '3',
       lengthOfProgram: '12',
       otherNotes: '',
+      preferredExercises: serverExercises,
     },
   })
 
@@ -198,6 +204,30 @@ export function ProgramParametersForm({
               </FormControl>
               <FormDescription>
                 How many weeks should the program be?
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="preferredExercises"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Exercise Preferences</FormLabel>
+              <FormControl>
+                <div>
+                  {/* TODO: let users edit exercises that will get included in the generated */}
+                  <ExerciseSelectionDialog
+                    exercises={field.value}
+                    setExercises={(exercises) => {
+                      form.setValue('preferredExercises', exercises)
+                    }}
+                  />
+                </div>
+              </FormControl>
+              <FormDescription>
+                Choose the exercises you want to include in the program.
               </FormDescription>
               <FormMessage />
             </FormItem>

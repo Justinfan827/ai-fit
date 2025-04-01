@@ -39,7 +39,14 @@ const items = [
   },
 ]
 
-export function AppSidebar() {
+export function AppSidebar({ hideOnURLs = [] }: { hideOnURLs?: string[] }) {
+  const path = usePathname()
+  // check if the current path is in the hideOnURLs array
+
+  if (hideOnURLs.includes(path)) {
+    return null
+  }
+
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
@@ -47,7 +54,6 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
-                const path = usePathname()
                 // check if path matches the item url
                 // if it does, set the item to active
                 const isActive = new RegExp(item.matchRegex).test(path)

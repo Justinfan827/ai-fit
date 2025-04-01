@@ -18,12 +18,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardFooter, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { toast } from '@/hooks/use-toast'
 import { ClientDetail } from '@/lib/domain/clients'
 import { inputTrim } from '@/lib/utils/util'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 export const AddClientDetailFormSchema = z.object({
@@ -60,9 +60,7 @@ export function ClientDetailsPageSection({
         description: inputTrim(data.description),
       })
       if (error) {
-        toast({
-          title: 'Error',
-          variant: 'destructive',
+        toast('Error', {
           description: (
             <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
               <code className="text-white">
@@ -83,9 +81,7 @@ export function ClientDetailsPageSection({
         detailId,
       })
       if (error) {
-        toast({
-          title: 'Error',
-          variant: 'destructive',
+        toast('Error', {
           description: (
             <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
               <code className="text-white">

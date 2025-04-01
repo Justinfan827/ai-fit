@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export default function ClientButtonNewClient() {
   const formName = 'new-client-form'
@@ -23,9 +23,7 @@ export default function ClientButtonNewClient() {
   const onSubmit = async (data: CreateClientFormType) => {
     const { error } = await createClientAction(data)
     if (error) {
-      return toast({
-        title: 'Error',
-        variant: 'destructive',
+      return toast('Error', {
         description: (
           <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
             <code className="text-white">{JSON.stringify(error, null, 2)}</code>
@@ -33,8 +31,7 @@ export default function ClientButtonNewClient() {
         ),
       })
     }
-    toast({
-      title: 'You submitted the following values:',
+    toast('You submitted', {
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(data, null, 2)}</code>

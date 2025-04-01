@@ -8,10 +8,16 @@ import { Database } from './database.types'
 
 type MaybeUser = User | null
 
-type SupabaseContext = {
+interface BaseCtx {
   supabase: SupabaseClient<Database>
+}
+interface SupabaseContext extends BaseCtx {
   user: MaybeUser
 }
+interface DefSupabaseContext extends BaseCtx {
+  user: User
+}
+
 const Context = createContext<SupabaseContext | undefined>(undefined)
 
 /**
@@ -51,4 +57,15 @@ export const useSupabase = () => {
     throw new Error('useSupabase must be used inside SupabaseProvider')
   }
   return context
+}
+
+export const useSupabaseAuthed = () => {
+  const context = useContext(Context)
+  if (context === undefined) {
+    throw new Error('useSupabase must be used inside SupabaseProvider')
+  }
+  if (!context.user) {
+    throw new Error('User not authenticated')
+  }
+  return context as DefSupabaseContext
 }

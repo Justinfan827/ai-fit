@@ -16,8 +16,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import apiGenerateProgram from '@/fetches/generate-program'
-import { toast } from '@/hooks/use-toast'
 import { useAIProgram } from '@/hooks/use-workout'
+import { toast } from 'sonner'
 import { Icons } from '../icons'
 import { Checkbox } from '../ui/checkbox'
 import { Textarea } from '../ui/textarea'
@@ -178,8 +178,7 @@ export function IntakeForm() {
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     // TODO: when i submit this form, should I use an
     // AI to generate the prompt I use for the workout generation?
-    toast({
-      title: 'You submitted the following values:',
+    toast('You submitted', {
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(data, null, 2)}</code>
@@ -188,8 +187,7 @@ export function IntakeForm() {
     })
 
     const prompt = formToPrompt(data)
-    toast({
-      title: 'Prompt',
+    toast('Prompt', {
       description: prompt,
     })
     setIsPending(true)
@@ -199,10 +197,8 @@ export function IntakeForm() {
     })
     if (error) {
       setIsPending(false)
-      toast({
-        title: 'Error',
+      toast('Error', {
         description: error.message,
-        variant: 'destructive',
       })
       return
     }

@@ -9,13 +9,13 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { useToast } from '@/hooks/use-toast'
 import { createBrowserClient } from '@/lib/supabase/create-browser-client'
 import { isClient } from '@/lib/supabase/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import * as z from 'zod'
 import { Icons } from './icons'
 import { PasswordInput } from './password-input'
@@ -41,7 +41,6 @@ export const authSchema = z.object({
     .max(100),
 })
 export function LoginForm() {
-  const { toast } = useToast()
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
   const client = createBrowserClient()
@@ -94,11 +93,7 @@ export function LoginForm() {
         }
       } catch (error) {
         if (error instanceof Error) {
-          toast({
-            variant: 'destructive',
-            title: 'Email sign in failed',
-            description: `Something went wrong, please try again`,
-          })
+          toast('Email sign in failed')
         }
         return
       }

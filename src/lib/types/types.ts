@@ -17,3 +17,7 @@ export interface ErrorRes {
 export type Res<T> = SuccessRes<T> | ErrorRes
 
 export type AsyncRes<T> = Promise<Res<T>>
+
+export type NextJSSearchParams = Promise<{
+  [key: string]: string | string[] | undefined
+}>

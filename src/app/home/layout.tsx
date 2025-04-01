@@ -47,7 +47,7 @@ export default async function HomeLayout({
     <AIProgramProvider>
       <SupabaseProvider user={user.sbUser}>
         <SidebarProvider defaultOpen={true}>
-          <AppSidebar />
+          <AppSidebar hideOnURLs={'/home/programs/generate'} />
           <main className="w-full">{children}</main>
         </SidebarProvider>
       </SupabaseProvider>

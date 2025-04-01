@@ -1,4 +1,9 @@
-import { Program, programSchema, WorkoutExercise } from '@/lib/domain/workouts'
+import {
+  Exercise,
+  Program,
+  programSchema,
+  WorkoutExercise,
+} from '@/lib/domain/workouts'
 import { Res } from '@/lib/types/types'
 import { createServerClient } from '../../create-server-client'
 import { Database } from '../../database.types'
@@ -92,5 +97,14 @@ export async function resolvePrograms(
   return {
     data: returnData,
     error: null,
+  }
+}
+
+export function asInternalExercise(
+  dbEx: Database['public']['Tables']['exercises']['Row']
+): Exercise {
+  return {
+    id: dbEx.id,
+    name: dbEx.name,
   }
 }

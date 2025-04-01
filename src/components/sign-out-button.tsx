@@ -1,11 +1,11 @@
 'use client'
 
 import { buttonVariants } from '@/components/ui/button'
-import { useToast } from '@/hooks/use-toast'
 import { useSupabase } from '@/lib/supabase/use-supabase'
 import { VariantProps } from 'class-variance-authority'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
+import { toast } from 'sonner'
 import LoadingButton from './loading-button'
 
 export interface SignOutButtonProps
@@ -19,16 +19,12 @@ export default function SignOutButton({
   const [isLoading, setLoading] = useState(false)
   const router = useRouter()
   const { supabase, user } = useSupabase()
-  const { toast } = useToast()
   if (!user) return null
   const handleOnClick = async () => {
     setLoading(true)
     const { error } = await supabase.auth.signOut()
     if (error) {
-      toast({
-        variant: 'destructive',
-        description: error.message,
-      })
+      toast(error.message)
     }
     router.push('/login')
   }

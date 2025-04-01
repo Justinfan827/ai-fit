@@ -12,10 +12,10 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import apiAssignProgramToClient from '@/fetches/assign-program-to-client'
-import { toast } from '@/hooks/use-toast'
 import { Program } from '@/lib/domain/workouts'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 interface Props {
   clientId: string
@@ -35,16 +35,13 @@ export function AssignProgramSidesheet({ clientId, programs }: Props) {
       programId: selectedProgramId,
     })
     if (error) {
-      toast({
-        title: 'Error assigning program',
+      toast('Error assigning program', {
         description: error.message,
       })
       setIsLoading(false)
       return
     }
-    toast({
-      title: 'Program assigned',
-    })
+    toast('Program assigned', {})
     setIsLoading(false)
     setIsOpen(false)
     router.refresh()

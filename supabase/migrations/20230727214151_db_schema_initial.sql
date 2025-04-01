@@ -215,12 +215,10 @@ CREATE TABLE public.exercises (
     id uuid DEFAULT gen_random_uuid () NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     name text NOT NULL,
-    primary_muscles_trained jsonb,
-    skill text,
-    range_of_motion text,
-    body_region text,
     owner_id uuid,
-    primary_trained_colloquial text
+    primary_trained_colloquial text,
+    skill_requirement text,
+    primary_benefit text
 );
 
 -- CREATE INDEX idx_exercises_name_trgm ON public.exercises USING gist (name public.gist_trgm_ops);

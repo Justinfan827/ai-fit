@@ -1,5 +1,6 @@
 import { EmptyStateCard } from '@/components/empty-state'
 import Header from '@/components/header'
+import { Icons } from '@/components/icons'
 import { PageHeader } from '@/components/page-header'
 import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
 import { Tp } from '@/components/typography'
@@ -9,13 +10,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
 import { getAllCurrentUserUnassignedPrograms } from '@/lib/supabase/server/database.operations.queries'
 import newTrainerRepo from '@/lib/supabase/server/users/trainer-repo'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { AssignProgramSidesheet } from './assign-program-sidesheet'
 import { ClientDetailsPageSection } from './details'
-import GenerateProgramModal from './GenerateProgramModal'
 
 export default async function ClientPage({
   params,
@@ -56,7 +57,12 @@ export default async function ClientPage({
           actions={
             <div className="flex gap-4">
               <AssignProgramSidesheet clientId={clientId} programs={programs} />
-              <GenerateProgramModal client={clientData} />
+              <Button asChild>
+                <Link href={`/home/programs/generate?clientId=${clientId}`}>
+                  Generate
+                  <Icons.sparkles className="h-5 w-5" />
+                </Link>
+              </Button>
             </div>
           }
         />

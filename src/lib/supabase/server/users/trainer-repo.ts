@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { ClientHomePage } from '@/lib/domain/clients'
+import { Exercise } from '@/lib/domain/workouts'
 import createAdminClient from '@/lib/supabase/create-admin-client'
 import { Res } from '@/lib/types/types'
 import { v4 as uuidv4 } from 'uuid'
@@ -17,6 +18,51 @@ export default function newTrainerRepo() {
 // new class to handle server-side logic to
 // allow trainers to manage users
 export class TrainerClientRepo {
+  // Fetches all exercises from the database that the trainer
+  // can assign to clients. This includes the 'base' list of exercises,
+  // as well as any custom exercises the trainer has created.
+  public async getAllExercises(
+    trainerId: string
+  ): Promise<Res<{ base: Exercise[]; custom: Exercise[] }>> {
+    const sb = await createServerClient()
+    const [base, custom] = await Promise.all([
+      sb.from('exercises').select('*').is('owner_id', null),
+      sb.from('exercises').select('*').eq('owner_id', trainerId),
+    ])
+    if (base.error) {
+      return {
+        data: null,
+        error: base.error,
+      }
+    }
+    if (custom.error) {
+      return {
+        data: null,
+        error: custom.error,
+      }
+    }
+
+    const baseData = base.data.map((e) => ({
+      id: e.id,
+      name: e.name,
+      muscleGroup: e.primary_trained_colloquial || '',
+      ownerId: e.owner_id,
+    }))
+    const customData = custom.data.map((e) => ({
+      id: e.id,
+      name: e.name,
+      muscleGroup: e.primary_trained_colloquial || '',
+      ownerId: e.owner_id,
+    }))
+    return {
+      data: {
+        base: baseData,
+        custom: customData,
+      },
+      error: null,
+    }
+  }
+
   // this method will be used to create a new user
   // in the database
   public async createClient({

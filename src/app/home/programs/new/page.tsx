@@ -1,5 +1,6 @@
 import ProgramEditorContainer from '@/components/grid/ProgramEditorContainer'
 import Header from '@/components/header'
+import { PageLayout } from '@/components/page-layout'
 import { ProgramEditorSidebar } from '@/components/program-editor-sidebar'
 import {
   BreadcrumbItem,
@@ -9,7 +10,6 @@ import {
 } from '@/components/ui/breadcrumb'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { getExercises } from '@/lib/supabase/server/database.operations.queries'
-import { PageLayout } from '@/components/page-layout'
 
 export default async function Page() {
   const [exercises] = await Promise.all([getExercises()])
@@ -24,9 +24,7 @@ export default async function Page() {
         </BreadcrumbItem>
         <BreadcrumbSeparator className="hidden md:block" />
         <BreadcrumbItem className="hidden md:block">
-          <BreadcrumbLink href="/home/programs">
-            Programs
-          </BreadcrumbLink>
+          <BreadcrumbLink href="/home/programs">Programs</BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator className="hidden md:block" />
         <BreadcrumbItem>
