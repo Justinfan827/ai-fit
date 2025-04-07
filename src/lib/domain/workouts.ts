@@ -20,13 +20,45 @@ export const workoutExerciseSchema = z.object({
   notes: z.string(),
 })
 
+const exerciseBlockSchema = z.object({
+  type: z.literal('exercise'),
+  exercise: z.object({
+    id: z.string().uuid(),
+    name: z.string(),
+    metadata: z.object({
+      sets: z.string(),
+      reps: z.string(),
+      weight: z.string(),
+      rest: z.string(),
+      notes: z.string().optional(),
+    }),
+  }),
+})
+
+const circuitBlockSchema = z.object({
+  type: z.literal('circuit'),
+  circuit: z.object({
+    isDefault: z.boolean(),
+    name: z.string(),
+    description: z.string(),
+    metadata: z.object({
+      sets: z.string(),
+      rest: z.string(),
+      notes: z.string(),
+    }),
+    exercises: z.array(exerciseBlockSchema),
+  }),
+})
+
+const blockSchema = exerciseBlockSchema.or(circuitBlockSchema)
+
 export const workoutSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string
   program_order: z.number(),
   week: z.number().optional(),
   program_id: z.string().uuid(), // Validates a UUID string
   name: z.string(),
-  blocks: z.array(workoutExerciseSchema), // Array of exercises
+  blocks: z.array(blockSchema), // Array of exercises
 })
 
 export const aiExerciseSchema = z.object({
@@ -101,6 +133,7 @@ export type Workouts = z.infer<typeof workoutsSchema>
 export type Workout = z.infer<typeof workoutSchema>
 export type WorkoutExercise = z.infer<typeof workoutExerciseSchema>
 export type Exercise = z.infer<typeof exerciseSchema>
+export type ExerciseBlockSchema = z.infer<typeof exerciseBlockSchema>
 export type Program = z.infer<typeof programSchema>
 export type ExerciseInstance = z.infer<typeof exerciseInstanceSchema>
 

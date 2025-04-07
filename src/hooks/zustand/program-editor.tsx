@@ -2,7 +2,12 @@ import { createContext, useContext, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { create, StoreApi, UseBoundStore, useStore } from 'zustand'
 
-import { Exercise, Program, Workouts } from '@/lib/domain/workouts'
+import {
+  Exercise,
+  ExerciseBlockSchema,
+  Program,
+  Workouts,
+} from '@/lib/domain/workouts'
 import Fuse from 'fuse.js'
 
 const EditorStoreContext = createContext<UseBoundStore<
@@ -30,40 +35,40 @@ type WorkoutActions = {
   setWorkouts: (workouts: Workouts) => void
 }
 
-const newInitialProgram = (): ProgramState => ({
-  id: uuidv4().toString(),
-  created_at: new Date().toISOString(),
-  name: 'New Program',
-  type: 'weekly',
-  workouts: [
-    {
-      id: uuidv4().toString(),
-      name: 'workout 1',
-      program_id: uuidv4().toString(), // populated on create
-      program_order: 0,
-      blocks: [
-        {
-          id: uuidv4().toString(),
-          exercise_name: 'Bench Press',
-          sets: '3',
-          reps: '10',
-          weight: '135',
-          rest: '60',
-          notes: 'This is a note',
+const newInitialProgram = (exercises: Exercise[]): ProgramState => {
+  const exerciseBlocks: ExerciseBlockSchema[] = exercises
+    .slice(0, 2)
+    .map((exercise) => {
+      return {
+        type: 'exercise',
+        exercise: {
+          id: exercise.id,
+          name: exercise.name,
+          metadata: {
+            sets: '3',
+            reps: '12',
+            weight: '100',
+            rest: '30s',
+          },
         },
-        {
-          id: uuidv4().toString(),
-          exercise_name: 'Squats',
-          sets: '3',
-          reps: '10',
-          weight: '225',
-          rest: '60',
-          notes: 'This is a note',
-        },
-      ],
-    },
-  ],
-})
+      }
+    })
+  return {
+    id: uuidv4().toString(),
+    created_at: new Date().toISOString(),
+    name: 'New Program',
+    type: 'weekly',
+    workouts: [
+      {
+        id: uuidv4().toString(),
+        name: 'workout 1',
+        program_id: uuidv4().toString(), // populated on create
+        program_order: 0,
+        blocks: exerciseBlocks,
+      },
+    ],
+  }
+}
 
 // https://tkdodo.eu/blog/zustand-and-react-context
 const EditorProgramProvider = ({
@@ -75,7 +80,7 @@ const EditorProgramProvider = ({
   exercises: Exercise[]
   initialProgram?: Program
 }) => {
-  const program = initialProgram || newInitialProgram()
+  const program = initialProgram || newInitialProgram(exercises)
   const isNewProgram = !initialProgram
   const [store] = useState(() =>
     create<EditorState>((set, get) => ({

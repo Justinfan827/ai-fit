@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
+import { Workout } from '@/lib/domain/workouts'
 import { cn } from '@/lib/utils'
 import { Column } from './columns'
 
@@ -12,7 +13,7 @@ interface Position {
   col: number
 }
 
-export interface Row {
+export interface GridRow {
   [key: string]: string
 }
 
@@ -21,17 +22,21 @@ interface Cell {
   colType: string
   width: number
 }
+
 export default function WorkoutGrid({
+  workout,
   onGridChange,
   rowData,
   columns,
 }: {
-  onGridChange: (grid: Row[]) => void
-  rowData: Row[]
+  workout: Workout
+  onGridChange: (grid: GridRow[]) => void
+  rowData: GridRow[]
   columns: Column[]
 }) {
   return (
     <div className="text-sm">
+      <pre>{JSON.stringify(workout, null, 2)}</pre>
       <GridHeaderRow columns={columns} />
       <GridContentRows
         onGridChange={onGridChange}
@@ -70,8 +75,8 @@ function GridContentRows({
   onGridChange,
 }: {
   columns: Column[]
-  onGridChange: (grid: Row[]) => void
-  rowData: Row[]
+  onGridChange: (grid: GridRow[]) => void
+  rowData: GridRow[]
 }) {
   // Handles keyboard navigation and cell activation
   const [rowDataS, setRowData] = useState(rowData)
@@ -80,6 +85,7 @@ function GridContentRows({
   const [grid, setGrid] = useState(newGrid(rowDataS, columns))
   const [activeCell, setActiveCell] = useState<Position | null>(null) // Renamed from editingCell for clarity
   const gridRefs = useRef<HTMLDivElement[][]>([])
+
   const handleKeyDown = (e: KeyboardEvent, row: number, col: number) => {
     console.log(e.key, row, col, activeCell)
     if (activeCell) {
@@ -134,9 +140,6 @@ function GridContentRows({
     } else if (e.key === 'Enter') {
       setActiveCell({ row, col })
     } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      console.log('\n\n\n')
-      console.log('key', e.key)
-      console.log('\n\n\n')
       // If user starts typing, just activate the cell - don't set the value yet
       e.preventDefault() // Prevent the keypress from being handled twice
       const colType = grid[row][col].colType
@@ -282,7 +285,8 @@ function GridContentRows({
     </>
   )
 }
-function newGrid(rowData: Row[], columns: Column[]): Cell[][] {
+
+function newGrid(rowData: GridRow[], columns: Column[]): Cell[][] {
   const gg = Array.from({ length: rowData.length }, () =>
     Array(columns.length).fill(null)
   )

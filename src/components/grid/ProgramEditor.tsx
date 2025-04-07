@@ -310,6 +310,8 @@ export default function ProgramEditor() {
                               </div>
                             </div>
                             <WorkoutGrid
+                            workout={workout}
+                              // TODO: make a better way to represent the grid
                               rowData={workout.blocks}
                               columns={defaultColumns}
                               onGridChange={(rows) => {
