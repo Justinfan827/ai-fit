@@ -18,8 +18,7 @@ export default function SignOutButton({
 }: SignOutButtonProps) {
   const [isLoading, setLoading] = useState(false)
   const router = useRouter()
-  const { supabase, user } = useSupabase()
-  if (!user) return null
+  const { supabase } = useSupabase()
   const handleOnClick = async () => {
     setLoading(true)
     const { error } = await supabase.auth.signOut()

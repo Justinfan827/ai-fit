@@ -34,10 +34,13 @@ export const withActionAuthSchema = <T extends ZodRawShape, R>(
         throw parsedBody.error
       }
 
-      return action({ user, data: parsedBody.data })
+      return {
+        data: action({ user, data: parsedBody.data }),
+        error: null,
+      }
     } catch (e) {
       return {
-        error: asError(e),
+        ...asError(e),
         data: null,
       }
     }

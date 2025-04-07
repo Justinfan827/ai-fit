@@ -6,7 +6,7 @@ import { getError } from '@/lib/utils/util'
 import OpenAI from 'openai'
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
-import { v1 } from '../prompts/prompts'
+import { systemPromptv1 } from '../prompts/prompts'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -21,7 +21,7 @@ async function generateWorkout({
   const messages: Array<ChatCompletionMessageParam> = [
     {
       role: 'system',
-      content: v1,
+      content: systemPromptv1,
     },
     ...context,
   ]

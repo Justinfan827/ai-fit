@@ -18,6 +18,15 @@ export async function saveWorkoutInstance(instance: WorkoutInstance) {
   })
 }
 
+// sendDebugLog is used to send ai debug logs to the database
+export async function sendDebugLog(request?: any, response?: any) {
+  const sb = await createServerClient()
+  const { error } = await sb.from('debug_log').insert({
+    request_data: request || null,
+    response_data: response || null,
+  })
+}
+
 export async function createProgram(
   userId: string,
   body: Program

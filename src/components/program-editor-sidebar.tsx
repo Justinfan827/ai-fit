@@ -58,14 +58,19 @@ export function ProgramEditorSidebar({
         },
         body: {
           lengthOfWorkout: parseInt(formData.lengthOfWorkout),
-          lengthOfProgram: parseInt(formData.lengthOfWorkout),
+          // lengthOfProgram: parseInt(formData.lengthOfWorkout),
           preferredExercises: formData.preferredExercises,
           daysPerWeek: parseInt(formData.daysPerWeek),
           otherNotes: formData.otherNotes,
         },
       })
-
-      toast('Generated workout!', { description: '' })
+      if (error) {
+        toast('Error generating workout', {
+          description: `Code: ${error.code}, Message: ${error.message}`,
+        })
+        return
+      }
+      toast('Generated workout!')
     })
   }
 
