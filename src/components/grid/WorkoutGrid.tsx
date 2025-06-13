@@ -89,7 +89,7 @@ function GridHeaderRow({ columns }: { columns: Column[] }) {
         return (
           <div
             className={cn(
-              'shrink-0 flex-grow border-r border-t border-neutral-800 bg-neutral-950 p-2 text-sm font-light uppercase tracking-wider text-neutral-400',
+              'shrink-0 grow border-r border-t border-neutral-800 bg-neutral-950 p-2 text-sm font-light uppercase tracking-wider text-neutral-400',
               idx === 0 && 'rounded-tl-sm border-l',
               idx === columns.length - 1 && 'rounded-tr-sm'
             )}
@@ -278,7 +278,7 @@ function GridContentRows({
                 }}
                 tabIndex={0}
                 className={cn(
-                  `relative shrink-0 flex-grow cursor-pointer overflow-hidden border-b border-r border-neutral-800 p-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500`,
+                  `relative shrink-0 grow cursor-pointer overflow-hidden border-b border-r border-neutral-800 p-2 focus-within:outline-hidden focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500`,
                   rowIndex === 0 && 'border-t',
                   colIndex === 0 && 'border-l',
                   rowIndex === numRows - 1 && colIndex === 0 && 'rounded-bl-sm',
@@ -308,7 +308,7 @@ function GridContentRows({
                     />
                   ) : (
                     <input
-                      className="m-0 h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-none focus:outline-none"
+                      className="m-0 h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-hidden focus:outline-hidden"
                       value={cell.value || ''}
                       onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
                       onBlur={() => setActiveCell(null)}

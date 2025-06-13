@@ -45,7 +45,7 @@ export default function ExerciseInput({
         ref={ref}
         onChange={onChange}
         onBlur={onBlur}
-        className="h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-none focus:outline-none"
+        className="h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-hidden focus:outline-hidden"
       />
       <ComboboxOptions
         anchor={{
@@ -61,7 +61,7 @@ export default function ExerciseInput({
             <ComboboxOption
               value={exercise.name}
               key={exercise.id}
-              className="cursor-default select-none rounded-sm bg-neutral-950 p-1 focus:outline-none data-[focus]:bg-neutral-900 data-[selected]:text-accent-foreground"
+              className="cursor-default select-none rounded-sm bg-neutral-950 p-1 focus:outline-hidden data-focus:bg-neutral-900 data-selected:text-accent-foreground"
             >
               {exercise.name}
             </ComboboxOption>
@@ -99,7 +99,7 @@ export default function ExerciseInput({
 //         </div>
 //       </PopoverTrigger>
 //       <PopoverContent
-//         className="w-[var(--radix-popover-trigger-width)] p-0"
+//         className="w-(--radix-popover-trigger-width) p-0"
 //         side="bottom"
 //       >
 //         <Command>

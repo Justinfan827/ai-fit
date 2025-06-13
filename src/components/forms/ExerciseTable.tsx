@@ -82,7 +82,7 @@ export const columns: ColumnDef<TableExercise>[] = [
       <div className="capitalize">
         <div>{row.getValue('name')}</div>
         {row.original.isCustom && (
-          <div className="inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+          <div className="inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2">
             Custom
           </div>
         )}

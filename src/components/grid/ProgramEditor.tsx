@@ -226,7 +226,7 @@ export default function ProgramEditor() {
       />
       <div className="overflow-x-auto p-4">
         {isAIGenPending && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-neutral-950/10 pb-14 backdrop-blur-sm">
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-neutral-950/10 pb-14 backdrop-blur-xs">
             <p className="animate-pulse font-light tracking-wide text-neutral-100">
               Generating program...
             </p>
@@ -271,12 +271,12 @@ export default function ProgramEditor() {
                   </div>
                   <div
                     id="workouts-data"
-                    className="w-full flex-grow space-y-8"
+                    className="w-full grow space-y-8"
                   >
                     {weeksWorkouts.map((workout, workoutIdx) => {
                       return (
                         <div key={workout.id} className="flex gap-4">
-                          <div className="flex-grow space-y-4">
+                          <div className="grow space-y-4">
                             <div className="ml-[72px] flex items-center justify-between">
                               <EditableTypography
                                 value={workout.name}
@@ -361,7 +361,7 @@ export default function ProgramEditor() {
                               id="next-week-workout-btn"
                               variant="dashed"
                               size="icon"
-                              className="flex-grow text-sm font-normal"
+                              className="grow text-sm font-normal"
                               onClick={() =>
                                 addNewWorkoutToWeek({ week: weekIdx + 1 })
                               }
