@@ -287,7 +287,7 @@ export function IntakeForm() {
                     return (
                       <FormItem
                         key={goal.id}
-                        className="flex flex-row items-start space-x-3 space-y-0"
+                        className="flex flex-row items-start space-y-0 space-x-3"
                       >
                         <FormControl>
                           <Checkbox
@@ -335,7 +335,7 @@ export function IntakeForm() {
                     return (
                       <FormItem
                         key={expLevel.id}
-                        className="flex flex-row items-start space-x-3 space-y-0"
+                        className="flex flex-row items-start space-y-0 space-x-3"
                       >
                         <FormControl>
                           <Checkbox
@@ -381,7 +381,7 @@ export function IntakeForm() {
                     return (
                       <FormItem
                         key={curLength.id}
-                        className="flex flex-row items-start space-x-3 space-y-0"
+                        className="flex flex-row items-start space-y-0 space-x-3"
                       >
                         <FormControl>
                           <Checkbox
@@ -443,7 +443,7 @@ export function IntakeForm() {
                     return (
                       <FormItem
                         key={typeOfWorkout.id}
-                        className="flex flex-row items-start space-x-3 space-y-0"
+                        className="flex flex-row items-start space-y-0 space-x-3"
                       >
                         <FormControl>
                           <Checkbox

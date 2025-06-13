@@ -94,7 +94,7 @@ export function ProgramEditorSidebar({
                   key={name}
                   className="grid w-[400px] grid-cols-3 gap-4 space-y-2"
                 >
-                  <p className="col-span-2 text-sm leading-none text-muted-foreground">
+                  <p className="text-muted-foreground col-span-2 text-sm leading-none">
                     {name}
                   </p>
                   <p className="col-span-1 leading-none">{value}</p>
@@ -111,7 +111,7 @@ export function ProgramEditorSidebar({
                       <p className="font-normal tracking-tight">
                         {detail.title}
                       </p>
-                      <p className="whitespace-pre-wrap text-sm font-normal leading-snug text-muted-foreground">
+                      <p className="text-muted-foreground text-sm leading-snug font-normal whitespace-pre-wrap">
                         {detail.description}
                       </p>
                     </CardHeader>

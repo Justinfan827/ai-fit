@@ -89,7 +89,7 @@ function GridHeaderRow({ columns }: { columns: Column[] }) {
         return (
           <div
             className={cn(
-              'shrink-0 grow border-r border-t border-neutral-800 bg-neutral-950 p-2 text-sm font-light uppercase tracking-wider text-neutral-400',
+              'shrink-0 grow border-t border-r border-neutral-800 bg-neutral-950 p-2 text-sm font-light tracking-wider text-neutral-400 uppercase',
               idx === 0 && 'rounded-tl-sm border-l',
               idx === columns.length - 1 && 'rounded-tr-sm'
             )}
@@ -260,7 +260,7 @@ function GridContentRows({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
+                  className="text-accent-foreground h-6 w-6 opacity-0 transition-opacity ease-in-out group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100"
                 >
                   <Icons.gripVertical className="h-4 w-4" />
                 </Button>
@@ -278,7 +278,7 @@ function GridContentRows({
                 }}
                 tabIndex={0}
                 className={cn(
-                  `relative shrink-0 grow cursor-pointer overflow-hidden border-b border-r border-neutral-800 p-2 focus-within:outline-hidden focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500`,
+                  `relative shrink-0 grow cursor-pointer overflow-hidden border-r border-b border-neutral-800 p-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:outline-hidden focus-within:ring-inset`,
                   rowIndex === 0 && 'border-t',
                   colIndex === 0 && 'border-l',
                   rowIndex === numRows - 1 && colIndex === 0 && 'rounded-bl-sm',

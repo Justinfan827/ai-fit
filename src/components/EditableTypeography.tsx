@@ -32,7 +32,7 @@ export default function EditableTypography({
 
   return (
     <div
-      className="flex h-8 w-fit min-w-[100px] max-w-[200px] items-center justify-start rounded-md focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring sm:min-w-[100px] sm:max-w-[400px]"
+      className="focus-visible:ring-ring flex h-8 w-fit max-w-[200px] min-w-[100px] items-center justify-start rounded-md focus-visible:ring-1 focus-visible:outline-hidden sm:max-w-[400px] sm:min-w-[100px]"
       tabIndex={0}
       onKeyUp={(e) => e.key === 'Enter' && setIsEditing(true)}
       onClick={() => !isEditing && setIsEditing(true)}
@@ -46,7 +46,7 @@ export default function EditableTypography({
           onBlur={handleBlur}
           autoFocus
           className={cn(
-            'w-[200px] bg-background text-lg font-semibold leading-7 tracking-normal focus:border-0 focus:outline-hidden focus:ring-0 sm:w-[400px]',
+            'bg-background w-[200px] text-lg leading-7 font-semibold tracking-normal focus:border-0 focus:ring-0 focus:outline-hidden sm:w-[400px]',
             className && className
           )}
         />

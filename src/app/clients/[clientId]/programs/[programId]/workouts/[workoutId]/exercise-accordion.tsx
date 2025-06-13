@@ -135,7 +135,7 @@ function SetsContent({
                             inputMode="numeric"
                             placeholder={`${value}`}
                             className={cn(
-                              'h-10 w-[60px] transition-colors delay-100 ease-in-out [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+                              'h-10 w-[60px] [appearance:textfield] transition-colors delay-100 ease-in-out [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
                               completed && 'border-green-900'
                             )}
                             {...field}
@@ -271,7 +271,7 @@ function SetsContentInstance({
                             inputMode="numeric"
                             placeholder={`${set.planned[label]}`}
                             className={cn(
-                              'h-10 w-[60px] transition-colors delay-100 ease-in-out [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+                              'h-10 w-[60px] [appearance:textfield] transition-colors delay-100 ease-in-out [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
                               completed && 'border-green-900'
                             )}
                             {...field}

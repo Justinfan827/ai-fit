@@ -1,8 +1,8 @@
-import Link from 'next/link'
-import React, { ReactNode } from 'react'
 import { Logo } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import React, { ReactNode } from 'react'
 
 // Type definitions
 interface EmptyStateCardProps {
@@ -38,7 +38,7 @@ function EmptyStateCard({
     <div
       id="empty-state-card"
       className={cn(
-        "flex flex-col items-center justify-center gap-6 rounded-md border border-neutral-800 py-8",
+        'flex flex-col items-center justify-center gap-6 rounded-md border border-neutral-800 py-8',
         className
       )}
       {...props}

@@ -244,10 +244,10 @@ export default function ProgramEditor() {
                 className="min-w-[1200px] pr-4"
               >
                 <div className="gap-4">
-                  <div className="ml-16 flex items-center justify-between gap-4 pb-3 pr-[52px]">
+                  <div className="ml-16 flex items-center justify-between gap-4 pr-[52px] pb-3">
                     <Badge
                       variant="outline"
-                      className="text-xs font-light uppercase tracking-widest text-muted-foreground"
+                      className="text-muted-foreground text-xs font-light tracking-widest uppercase"
                     >
                       Week {weekIdx + 1}
                     </Badge>
@@ -257,7 +257,7 @@ export default function ProgramEditor() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8 text-accent-foreground/50 hover:text-accent-foreground"
+                            className="text-accent-foreground/50 hover:text-accent-foreground h-8 w-8"
                             onClick={() => handleDuplicateWeek(weekIdx)}
                           >
                             <Icons.copy className="h-5 w-5" />
@@ -269,10 +269,7 @@ export default function ProgramEditor() {
                       </Tooltip>
                     </div>
                   </div>
-                  <div
-                    id="workouts-data"
-                    className="w-full grow space-y-8"
-                  >
+                  <div id="workouts-data" className="w-full grow space-y-8">
                     {weeksWorkouts.map((workout, workoutIdx) => {
                       return (
                         <div key={workout.id} className="flex gap-4">
@@ -301,7 +298,7 @@ export default function ProgramEditor() {
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
+                                    className="text-accent-foreground h-6 w-6 opacity-50 transition-opacity ease-in-out hover:opacity-100"
                                     onClick={() => handleDeletion(workout.id)}
                                   >
                                     <Icons.x className="h-4 w-4" />

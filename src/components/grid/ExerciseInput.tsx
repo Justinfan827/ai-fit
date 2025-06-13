@@ -54,14 +54,14 @@ export default function ExerciseInput({
           gap: '8px',
         }}
         transition
-        className="w-[calc(var(--input-width)+18px)] rounded-b-sm border border-border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"
+        className="border-border w-[calc(var(--input-width)+18px)] rounded-b-sm border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"
       >
         {exercises.map((exercise) => {
           return (
             <ComboboxOption
               value={exercise.name}
               key={exercise.id}
-              className="cursor-default select-none rounded-sm bg-neutral-950 p-1 focus:outline-hidden data-focus:bg-neutral-900 data-selected:text-accent-foreground"
+              className="data-selected:text-accent-foreground cursor-default rounded-sm bg-neutral-950 p-1 select-none focus:outline-hidden data-focus:bg-neutral-900"
             >
               {exercise.name}
             </ComboboxOption>

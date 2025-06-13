@@ -45,12 +45,12 @@ export async function Usermenu() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             {firstName && lastName && (
-              <p className="text-sm font-medium leading-none">
+              <p className="text-sm leading-none font-medium">
                 {capitalizeFirstLetter(firstName)}{' '}
                 {capitalizeFirstLetter(lastName)}
               </p>
             )}
-            <p className="text-xs leading-none text-muted-foreground">
+            <p className="text-muted-foreground text-xs leading-none">
               {data.sbUser.email}
             </p>
           </div>

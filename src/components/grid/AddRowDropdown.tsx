@@ -18,7 +18,7 @@ export default function AddRowDropdown({ onAddRow }: AddRowDropdownProps) {
         <Button
           size="icon"
           variant="ghost"
-          className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
+          className="text-accent-foreground h-6 w-6 opacity-0 transition-opacity ease-in-out group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100"
         >
           <Icons.plus className="h-4 w-4" />
         </Button>

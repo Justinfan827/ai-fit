@@ -9,6 +9,7 @@ AI Fitness Workout Generator - A Next.js web application that creates personaliz
 ## Development Commands
 
 ### Core Development
+
 ```bash
 pnpm dev          # Start development server with Turbopack
 pnpm build        # Production build
@@ -19,6 +20,7 @@ pnpm format:fix   # Format code with Prettier
 ```
 
 ### Database Operations
+
 ```bash
 pnpm staging-types  # Generate Supabase types from staging
 pnpm local-types    # Generate Supabase types from local
@@ -28,6 +30,7 @@ make reset-db       # Reset local database with seed data
 ```
 
 ### Custom Tooling
+
 ```bash
 pnpm ctl           # Custom development CLI tool
 ```
@@ -35,6 +38,7 @@ pnpm ctl           # Custom development CLI tool
 ## Architecture
 
 ### Tech Stack
+
 - **Framework**: Next.js 15.3.3 with App Router
 - **Database**: Supabase (PostgreSQL) with type-safe operations
 - **AI**: OpenAI API for workout generation
@@ -44,6 +48,7 @@ pnpm ctl           # Custom development CLI tool
 - **Auth**: Supabase Auth
 
 ### Directory Structure
+
 - `app/` - Next.js App Router with route groups (`/home`, `/clients`, `/auth`)
 - `components/` - Reusable UI components using shadcn/ui
 - `lib/` - Utilities, database operations, AI logic
@@ -63,18 +68,21 @@ pnpm ctl           # Custom development CLI tool
 ## Important Files
 
 ### Configuration
+
 - `next.config.js` - Security headers, PWA setup
 - `tailwind.config.js` - Design tokens, custom animations
 - `components.json` - shadcn/ui configuration
 - `supabase/config.toml` - Local Supabase settings
 
 ### Core Modules
+
 - `lib/supabase/` - Database client and server-side operations
 - `lib/ai/` - OpenAI integration and workout generation
 - `lib/stores/` - Zustand state management
 - `lib/validations/` - Zod schemas for forms and data
 
 ### Database
+
 - `supabase/migrations/` - Database schema changes
 - `supabase/seed.sql` - Development data
 - Run `make reset-db` to reset local database with fresh seed data
@@ -82,6 +90,7 @@ pnpm ctl           # Custom development CLI tool
 ## Development Workflows
 
 ### Adding New Features
+
 1. Update database schema in `supabase/migrations/` if needed
 2. Regenerate types with `pnpm local-types`
 3. Create Zod schemas in `lib/validations/`
@@ -89,14 +98,18 @@ pnpm ctl           # Custom development CLI tool
 5. Create UI components following shadcn/ui patterns
 
 ### Working with AI Features
+
 AI workout generation requires:
+
 - Client profile data (goals, experience, equipment)
 - Exercise database with proper categorization
 - Structured prompts in `lib/ai/prompts/`
 - Error handling for API rate limits
 
 ### Database Changes
+
 Always create migrations for schema changes:
+
 ```bash
 npx supabase migration new migration-name
 # Edit the migration file
