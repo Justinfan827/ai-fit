@@ -310,9 +310,7 @@ export default function ProgramEditor() {
                               </div>
                             </div>
                             <WorkoutGrid
-                            workout={workout}
-                              // TODO: make a better way to represent the grid
-                              rowData={workout.blocks}
+                              workout={workout}
                               columns={defaultColumns}
                               onGridChange={(rows) => {
                                 // The grid updated. Right now, it's a little circular, might have to clean this up a little later,
@@ -327,12 +325,18 @@ export default function ProgramEditor() {
                                   (row) => {
                                     return {
                                       id: row.id || uuidv4().toString(),
-                                      exercise_name: row.exercise_name,
-                                      sets: row.sets,
-                                      reps: row.reps,
-                                      weight: row.weight || '',
-                                      rest: row.rest || '',
-                                      notes: row.notes || '',
+                                      type: 'exercise',
+                                      exercise: {
+                                        id: row.id || uuidv4().toString(),
+                                        name: row.exercise_name,
+                                        metadata: {
+                                          sets: row.sets,
+                                          reps: row.reps,
+                                          weight: row.weight || '',
+                                          rest: row.rest || '',
+                                          notes: row.notes || '',
+                                        },
+                                      },
                                     }
                                   }
                                 )

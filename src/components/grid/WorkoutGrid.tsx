@@ -1,6 +1,7 @@
 import { ChangeEvent, KeyboardEvent, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
+import AddRowDropdown from '@/components/grid/AddRowDropdown'
 import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,24 @@ export interface GridRow {
   [key: string]: string
 }
 
+interface ExerciseRow {
+  id: string
+  exercise_name: string
+  sets: string
+  reps: string
+  weight: string
+  rest: string
+  notes: string
+}
+
+interface CircuitRow {
+  id: string
+  circuit_name: string
+  sets: string
+  reps: string
+  weight: string
+}
+
 interface Cell {
   value: string
   colType: string
@@ -26,14 +45,29 @@ interface Cell {
 export default function WorkoutGrid({
   workout,
   onGridChange,
-  rowData,
   columns,
 }: {
   workout: Workout
   onGridChange: (grid: GridRow[]) => void
-  rowData: GridRow[]
   columns: Column[]
 }) {
+  const rowData: GridRow[] = workout.blocks
+    .map((b) => {
+      // TODO: handle circuit blocks
+      if (b.type === 'exercise') {
+        return {
+          id: b.exercise.id,
+          exercise_name: b.exercise.name,
+          sets: b.exercise.metadata.sets,
+          reps: b.exercise.metadata.reps,
+          weight: b.exercise.metadata.weight,
+          rest: b.exercise.metadata.rest,
+          notes: b.exercise.metadata.notes || '',
+        }
+      }
+      return null
+    })
+    .filter((r) => r !== null)
   return (
     <div className="text-sm">
       <pre>{JSON.stringify(workout, null, 2)}</pre>
@@ -188,11 +222,23 @@ function GridContentRows({
     setActiveCell(null)
   }
 
-  const handleAddRow = (rowIndex: number, colIndex: number) => {
+  const handleAddRow = (
+    rowIndex: number,
+    colIndex: number,
+    type: 'exercise' | 'circuit'
+  ) => {
     const newRowData = [...rowDataS]
-    newRowData.splice(rowIndex + 1, 0, {
+    const newRow = {
       id: uuidv4().toString(),
-    })
+      type: type,
+      exercise_name: '',
+      sets: '',
+      reps: '',
+      weight: '',
+      rest: '',
+      notes: '',
+    }
+    newRowData.splice(rowIndex + 1, 0, newRow)
     setActiveCell({ row: rowIndex + 1, col: colIndex })
     setRowData(newRowData)
     onGridChange(newRowData)
@@ -206,20 +252,15 @@ function GridContentRows({
           <div key={`row-${rowIndex}`} className="group flex h-9 w-full">
             <div id="action menu" className="flex items-center px-2">
               <div className="">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out focus:opacity-100 group-hover:opacity-100"
-                  onClick={() => handleAddRow(rowIndex, 0)}
-                >
-                  <Icons.plus className="h-4 w-4" />
-                </Button>
+                <AddRowDropdown
+                  onAddRow={(type) => handleAddRow(rowIndex, 0, type)}
+                />
               </div>
               <div className="">
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out focus:opacity-100 group-hover:opacity-100"
+                  className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
                 >
                   <Icons.gripVertical className="h-4 w-4" />
                 </Button>
