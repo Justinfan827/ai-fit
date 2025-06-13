@@ -226,7 +226,7 @@ export default function ProgramEditor() {
       />
       <div className="overflow-x-auto p-4">
         {isAIGenPending && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-neutral-950/10 pb-14 backdrop-blur-sm">
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-neutral-950/10 pb-14 backdrop-blur-xs">
             <p className="animate-pulse font-light tracking-wide text-neutral-100">
               Generating program...
             </p>
@@ -244,10 +244,10 @@ export default function ProgramEditor() {
                 className="min-w-[1200px] pr-4"
               >
                 <div className="gap-4">
-                  <div className="ml-16 flex items-center justify-between gap-4 pb-3 pr-[52px]">
+                  <div className="ml-16 flex items-center justify-between gap-4 pr-[52px] pb-3">
                     <Badge
                       variant="outline"
-                      className="text-xs font-light uppercase tracking-widest text-muted-foreground"
+                      className="text-muted-foreground text-xs font-light tracking-widest uppercase"
                     >
                       Week {weekIdx + 1}
                     </Badge>
@@ -257,7 +257,7 @@ export default function ProgramEditor() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8 text-accent-foreground/50 hover:text-accent-foreground"
+                            className="text-accent-foreground/50 hover:text-accent-foreground h-8 w-8"
                             onClick={() => handleDuplicateWeek(weekIdx)}
                           >
                             <Icons.copy className="h-5 w-5" />
@@ -269,14 +269,11 @@ export default function ProgramEditor() {
                       </Tooltip>
                     </div>
                   </div>
-                  <div
-                    id="workouts-data"
-                    className="w-full flex-grow space-y-8"
-                  >
+                  <div id="workouts-data" className="w-full grow space-y-8">
                     {weeksWorkouts.map((workout, workoutIdx) => {
                       return (
                         <div key={workout.id} className="flex gap-4">
-                          <div className="flex-grow space-y-4">
+                          <div className="grow space-y-4">
                             <div className="ml-[72px] flex items-center justify-between">
                               <EditableTypography
                                 value={workout.name}
@@ -301,7 +298,7 @@ export default function ProgramEditor() {
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
+                                    className="text-accent-foreground h-6 w-6 opacity-50 transition-opacity ease-in-out hover:opacity-100"
                                     onClick={() => handleDeletion(workout.id)}
                                   >
                                     <Icons.x className="h-4 w-4" />
@@ -310,9 +307,7 @@ export default function ProgramEditor() {
                               </div>
                             </div>
                             <WorkoutGrid
-                            workout={workout}
-                              // TODO: make a better way to represent the grid
-                              rowData={workout.blocks}
+                              workout={workout}
                               columns={defaultColumns}
                               onGridChange={(rows) => {
                                 // The grid updated. Right now, it's a little circular, might have to clean this up a little later,
@@ -327,12 +322,18 @@ export default function ProgramEditor() {
                                   (row) => {
                                     return {
                                       id: row.id || uuidv4().toString(),
-                                      exercise_name: row.exercise_name,
-                                      sets: row.sets,
-                                      reps: row.reps,
-                                      weight: row.weight || '',
-                                      rest: row.rest || '',
-                                      notes: row.notes || '',
+                                      type: 'exercise',
+                                      exercise: {
+                                        id: row.id || uuidv4().toString(),
+                                        name: row.exercise_name,
+                                        metadata: {
+                                          sets: row.sets,
+                                          reps: row.reps,
+                                          weight: row.weight || '',
+                                          rest: row.rest || '',
+                                          notes: row.notes || '',
+                                        },
+                                      },
                                     }
                                   }
                                 )
@@ -357,7 +358,7 @@ export default function ProgramEditor() {
                               id="next-week-workout-btn"
                               variant="dashed"
                               size="icon"
-                              className="flex-grow text-sm font-normal"
+                              className="grow text-sm font-normal"
                               onClick={() =>
                                 addNewWorkoutToWeek({ week: weekIdx + 1 })
                               }

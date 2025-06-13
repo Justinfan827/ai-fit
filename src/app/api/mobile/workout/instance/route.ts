@@ -15,9 +15,7 @@ const CompletedWorkoutInstance = z.object({
   blocks: z.array(workoutInstanceBlockSchema),
 })
 
-
 export const POST = withPublic(async ({ req }) => {
-
   const client = createClient(
     // this is http://kong:8000 on localhost. Interesting.
     process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
@@ -40,7 +38,8 @@ export const POST = withPublic(async ({ req }) => {
       message: 'Failed to get user from auth token',
     })
   }
-  const { data: bData, error: bError } = CompletedWorkoutInstance.safeParse(body)
+  const { data: bData, error: bError } =
+    CompletedWorkoutInstance.safeParse(body)
   if (bError) {
     throw bError
   }

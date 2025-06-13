@@ -45,7 +45,7 @@ export default function ExerciseInput({
         ref={ref}
         onChange={onChange}
         onBlur={onBlur}
-        className="h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-none focus:outline-none"
+        className="h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-hidden focus:outline-hidden"
       />
       <ComboboxOptions
         anchor={{
@@ -54,14 +54,14 @@ export default function ExerciseInput({
           gap: '8px',
         }}
         transition
-        className="w-[calc(var(--input-width)+18px)] rounded-b-sm border border-border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"
+        className="border-border w-[calc(var(--input-width)+18px)] rounded-b-sm border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"
       >
         {exercises.map((exercise) => {
           return (
             <ComboboxOption
               value={exercise.name}
               key={exercise.id}
-              className="cursor-default select-none rounded-sm bg-neutral-950 p-1 focus:outline-none data-[focus]:bg-neutral-900 data-[selected]:text-accent-foreground"
+              className="data-selected:text-accent-foreground cursor-default rounded-sm bg-neutral-950 p-1 select-none focus:outline-hidden data-focus:bg-neutral-900"
             >
               {exercise.name}
             </ComboboxOption>
@@ -99,7 +99,7 @@ export default function ExerciseInput({
 //         </div>
 //       </PopoverTrigger>
 //       <PopoverContent
-//         className="w-[var(--radix-popover-trigger-width)] p-0"
+//         className="w-(--radix-popover-trigger-width) p-0"
 //         side="bottom"
 //       >
 //         <Command>

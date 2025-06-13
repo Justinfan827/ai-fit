@@ -39,7 +39,7 @@ export default function ShineBorder({
         } as React.CSSProperties
       }
       className={cn(
-        'relative min-h-[60px] w-fit min-w-[300px] rounded-[--border-radius] bg-white p-3 text-black dark:bg-black dark:text-white',
+        'relative min-h-[60px] w-fit min-w-[300px] rounded-(--border-radius) bg-white p-3 text-black dark:bg-black dark:text-white',
         className
       )}
     >
@@ -53,7 +53,7 @@ export default function ShineBorder({
             '--background-radial-gradient': `radial-gradient(transparent,transparent, ${color instanceof Array ? color.join(',') : color},transparent,transparent)`,
           } as React.CSSProperties
         }
-        className={`before:bg-shine-size pointer-events-none before:absolute before:inset-0 before:size-full before:rounded-[--border-radius] before:p-[--border-width] before:will-change-[background-position] before:content-[""] before:![-webkit-mask-composite:xor] before:[background-image:--background-radial-gradient] before:[background-size:300%_300%] before:![mask-composite:exclude] before:[mask:--mask-linear-gradient] motion-safe:before:animate-shine`}
+        className={`before:bg-shine-size motion-safe:before:animate-shine pointer-events-none before:absolute before:inset-0 before:size-full before:rounded-(--border-radius) before:[background-image:var(--background-radial-gradient)] before:bg-size-[300%_300%] before:mask-exclude! before:p-(--border-width) before:will-change-[background-position] before:content-[""] before:[-webkit-mask-composite:xor]! before:[mask:var(--mask-linear-gradient)]`}
       ></div>
       {children}
     </div>

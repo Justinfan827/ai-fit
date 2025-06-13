@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { withAuthBodySchema } from '@/app/api/middleware/withAuth'
 import { assignProgramToUser } from '@/lib/supabase/server/database.operations.mutations'
+import { NextResponse } from 'next/server'
+import { z } from 'zod'
 
 // Define the schema for request body validation
 const assignProgramSchema = z.object({
@@ -10,7 +10,13 @@ const assignProgramSchema = z.object({
 })
 
 // The actual handler function
-async function assignProgramHandler({ user, body }: { user: any; body: { clientId: string; programId: string } }) {
+async function assignProgramHandler({
+  user,
+  body,
+}: {
+  user: any
+  body: { clientId: string; programId: string }
+}) {
   const { error: assignErr } = await assignProgramToUser({
     trainerId: user.id,
     clientId: body.clientId,
@@ -25,4 +31,7 @@ async function assignProgramHandler({ user, body }: { user: any; body: { clientI
 }
 
 // Wrap handler with middleware
-export const POST = withAuthBodySchema({ schema: assignProgramSchema }, assignProgramHandler)
+export const POST = withAuthBodySchema(
+  { schema: assignProgramSchema },
+  assignProgramHandler
+)

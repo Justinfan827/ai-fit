@@ -82,7 +82,7 @@ export const columns: ColumnDef<TableExercise>[] = [
       <div className="capitalize">
         <div>{row.getValue('name')}</div>
         {row.original.isCustom && (
-          <div className="inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+          <div className="text-muted-foreground focus:ring-ring inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-xs tracking-wider uppercase transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-hidden">
             Custom
           </div>
         )}
@@ -253,7 +253,7 @@ export function ExerciseTable({ data }: { data: TableExercise[] }) {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex-1 text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>

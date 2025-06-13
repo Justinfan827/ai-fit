@@ -63,7 +63,7 @@ export default async function WorkoutsPage() {
               )}
             >
               <Link href={`/home/programs/${program.id}`}>{program.name}</Link>
-              <p className="font-mono text-xs text-muted-foreground">
+              <p className="text-muted-foreground font-mono text-xs">
                 created at {dayjs(program.created_at).format('MM/DD/YY')}
               </p>
             </div>

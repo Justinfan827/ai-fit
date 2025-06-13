@@ -1,5 +1,4 @@
 import { Program, programSchema } from '@/lib/domain/workouts'
-import { ZodSchema, infer as ZodInfer } from 'zod'
 import { APIResponse } from '@/lib/types/apires'
 import { getError } from '@/lib/utils/util'
 

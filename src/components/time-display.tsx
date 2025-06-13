@@ -130,7 +130,7 @@ function TimeDisplayTooltip({ ...props }: TimeDisplayTooltipProps) {
         side="top"
         sideOffset={0}
         align="start"
-        className="space-y-[2px] border-input bg-secondary px-2 py-1 text-primary"
+        className="border-input bg-secondary text-primary space-y-[2px] px-2 py-1"
       >
         {tooltipTime}
       </TooltipContent>

@@ -121,7 +121,7 @@ export function ClientDetailsPageSection({
       {details.map((detail) => (
         <Card key={detail.id} className="relative">
           <Button
-            className="absolute right-2 top-2 text-muted-foreground"
+            className="text-muted-foreground absolute top-2 right-2"
             variant="ghost"
             size="icon"
             onClick={() => handleRemoveDetail(detail.id)}
@@ -130,7 +130,7 @@ export function ClientDetailsPageSection({
           </Button>
           <CardHeader>
             <p className="font-normal tracking-tight">{detail.title}</p>
-            <p className="whitespace-pre-wrap text-sm font-normal leading-snug text-muted-foreground">
+            <p className="text-muted-foreground text-sm leading-snug font-normal whitespace-pre-wrap">
               {detail.description}
             </p>
           </CardHeader>
@@ -195,7 +195,7 @@ function ClientDetailForm({
                   <div className="col-span-4 space-y-2">
                     <FormControl>
                       <Textarea
-                        className="text-sm font-normal leading-snug"
+                        className="text-sm leading-snug font-normal"
                         {...field}
                       ></Textarea>
                     </FormControl>

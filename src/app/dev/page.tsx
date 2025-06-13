@@ -14,7 +14,7 @@ export default async function DevPage() {
   return (
     <div className="flex flex-col gap-4 p-4">
       <h1 className="text-2xl font-bold">Dev</h1>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         This is a dev page. It is not meant for production use.
       </p>
 
@@ -29,7 +29,7 @@ export default async function DevPage() {
 function LogItem({ log }) {
   return (
     <div className="flex w-full flex-col gap-2 rounded-md border p-4">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         {new Date(log.created_at).toLocaleString()}
       </p>
       <JsonPreview title="Request Data" data={log.request_data} />
@@ -44,7 +44,7 @@ function JsonPreview({ title, data }) {
   return (
     <div className="relative rounded-md bg-slate-950 p-4">
       <p className="mb-2 text-sm font-bold text-white">{title}</p>
-      <pre className="whitespace-pre-wrap break-all">
+      <pre className="break-all whitespace-pre-wrap">
         <code className="text-white">{jsonString}</code>
       </pre>
     </div>

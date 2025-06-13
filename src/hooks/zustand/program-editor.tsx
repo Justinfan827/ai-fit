@@ -131,7 +131,7 @@ const EditorProgramProvider = ({
 const useEditorStore = <T,>(selector: (state: EditorState) => T): T => {
   const store = useContext(EditorStoreContext)
   if (!store) {
-    throw new Error('Missing BearStoreProvider')
+    throw new Error('Missing EditorStoreContext')
   }
   return useStore(store, selector)
 }

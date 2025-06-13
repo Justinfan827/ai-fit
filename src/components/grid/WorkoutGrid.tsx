@@ -1,6 +1,7 @@
 import { ChangeEvent, KeyboardEvent, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
+import AddRowDropdown from '@/components/grid/AddRowDropdown'
 import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,24 @@ export interface GridRow {
   [key: string]: string
 }
 
+interface ExerciseRow {
+  id: string
+  exercise_name: string
+  sets: string
+  reps: string
+  weight: string
+  rest: string
+  notes: string
+}
+
+interface CircuitRow {
+  id: string
+  circuit_name: string
+  sets: string
+  reps: string
+  weight: string
+}
+
 interface Cell {
   value: string
   colType: string
@@ -26,14 +45,29 @@ interface Cell {
 export default function WorkoutGrid({
   workout,
   onGridChange,
-  rowData,
   columns,
 }: {
   workout: Workout
   onGridChange: (grid: GridRow[]) => void
-  rowData: GridRow[]
   columns: Column[]
 }) {
+  const rowData: GridRow[] = workout.blocks
+    .map((b) => {
+      // TODO: handle circuit blocks
+      if (b.type === 'exercise') {
+        return {
+          id: b.exercise.id,
+          exercise_name: b.exercise.name,
+          sets: b.exercise.metadata.sets,
+          reps: b.exercise.metadata.reps,
+          weight: b.exercise.metadata.weight,
+          rest: b.exercise.metadata.rest,
+          notes: b.exercise.metadata.notes || '',
+        }
+      }
+      return null
+    })
+    .filter((r) => r !== null)
   return (
     <div className="text-sm">
       <pre>{JSON.stringify(workout, null, 2)}</pre>
@@ -55,7 +89,7 @@ function GridHeaderRow({ columns }: { columns: Column[] }) {
         return (
           <div
             className={cn(
-              'shrink-0 flex-grow border-r border-t border-neutral-800 bg-neutral-950 p-2 text-sm font-light uppercase tracking-wider text-neutral-400',
+              'shrink-0 grow border-t border-r border-neutral-800 bg-neutral-950 p-2 text-sm font-light tracking-wider text-neutral-400 uppercase',
               idx === 0 && 'rounded-tl-sm border-l',
               idx === columns.length - 1 && 'rounded-tr-sm'
             )}
@@ -188,11 +222,23 @@ function GridContentRows({
     setActiveCell(null)
   }
 
-  const handleAddRow = (rowIndex: number, colIndex: number) => {
+  const handleAddRow = (
+    rowIndex: number,
+    colIndex: number,
+    type: 'exercise' | 'circuit'
+  ) => {
     const newRowData = [...rowDataS]
-    newRowData.splice(rowIndex + 1, 0, {
+    const newRow = {
       id: uuidv4().toString(),
-    })
+      type: type,
+      exercise_name: '',
+      sets: '',
+      reps: '',
+      weight: '',
+      rest: '',
+      notes: '',
+    }
+    newRowData.splice(rowIndex + 1, 0, newRow)
     setActiveCell({ row: rowIndex + 1, col: colIndex })
     setRowData(newRowData)
     onGridChange(newRowData)
@@ -206,20 +252,15 @@ function GridContentRows({
           <div key={`row-${rowIndex}`} className="group flex h-9 w-full">
             <div id="action menu" className="flex items-center px-2">
               <div className="">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out focus:opacity-100 group-hover:opacity-100"
-                  onClick={() => handleAddRow(rowIndex, 0)}
-                >
-                  <Icons.plus className="h-4 w-4" />
-                </Button>
+                <AddRowDropdown
+                  onAddRow={(type) => handleAddRow(rowIndex, 0, type)}
+                />
               </div>
               <div className="">
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6 text-accent-foreground opacity-0 transition-opacity ease-in-out focus:opacity-100 group-hover:opacity-100"
+                  className="text-accent-foreground h-6 w-6 opacity-0 transition-opacity ease-in-out group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100"
                 >
                   <Icons.gripVertical className="h-4 w-4" />
                 </Button>
@@ -237,7 +278,7 @@ function GridContentRows({
                 }}
                 tabIndex={0}
                 className={cn(
-                  `relative shrink-0 flex-grow cursor-pointer overflow-hidden border-b border-r border-neutral-800 p-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500`,
+                  `relative shrink-0 grow cursor-pointer overflow-hidden border-r border-b border-neutral-800 p-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:outline-hidden focus-within:ring-inset`,
                   rowIndex === 0 && 'border-t',
                   colIndex === 0 && 'border-l',
                   rowIndex === numRows - 1 && colIndex === 0 && 'rounded-bl-sm',
@@ -267,7 +308,7 @@ function GridContentRows({
                     />
                   ) : (
                     <input
-                      className="m-0 h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-none focus:outline-none"
+                      className="m-0 h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-hidden focus:outline-hidden"
                       value={cell.value || ''}
                       onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
                       onBlur={() => setActiveCell(null)}
