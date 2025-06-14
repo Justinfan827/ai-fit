@@ -1,6 +1,7 @@
 import { ChangeEvent, KeyboardEvent, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
+import { DebugToggle } from '@/components/debug-toggle'
 import AddRowDropdown from '@/components/grid/AddRowDropdown'
 import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
@@ -71,6 +72,8 @@ export default function WorkoutGrid({
   onWorkoutChange: (workout: Workout) => void
   columns: Column[]
 }) {
+  const [showDebug, setShowDebug] = useState(false)
+
   return (
     <div className="text-sm">
       <GridHeaderRow columns={columns} />
@@ -79,7 +82,17 @@ export default function WorkoutGrid({
         onWorkoutChange={onWorkoutChange}
         columns={columns}
       />
-      <pre>{JSON.stringify(workout, null, 2)}</pre>
+      {showDebug && (
+        <div className="mt-4 rounded-lg border border-neutral-800 bg-neutral-950 p-4">
+          <h3 className="mb-2 text-sm font-medium text-neutral-400">
+            Debug: Current Workout
+          </h3>
+          <pre className="overflow-auto text-xs text-neutral-300">
+            {JSON.stringify(workout, null, 2)}
+          </pre>
+        </div>
+      )}
+      <DebugToggle onToggle={setShowDebug} />
     </div>
   )
 }
@@ -229,23 +242,6 @@ function GridContentRows({
     handleGridChange(change)
   }
 
-  const handleOnSelectInput = (value: string, row: number, col: number) => {
-    const field = grid[row][col].colType
-    const oldValue = grid[row][col].value
-
-    const change: CellChange = {
-      row,
-      col,
-      field,
-      oldValue,
-      newValue: value,
-    }
-
-    handleGridChange(change)
-    gridRefs.current[activeCell!.row][activeCell!.col]?.focus()
-    setActiveCell(null)
-  }
-
   const handleOnSelectExercise = (
     exercise: Exercise,
     row: number,
@@ -315,7 +311,6 @@ function GridContentRows({
             setOpenDropdownRow={setOpenDropdownRow}
             openDropdownRow={openDropdownRow}
             handleAddRow={handleAddRow}
-            handleOnSelectInput={handleOnSelectInput}
             handleOnSelectExercise={handleOnSelectExercise}
             handleInputChange={handleInputChange}
             handleKeyDown={handleKeyDown}
@@ -339,7 +334,6 @@ type GridRowProps = {
     colIndex: number,
     type: 'exercise' | 'circuit'
   ) => void
-  handleOnSelectInput: (value: string, row: number, col: number) => void
   handleOnSelectExercise: (exercise: Exercise, row: number, col: number) => void
   handleInputChange: (
     e: ChangeEvent<HTMLInputElement>,
@@ -360,7 +354,6 @@ function GridContentRow({
   rowIndex,
   openDropdownRow,
   handleAddRow,
-  handleOnSelectInput,
   handleOnSelectExercise,
   handleInputChange,
   handleKeyDown,
@@ -412,7 +405,7 @@ function GridContentRow({
             rowIndex === numRows - 1 &&
               colIndex === numCols - 1 &&
               'rounded-br-sm',
-            cell.isCircuitHeader && 'bg-neutral-900 font-medium text-blue-400'
+            cell.isCircuitHeader && 'bg-neutral-900 font-medium'
           )}
           onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}
           onDoubleClick={() => setActiveCell({ row: rowIndex, col: colIndex })}
@@ -430,7 +423,11 @@ function GridContentRow({
                 onSelectExercise={(exercise) => {
                   handleOnSelectExercise(exercise, rowIndex, colIndex)
                 }}
-                onBlur={() => setActiveCell(null)}
+                onBlur={() => {
+                  console.log('onBlur')
+                  setActiveCell(null)
+                  gridRefs.current[rowIndex][colIndex]?.focus()
+                }}
               />
             ) : (
               <input
@@ -440,7 +437,11 @@ function GridContentRow({
                 )}
                 value={cell.value || ''}
                 onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
-                onBlur={() => setActiveCell(null)}
+                onBlur={() => {
+                  console.log('onBlur')
+                  setActiveCell(null)
+                  gridRefs.current[rowIndex][colIndex]?.focus()
+                }}
                 autoFocus
               />
             )
