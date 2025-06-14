@@ -9,6 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        dashed: 'border border-dashed',
         default:
           'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
         destructive:

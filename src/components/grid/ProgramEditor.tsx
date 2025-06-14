@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 import EditableTypography from '@/components/EditableTypeography'
-import { defaultColumns, defaultRowData } from '@/components/grid/columns'
+import { defaultBlocks, defaultColumns } from '@/components/grid/columns'
 import { ProgramSelect } from '@/components/grid/ProgramSelect'
 import { Icons } from '@/components/icons'
 import { PageHeader } from '@/components/page-header'
@@ -61,9 +61,20 @@ export default function ProgramEditor() {
           program_id: uuidv4().toString(), // populated on create
           program_order: idx,
           blocks: w.blocks.map((b) => {
+            // Transform aiExerciseSchema to ExerciseBlock
             return {
-              ...b,
-              id: uuidv4().toString(),
+              type: 'exercise' as const,
+              exercise: {
+                id: uuidv4().toString(),
+                name: b.exercise_name,
+                metadata: {
+                  sets: b.sets,
+                  reps: b.reps,
+                  weight: b.weight,
+                  rest: b.rest,
+                  notes: b.notes,
+                },
+              },
             }
           }),
         }
@@ -98,7 +109,7 @@ export default function ProgramEditor() {
           name: `workout ${workouts.length + 1}`,
           program_order: workouts.length,
           week: week,
-          blocks: defaultRowData,
+          blocks: defaultBlocks,
         },
       ])
       return
@@ -113,7 +124,7 @@ export default function ProgramEditor() {
         name: `Week: ${week + 1} Workout ${workoutsInTheWeek.length + 1}`,
         program_order: workoutsInTheWeek.length,
         week: week,
-        blocks: defaultRowData,
+        blocks: defaultBlocks,
       },
     ])
   }
@@ -164,7 +175,6 @@ export default function ProgramEditor() {
     setIsPending(true)
     const { error } = await apiEditProgram({ body: domainProgram })
     if (error) {
-      console.log({ error })
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -309,47 +319,15 @@ export default function ProgramEditor() {
                             <WorkoutGrid
                               workout={workout}
                               columns={defaultColumns}
-                              onGridChange={(rows) => {
-                                // The grid updated. Right now, it's a little circular, might have to clean this up a little later,
-                                // but grid updates update the global workout store, which cause a re-render of the grid.
-                                const workoutToUpdate = workouts.find(
-                                  (w) => w.id === workout.id
-                                )
-                                if (!workoutToUpdate) {
-                                  return
-                                }
-                                const workoutRows: Workout['blocks'] = rows.map(
-                                  (row) => {
-                                    return {
-                                      id: row.id || uuidv4().toString(),
-                                      type: 'exercise',
-                                      exercise: {
-                                        id: row.id || uuidv4().toString(),
-                                        name: row.exercise_name,
-                                        metadata: {
-                                          sets: row.sets,
-                                          reps: row.reps,
-                                          weight: row.weight || '',
-                                          rest: row.rest || '',
-                                          notes: row.notes || '',
-                                        },
-                                      },
-                                    }
-                                  }
-                                )
-                                const newWorkout = {
-                                  ...workoutToUpdate,
-                                  blocks: workoutRows,
-                                }
-
-                                const updatedworkouts = workouts.map((w) => {
+                              onWorkoutChange={(updatedWorkout) => {
+                                // Update the workout in the workouts array
+                                const updatedWorkouts = workouts.map((w) => {
                                   if (w.id === workout.id) {
-                                    return newWorkout
+                                    return updatedWorkout
                                   }
                                   return w
                                 })
-
-                                setWorkouts(updatedworkouts)
+                                setWorkouts(updatedWorkouts)
                               }}
                             />
                           </div>

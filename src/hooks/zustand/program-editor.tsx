@@ -3,8 +3,10 @@ import { v4 as uuidv4 } from 'uuid'
 import { create, StoreApi, UseBoundStore, useStore } from 'zustand'
 
 import {
+  Block,
+  Blocks,
+  CircuitBlock,
   Exercise,
-  ExerciseBlockSchema,
   Program,
   Workouts,
 } from '@/lib/domain/workouts'
@@ -35,10 +37,10 @@ type WorkoutActions = {
   setWorkouts: (workouts: Workouts) => void
 }
 
-const newInitialProgram = (exercises: Exercise[]): ProgramState => {
-  const exerciseBlocks: ExerciseBlockSchema[] = exercises
+const newInitialProgram = (exercises: Exercise[]): Program => {
+  const exerciseBlocks: Blocks = exercises
     .slice(0, 2)
-    .map((exercise) => {
+    .map((exercise): Block => {
       return {
         type: 'exercise',
         exercise: {
@@ -53,6 +55,36 @@ const newInitialProgram = (exercises: Exercise[]): ProgramState => {
         },
       }
     })
+
+  const circuitBlock: CircuitBlock = {
+    type: 'circuit',
+    circuit: {
+      isDefault: false,
+      name: 'Circuit 1',
+      description: 'Circuit 1 description',
+      metadata: {
+        sets: '3',
+        rest: '30s',
+        notes: 'Circuit 1 notes',
+      },
+      exercises: [
+        {
+          type: 'exercise',
+          exercise: {
+            id: exercises[0].id,
+            name: exercises[0].name,
+            metadata: {
+              sets: '3',
+              reps: '12',
+              weight: '100',
+              rest: '30s',
+            },
+          },
+        },
+      ],
+    },
+  }
+
   return {
     id: uuidv4().toString(),
     created_at: new Date().toISOString(),
@@ -64,7 +96,7 @@ const newInitialProgram = (exercises: Exercise[]): ProgramState => {
         name: 'workout 1',
         program_id: uuidv4().toString(), // populated on create
         program_order: 0,
-        blocks: exerciseBlocks,
+        blocks: [...exerciseBlocks, circuitBlock],
       },
     ],
   }

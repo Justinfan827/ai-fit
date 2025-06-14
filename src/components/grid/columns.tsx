@@ -1,3 +1,4 @@
+import { ExerciseBlock } from '@/lib/domain/workouts'
 import { v4 } from 'uuid'
 
 export interface Column {
@@ -57,5 +58,36 @@ export const defaultRowData = [
     weight: '225',
     rest: '60',
     notes: 'This is a note',
+  },
+]
+
+export const defaultBlocks: ExerciseBlock[] = [
+  {
+    type: 'exercise',
+    exercise: {
+      id: v4().toString(),
+      name: 'Bench Press',
+      metadata: {
+        sets: '3',
+        reps: '10',
+        weight: '135',
+        rest: '60',
+        notes: 'This is a note',
+      },
+    },
+  },
+  {
+    type: 'exercise',
+    exercise: {
+      id: v4().toString(),
+      name: 'Squats',
+      metadata: {
+        sets: '3',
+        reps: '10',
+        weight: '225',
+        rest: '60',
+        notes: 'This is a note',
+      },
+    },
   },
 ]

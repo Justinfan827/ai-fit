@@ -51,6 +51,7 @@ const circuitBlockSchema = z.object({
 })
 
 const blockSchema = exerciseBlockSchema.or(circuitBlockSchema)
+const blocksSchema = z.array(blockSchema)
 
 export const workoutSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string
@@ -58,7 +59,7 @@ export const workoutSchema = z.object({
   week: z.number().optional(),
   program_id: z.string().uuid(), // Validates a UUID string
   name: z.string(),
-  blocks: z.array(blockSchema), // Array of exercises
+  blocks: blocksSchema,
 })
 
 export const aiExerciseSchema = z.object({
@@ -86,7 +87,7 @@ export const programSchema = z.object({
   created_at: z.string().datetime({ offset: true }),
   name: z.string(),
   type: z.enum(['weekly', 'splits']),
-  workouts: z.array(workoutSchema),
+  workouts: workoutsSchema,
 })
 
 export const exerciseInstanceSetSchema = z.object({
@@ -127,16 +128,20 @@ export const workoutInstanceSchema = z.object({
   blocks: z.array(workoutInstanceBlockSchema),
 })
 
-export type WorkoutInstanceBlock = z.infer<typeof workoutInstanceBlockSchema>
-export type WorkoutInstance = z.infer<typeof workoutInstanceSchema>
-export type Workouts = z.infer<typeof workoutsSchema>
-export type Workout = z.infer<typeof workoutSchema>
-export type WorkoutExercise = z.infer<typeof workoutExerciseSchema>
+// types just for AI generation (no id's primarily)
+export type AIProgram = z.infer<typeof aiProgramSchema>
+export type AIWorkout = z.infer<typeof aiWorkoutSchema>
+
+export type ExerciseBlock = z.infer<typeof exerciseBlockSchema>
+export type CircuitBlock = z.infer<typeof circuitBlockSchema>
+export type Block = z.infer<typeof blockSchema>
+export type Blocks = z.infer<typeof blocksSchema>
 export type Exercise = z.infer<typeof exerciseSchema>
 export type ExerciseBlockSchema = z.infer<typeof exerciseBlockSchema>
-export type Program = z.infer<typeof programSchema>
 export type ExerciseInstance = z.infer<typeof exerciseInstanceSchema>
-
-// types just for AI generation (no id's primarily)
-export type AIWorkout = z.infer<typeof aiWorkoutSchema>
-export type AIProgram = z.infer<typeof aiProgramSchema>
+export type Program = z.infer<typeof programSchema>
+export type Workout = z.infer<typeof workoutSchema>
+export type WorkoutExercise = z.infer<typeof workoutExerciseSchema>
+export type WorkoutInstance = z.infer<typeof workoutInstanceSchema>
+export type WorkoutInstanceBlock = z.infer<typeof workoutInstanceBlockSchema>
+export type Workouts = z.infer<typeof workoutsSchema>

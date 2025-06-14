@@ -1,4 +1,5 @@
 import { usezEditorActions } from '@/hooks/zustand/program-editor'
+import { Exercise } from '@/lib/domain/workouts'
 import {
   Combobox,
   ComboboxInput,
@@ -18,11 +19,11 @@ export type ExerciseInputPopoverProps = {
  */
 export default function ExerciseInput({
   value,
-  onSelect,
+  onSelectExercise,
   onBlur,
 }: {
   value: string
-  onSelect: (v: string) => void
+  onSelectExercise: (exercise: Exercise) => void
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
 }) {
   const { search } = usezEditorActions()
@@ -36,9 +37,15 @@ export default function ExerciseInput({
   useEffect(() => {
     ref.current?.focus()
   }, [])
-  const onSelectInternal = (v: string) => {
-    onSelect(v)
+
+  const onSelectInternal = (exerciseName: string) => {
+    // Find the full exercise object by name
+    const selectedExercise = exercises.find((ex) => ex.name === exerciseName)
+    if (selectedExercise) {
+      onSelectExercise(selectedExercise)
+    }
   }
+
   return (
     <Combobox value={value} onChange={onSelectInternal} immediate>
       <ComboboxInput
