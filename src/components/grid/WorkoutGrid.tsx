@@ -35,9 +35,13 @@ function getCellClasses(cell: Cell, baseClasses: string) {
     baseClasses,
     // Circuit header styling
     styles.circuitHeader && 'bg-neutral-900 font-medium text-orange-400',
+    styles.circuitHeader &&
+      cell.colIndex === 0 &&
+      'shadow-[-2px_0_0_0_rgb(251_146_60_/_0.5)]',
     // Circuit exercise styling - subtle background with left border accent
     styles.circuitExercise &&
-      'bg-neutral-925 border-l-2 border-l-orange-400/50',
+      cell.colIndex === 0 &&
+      'bg-neutral-925 shadow-[-2px_0_0_0_rgb(251_146_60_/_0.5)]',
     // Standalone exercise styling (default)
     styles.standaloneExercise && 'bg-neutral-950'
   )
