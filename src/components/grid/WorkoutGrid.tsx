@@ -5,7 +5,12 @@ import AddRowDropdown from '@/components/grid/AddRowDropdown'
 import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
-import { Exercise, ExerciseBlock, Workout } from '@/lib/domain/workouts'
+import {
+  CircuitBlock,
+  Exercise,
+  ExerciseBlock,
+  Workout,
+} from '@/lib/domain/workouts'
 import { cn } from '@/lib/utils'
 import { Column } from './columns'
 
@@ -51,6 +56,10 @@ interface Cell {
   value: string
   colType: string
   width: number
+  isCircuitHeader?: boolean
+  blockType?: 'exercise' | 'circuit'
+  originalBlockIndex?: number
+  readOnly?: boolean
 }
 
 export default function WorkoutGrid({
@@ -117,7 +126,7 @@ function GridContentRows({
 
   // Incremental update handler
   const handleGridChange = (change: GridChange) => {
-    const updatedWorkout = applyIncrementalChange(change, workout)
+    const updatedWorkout = applyIncrementalChange(change, workout, columns)
     onWorkoutChange(updatedWorkout)
   }
 
@@ -173,7 +182,13 @@ function GridContentRows({
       gridRefs.current[newRow][newCol]?.focus()
     } else if (e.key === 'Enter') {
       setActiveCell({ row, col })
-    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    } else if (
+      e.key.length === 1 &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey &&
+      !grid[row][col].readOnly
+    ) {
       // If user starts typing, just activate the cell - don't set the value yet
       e.preventDefault() // Prevent the keypress from being handled twice
       const field = grid[row][col].colType
@@ -396,7 +411,8 @@ function GridContentRow({
             rowIndex === numRows - 1 && colIndex === 0 && 'rounded-bl-sm',
             rowIndex === numRows - 1 &&
               colIndex === numCols - 1 &&
-              'rounded-br-sm'
+              'rounded-br-sm',
+            cell.isCircuitHeader && 'bg-neutral-900 font-medium text-blue-400'
           )}
           onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}
           onDoubleClick={() => setActiveCell({ row: rowIndex, col: colIndex })}
@@ -405,8 +421,10 @@ function GridContentRow({
             flexBasis: cell.width,
           }}
         >
-          {activeCell?.row === rowIndex && activeCell?.col === colIndex ? (
-            colIndex === 0 ? (
+          {activeCell?.row === rowIndex &&
+          activeCell?.col === colIndex &&
+          !cell.readOnly ? (
+            colIndex === 0 && !cell.isCircuitHeader ? (
               <ExerciseInput
                 value={cell.value || ''}
                 onSelectExercise={(exercise) => {
@@ -416,7 +434,10 @@ function GridContentRow({
               />
             ) : (
               <input
-                className="m-0 h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-none focus:outline-none"
+                className={cn(
+                  'm-0 h-full w-full py-2 text-sm focus-within:outline-none focus:outline-none',
+                  cell.isCircuitHeader ? 'bg-neutral-900' : 'bg-neutral-950'
+                )}
                 value={cell.value || ''}
                 onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
                 onBlur={() => setActiveCell(null)}
@@ -434,21 +455,56 @@ function GridContentRow({
 
 // Direct workout-to-grid mapping function
 function createGridFromWorkout(workout: Workout, columns: Column[]): Cell[][] {
-  const exerciseBlocks = workout.blocks.filter(
-    (b): b is ExerciseBlock => b.type === 'exercise'
-  )
+  const grid: Cell[][] = []
 
-  return exerciseBlocks.map((block) =>
-    columns.map((col) => ({
-      type:
-        col.field === 'exercise_name'
-          ? ('select' as const)
-          : ('input' as const),
-      value: getValueFromBlock(block, col.field),
-      colType: col.field,
-      width: col.width || 100,
-    }))
-  )
+  workout.blocks.forEach((block, blockIndex) => {
+    if (block.type === 'exercise') {
+      // Regular exercise row
+      const exerciseRow = columns.map((col) => ({
+        type:
+          col.field === 'exercise_name'
+            ? ('select' as const)
+            : ('input' as const),
+        value: getValueFromBlock(block, col.field),
+        colType: col.field,
+        width: col.width || 100,
+        blockType: 'exercise' as const,
+        originalBlockIndex: blockIndex,
+      }))
+      grid.push(exerciseRow)
+    } else if (block.type === 'circuit') {
+      // Circuit header row (dummy row)
+      const circuitHeaderRow = columns.map((col) => ({
+        type: 'input' as const,
+        value: getValueFromCircuitBlock(block, col.field),
+        colType: col.field,
+        width: col.width || 100,
+        isCircuitHeader: true,
+        blockType: 'circuit' as const,
+        originalBlockIndex: blockIndex,
+        readOnly: col.field === 'reps' || col.field === 'weight',
+      }))
+      grid.push(circuitHeaderRow)
+
+      // Circuit exercises
+      block.circuit.exercises.forEach((exerciseBlock) => {
+        const exerciseRow = columns.map((col) => ({
+          type:
+            col.field === 'exercise_name'
+              ? ('select' as const)
+              : ('input' as const),
+          value: getValueFromBlock(exerciseBlock, col.field),
+          colType: col.field,
+          width: col.width || 100,
+          blockType: 'exercise' as const,
+          originalBlockIndex: blockIndex,
+        }))
+        grid.push(exerciseRow)
+      })
+    }
+  })
+
+  return grid
 }
 
 // Extract value from exercise block based on field
@@ -471,23 +527,55 @@ function getValueFromBlock(block: ExerciseBlock, field: string): string {
   }
 }
 
-// Incremental update function
-function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
-  const newBlocks = [...workout.blocks]
-  const blockToUpdate = newBlocks[change.row]
+// Extract value from circuit block based on field (for circuit header row)
+function getValueFromCircuitBlock(block: CircuitBlock, field: string): string {
+  switch (field) {
+    case 'exercise_name':
+      return block.circuit.name
+    case 'sets':
+      return block.circuit.metadata.sets
+    case 'reps':
+      return '' // Circuits don't have reps, only exercises within circuits do
+    case 'weight':
+      return '' // Circuits don't have weight, only exercises within circuits do
+    case 'rest':
+      return block.circuit.metadata.rest
+    case 'notes':
+      return block.circuit.metadata.notes || ''
+    default:
+      return ''
+  }
+}
 
-  if (blockToUpdate?.type === 'exercise') {
+// Incremental update function
+function applyIncrementalChange(
+  change: GridChange,
+  workout: Workout,
+  columns: Column[]
+): Workout {
+  // We need to rebuild the grid to find the cell metadata
+  const grid = createGridFromWorkout(workout, columns)
+  const gridCell = grid[change.row]?.[change.col]
+
+  if (!gridCell) return workout
+
+  const newBlocks = [...workout.blocks]
+  const originalBlockIndex = gridCell.originalBlockIndex!
+  const blockToUpdate = newBlocks[originalBlockIndex]
+
+  if (!blockToUpdate) return workout
+
+  if (blockToUpdate.type === 'exercise') {
+    // Direct exercise block update
     const updatedBlock = { ...blockToUpdate }
 
     if (isExerciseSelection(change)) {
-      // Handle exercise selection - update both id and name
       updatedBlock.exercise = {
         ...updatedBlock.exercise,
         id: change.exercise.id,
         name: change.exercise.name,
       }
     } else if (isCellChange(change)) {
-      // Handle regular field changes
       if (change.field === 'exercise_name') {
         updatedBlock.exercise = {
           ...updatedBlock.exercise,
@@ -504,11 +592,109 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
       }
     }
 
-    newBlocks[change.row] = updatedBlock
+    newBlocks[originalBlockIndex] = updatedBlock
+  } else if (blockToUpdate.type === 'circuit') {
+    const updatedBlock = { ...blockToUpdate }
+    updatedBlock.circuit = { ...updatedBlock.circuit }
+
+    if (gridCell.isCircuitHeader) {
+      // Update circuit metadata
+      if (isCellChange(change)) {
+        if (change.field === 'exercise_name') {
+          updatedBlock.circuit.name = change.newValue
+        } else if (['sets', 'rest', 'notes'].includes(change.field)) {
+          updatedBlock.circuit.metadata = {
+            ...updatedBlock.circuit.metadata,
+            [change.field]: change.newValue,
+          }
+        }
+      }
+    } else {
+      // Update exercise within circuit
+      // Find which exercise in the circuit this row corresponds to
+      const exerciseIndexInCircuit = findExerciseIndexInCircuit(
+        workout,
+        change.row,
+        originalBlockIndex
+      )
+
+      if (exerciseIndexInCircuit >= 0) {
+        const updatedExercises = [...updatedBlock.circuit.exercises]
+        const exerciseToUpdate = { ...updatedExercises[exerciseIndexInCircuit] }
+
+        if (isExerciseSelection(change)) {
+          exerciseToUpdate.exercise = {
+            ...exerciseToUpdate.exercise,
+            id: change.exercise.id,
+            name: change.exercise.name,
+          }
+        } else if (isCellChange(change)) {
+          if (change.field === 'exercise_name') {
+            exerciseToUpdate.exercise = {
+              ...exerciseToUpdate.exercise,
+              name: change.newValue,
+            }
+          } else {
+            exerciseToUpdate.exercise = {
+              ...exerciseToUpdate.exercise,
+              metadata: {
+                ...exerciseToUpdate.exercise.metadata,
+                [change.field]: change.newValue,
+              },
+            }
+          }
+        }
+
+        updatedExercises[exerciseIndexInCircuit] = exerciseToUpdate
+        updatedBlock.circuit.exercises = updatedExercises
+      }
+    }
+
+    newBlocks[originalBlockIndex] = updatedBlock
   }
 
   return {
     ...workout,
     blocks: newBlocks,
   }
+}
+
+// Helper function to find which exercise within a circuit corresponds to a grid row
+function findExerciseIndexInCircuit(
+  workout: Workout,
+  gridRow: number,
+  circuitBlockIndex: number
+): number {
+  let currentRow = 0
+
+  for (let blockIndex = 0; blockIndex < workout.blocks.length; blockIndex++) {
+    const block = workout.blocks[blockIndex]
+
+    if (block.type === 'exercise') {
+      if (currentRow === gridRow) {
+        return -1 // This is not a circuit exercise
+      }
+      currentRow++
+    } else if (block.type === 'circuit') {
+      if (currentRow === gridRow) {
+        return -1 // This is the circuit header
+      }
+      currentRow++ // Circuit header row
+
+      if (blockIndex === circuitBlockIndex) {
+        // We're in the right circuit block
+        for (let i = 0; i < block.circuit.exercises.length; i++) {
+          if (currentRow === gridRow) {
+            return i
+          }
+          currentRow++
+        }
+      } else {
+        // Skip exercises in other circuits
+        currentRow += block.circuit.exercises.length
+      }
+    }
+  }
+
+  return -1
 }
