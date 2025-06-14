@@ -49,12 +49,14 @@ interface Position {
 }
 
 interface CellChange {
+  type: 'cell'
   cell: Cell
   oldValue: string
   newValue: string
 }
 
 interface ExerciseSelection {
+  type: 'exercise-selection'
   cell: Cell
   exercise: {
     id: string
@@ -70,11 +72,11 @@ type GridChange = CellChange | ExerciseSelection
 
 // Type guard functions
 function isExerciseSelection(change: GridChange): change is ExerciseSelection {
-  return 'exercise' in change
+  return 'type' in change && change.type === 'exercise-selection'
 }
 
 function isCellChange(change: GridChange): change is CellChange {
-  return 'field' in change
+  return 'type' in change && change.type === 'cell'
 }
 
 interface Cell {
@@ -163,12 +165,45 @@ function GridContentRows({
   const numCols = columns.length
   const [activeCell, setActiveCell] = useState<Position | null>(null)
   const [openDropdownRow, setOpenDropdownRow] = useState<number | null>(null)
+  const [editingValue, setEditingValue] = useState<string>('')
+  const [originalValue, setOriginalValue] = useState<string>('')
   const gridRefs = useRef<HTMLDivElement[][]>([])
 
   // Incremental update handler
   const handleGridChange = (change: GridChange) => {
     const updatedWorkout = applyIncrementalChange(change, workout)
     onWorkoutChange(updatedWorkout)
+  }
+
+  // Save the current editing changes
+  const saveChanges = (row: number, col: number) => {
+    if (activeCell && editingValue !== originalValue) {
+      const cell = grid[row][col]
+      const change: CellChange = {
+        type: 'cell',
+        cell,
+        oldValue: originalValue,
+        newValue: editingValue,
+      }
+      handleGridChange(change)
+    }
+  }
+
+  // Start editing a cell
+  const startEditing = (row: number, col: number, initialValue?: string) => {
+    const cell = grid[row][col]
+    const currentValue = cell.value || ''
+    setActiveCell({ row, col })
+    setOriginalValue(currentValue)
+    setEditingValue(initialValue !== undefined ? initialValue : currentValue)
+  }
+
+  // Stop editing and save changes
+  const stopEditing = (row: number, col: number) => {
+    saveChanges(row, col)
+    setActiveCell(null)
+    setEditingValue('')
+    setOriginalValue('')
   }
 
   const handleKeyDown = (e: KeyboardEvent, row: number, col: number) => {
@@ -181,12 +216,14 @@ function GridContentRows({
         //gridRefs.current[row][newCol]?.focus()
       } else if (e.key === 'Enter') {
         e.preventDefault()
-        setActiveCell(null)
+        stopEditing(row, col)
         const nextRow = Math.min(numRows - 1, row + 1)
         gridRefs.current[nextRow][col]?.focus()
       } else if (e.key === 'Escape') {
         e.preventDefault()
         setActiveCell(null)
+        setEditingValue('')
+        setOriginalValue('')
         gridRefs.current[row][col]?.focus()
       }
       return
@@ -222,7 +259,7 @@ function GridContentRows({
 
       gridRefs.current[newRow][newCol]?.focus()
     } else if (e.key === 'Enter') {
-      setActiveCell({ row, col })
+      startEditing(row, col)
     } else if (
       e.key.length === 1 &&
       !e.ctrlKey &&
@@ -230,40 +267,19 @@ function GridContentRows({
       !e.altKey &&
       !grid[row][col].readOnly
     ) {
-      // If user starts typing, just activate the cell - don't set the value yet
+      // If user starts typing, activate the cell and set the initial value
       e.preventDefault() // Prevent the keypress from being handled twice
-      const cell = grid[row][col]
-      const oldValue = cell.value
-
-      const change: CellChange = {
-        cell,
-        oldValue,
-        newValue: e.key,
-      }
-
-      handleGridChange(change)
-      setActiveCell({ row, col })
-      // The input will receive focus and handle the keypress normally
+      startEditing(row, col, e.key)
     }
   }
 
-  // Simplified input change handler
+  // Local input change handler - only updates editing value
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement>,
     row: number,
     col: number
   ) => {
-    const newValue = e.target.value
-    const cell = grid[row][col]
-    const oldValue = cell.value
-
-    const change: CellChange = {
-      cell,
-      oldValue,
-      newValue,
-    }
-
-    handleGridChange(change)
+    setEditingValue(e.target.value)
   }
 
   const handleOnSelectExercise = (
@@ -280,6 +296,7 @@ function GridContentRows({
         : { id: '', name: '' }
 
     const change: ExerciseSelection = {
+      type: 'exercise-selection',
       cell,
       exercise: {
         id: exercise.id,
@@ -339,6 +356,8 @@ function GridContentRows({
             handleInputChange={handleInputChange}
             handleKeyDown={handleKeyDown}
             setActiveCell={setActiveCell}
+            editingValue={editingValue}
+            stopEditing={stopEditing}
           />
         )
       })}
@@ -368,6 +387,8 @@ type GridRowProps = {
   setActiveCell: (cell: Position | null) => void
   setOpenDropdownRow: (row: number | null) => void
   gridRefs: React.RefObject<HTMLDivElement[][]>
+  editingValue: string
+  stopEditing: (row: number, col: number) => void
 }
 
 function GridContentRow({
@@ -384,6 +405,8 @@ function GridContentRow({
   setActiveCell,
   setOpenDropdownRow,
   gridRefs,
+  editingValue,
+  stopEditing,
 }: GridRowProps) {
   return (
     <div key={`row-${rowIndex}`} className="group flex h-9 w-full">
@@ -424,7 +447,7 @@ function GridContentRow({
           className={getCellClasses(
             cell,
             cn(
-              `relative shrink-0 flex-grow cursor-pointer overflow-hidden border-r border-b border-neutral-800 p-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:outline-none focus-within:ring-inset`,
+              `relative shrink-0 flex-grow cursor-pointer truncate overflow-hidden border-r border-b border-neutral-800 p-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:outline-none focus-within:ring-inset`,
               rowIndex === 0 && 'border-t',
               colIndex === 0 && 'border-l',
               rowIndex === numRows - 1 && colIndex === 0 && 'rounded-bl-sm',
@@ -458,12 +481,12 @@ function GridContentRow({
               <input
                 className={getCellClasses(
                   cell,
-                  'm-0 h-full w-full py-2 text-sm focus-within:outline-none focus:outline-none'
+                  'm-0 h-full w-full truncate py-2 text-sm focus-within:outline-none focus:outline-none'
                 )}
-                value={cell.value || ''}
+                value={editingValue}
                 onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
                 onBlur={() => {
-                  setActiveCell(null)
+                  stopEditing(rowIndex, colIndex)
                   gridRefs.current[rowIndex][colIndex]?.focus()
                 }}
                 autoFocus
@@ -589,12 +612,14 @@ function getValueFromCircuitBlock(block: CircuitBlock, field: string): string {
 function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
   // Direct access to cell metadata - no grid rebuild needed!
   const cell = change.cell
+  console.log('cell', change)
 
   if (!cell) return workout
 
   const newBlocks = [...workout.blocks]
   const originalBlockIndex = cell.originalBlockIndex!
   const blockToUpdate = newBlocks[originalBlockIndex]
+  console.log('blockToUpdate', blockToUpdate)
 
   if (!blockToUpdate) return workout
 
@@ -609,6 +634,7 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
         name: change.exercise.name,
       }
     } else if (isCellChange(change)) {
+      console.log('cell.colType', cell.colType)
       if (cell.colType === 'exercise_name') {
         updatedBlock.exercise = {
           ...updatedBlock.exercise,
