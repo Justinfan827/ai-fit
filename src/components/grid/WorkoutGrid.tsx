@@ -222,7 +222,20 @@ function GridContentRows({
         e.preventDefault()
         stopEditing(row, col)
         const nextRow = Math.min(numRows - 1, row + 1)
-        gridRefs.current[nextRow][col]?.focus()
+        /*
+         Use setTimeout to delay focus until after re-render! Here's an explanation:
+         The issue is that:
+         stopEditing(row, col) is called first
+         stopEditing calls saveChanges
+         saveChanges calls handleGridChange which calls onWorkoutChange
+         onWorkoutChange triggers a re-render of the component
+         The re-render happens before the gridRefs.current[nextRow][col]?.focus() line executes or takes effect
+         During the re-render, the grid is rebuilt and the refs are reset
+         By the time focus is attempted, the reference may be stale or the element may have been remounted
+        */
+        setTimeout(() => {
+          gridRefs.current[nextRow]?.[col]?.focus()
+        }, 0)
       } else if (e.key === 'Escape') {
         e.preventDefault()
         setActiveCell(null)
@@ -278,11 +291,7 @@ function GridContentRows({
   }
 
   // Local input change handler - only updates editing value
-  const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement>,
-    row: number,
-    col: number
-  ) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setEditingValue(e.target.value)
   }
 
@@ -317,28 +326,119 @@ function GridContentRows({
   const handleAddRow = (
     rowIndex: number,
     colIndex: number,
-    type: 'exercise' | 'circuit'
+    type: 'exercise' | 'circuit' | 'exercise-in-circuit'
   ) => {
-    const newBlocks = [...workout.blocks]
-    const newBlock: ExerciseBlock = {
-      type: 'exercise',
-      exercise: {
-        id: uuidv4(),
-        name: '',
-        metadata: {
-          sets: '',
-          reps: '',
-          weight: '',
-          rest: '',
-          notes: '',
-        },
-      },
-    }
+    if (type === 'exercise-in-circuit') {
+      // Handle adding exercise within a circuit
+      const currentCell = grid[rowIndex]?.[0]
+      if (!currentCell || currentCell.originalBlockIndex === undefined) return
 
-    newBlocks.splice(rowIndex + 1, 0, newBlock)
-    const updatedWorkout = { ...workout, blocks: newBlocks }
-    onWorkoutChange(updatedWorkout)
-    setActiveCell({ row: rowIndex + 1, col: colIndex })
+      const newBlocks = [...workout.blocks]
+      const circuitBlockIndex = currentCell.originalBlockIndex
+      const circuitBlock = newBlocks[circuitBlockIndex]
+
+      if (!circuitBlock || circuitBlock.type !== 'circuit') return
+
+      // Create new exercise to add to circuit
+      const newExercise: ExerciseBlock = {
+        type: 'exercise',
+        exercise: {
+          id: uuidv4(),
+          name: '',
+          metadata: {
+            sets: '',
+            reps: '',
+            weight: '',
+            rest: '',
+            notes: '',
+          },
+        },
+      }
+
+      // Find the position within the circuit's exercises array
+      const exerciseIndexInCircuit = findExerciseIndexInCircuit(
+        workout,
+        rowIndex,
+        circuitBlockIndex
+      )
+
+      // Create updated circuit block
+      const updatedCircuitBlock = { ...circuitBlock }
+      updatedCircuitBlock.circuit = { ...updatedCircuitBlock.circuit }
+      const updatedExercises = [...updatedCircuitBlock.circuit.exercises]
+
+      // Insert the new exercise after the current exercise in the circuit
+      const insertIndex =
+        exerciseIndexInCircuit >= 0
+          ? exerciseIndexInCircuit + 1
+          : updatedExercises.length
+      updatedExercises.splice(insertIndex, 0, newExercise)
+
+      updatedCircuitBlock.circuit.exercises = updatedExercises
+      newBlocks[circuitBlockIndex] = updatedCircuitBlock
+
+      const updatedWorkout = { ...workout, blocks: newBlocks }
+      onWorkoutChange(updatedWorkout)
+      setActiveCell({ row: rowIndex + 1, col: colIndex })
+    } else if (type === 'exercise') {
+      // Handle adding regular exercise or circuit block
+      const newBlocks = [...workout.blocks]
+      const newBlock: ExerciseBlock = {
+        type: 'exercise',
+        exercise: {
+          id: uuidv4(),
+          name: '',
+          metadata: {
+            sets: '',
+            reps: '',
+            weight: '',
+            rest: '',
+            notes: '',
+          },
+        },
+      }
+
+      newBlocks.splice(rowIndex + 1, 0, newBlock)
+      const updatedWorkout = { ...workout, blocks: newBlocks }
+      onWorkoutChange(updatedWorkout)
+      setActiveCell({ row: rowIndex + 1, col: colIndex })
+    } else if (type === 'circuit') {
+      // Handle adding circuit block
+      const newBlocks = [...workout.blocks]
+      const newBlock: CircuitBlock = {
+        type: 'circuit',
+        circuit: {
+          isDefault: false,
+          description: '',
+          name: '',
+          metadata: {
+            sets: '',
+            rest: '',
+            notes: '',
+          },
+          exercises: [
+            {
+              type: 'exercise',
+              exercise: {
+                id: uuidv4(),
+                name: '',
+                metadata: {
+                  sets: '',
+                  reps: '',
+                  weight: '',
+                  rest: '',
+                  notes: '',
+                },
+              },
+            },
+          ],
+        },
+      }
+      newBlocks.splice(rowIndex + 1, 0, newBlock)
+      const updatedWorkout = { ...workout, blocks: newBlocks }
+      onWorkoutChange(updatedWorkout)
+      setActiveCell({ row: rowIndex + 1, col: colIndex })
+    }
   }
 
   return (
@@ -362,6 +462,7 @@ function GridContentRows({
             setActiveCell={setActiveCell}
             editingValue={editingValue}
             stopEditing={stopEditing}
+            startEditing={startEditing}
           />
         )
       })}
@@ -379,7 +480,7 @@ type GridRowProps = {
   handleAddRow: (
     rowIndex: number,
     colIndex: number,
-    type: 'exercise' | 'circuit'
+    type: 'exercise' | 'circuit' | 'exercise-in-circuit'
   ) => void
   handleOnSelectExercise: (exercise: Exercise, row: number, col: number) => void
   handleInputChange: (
@@ -393,6 +494,7 @@ type GridRowProps = {
   gridRefs: React.RefObject<HTMLDivElement[][]>
   editingValue: string
   stopEditing: (row: number, col: number) => void
+  startEditing: (row: number, col: number, initialValue?: string) => void
 }
 
 function GridContentRow({
@@ -411,6 +513,7 @@ function GridContentRow({
   gridRefs,
   editingValue,
   stopEditing,
+  startEditing,
 }: GridRowProps) {
   return (
     <div key={`row-${rowIndex}`} className="group flex h-9 w-full">
@@ -424,13 +527,14 @@ function GridContentRow({
           <AddRowDropdown
             onAddRow={(type) => handleAddRow(rowIndex, 0, type)}
             onOpenChange={(open) => setOpenDropdownRow(open ? rowIndex : null)}
+            isInCircuit={row[0]?.isCircuitHeader || row[0]?.isCircuitExercise}
           />
         </div>
         <div className="">
           <Button
             size="icon"
             variant="ghost"
-            className={`text-accent-foreground h-6 w-6 transition-opacity ease-in-out group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100 ${
+            className={`text-accent-foreground h-6 w-6 cursor-pointer transition-opacity ease-in-out group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100 ${
               openDropdownRow === rowIndex ? 'opacity-100' : 'opacity-0'
             }`}
           >
@@ -461,7 +565,7 @@ function GridContentRow({
             )
           )}
           onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}
-          onDoubleClick={() => setActiveCell({ row: rowIndex, col: colIndex })}
+          onDoubleClick={() => startEditing(rowIndex, colIndex, cell.value)}
           onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
           style={{
             flexBasis: cell.width,
