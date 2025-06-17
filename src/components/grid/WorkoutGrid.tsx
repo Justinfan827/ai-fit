@@ -346,7 +346,7 @@ function GridContentRows({
           id: uuidv4(),
           name: '',
           metadata: {
-            sets: '',
+            sets: circuitBlock.circuit.metadata.sets,
             reps: '',
             weight: '',
             rest: '',
@@ -555,14 +555,14 @@ function GridContentRow({
           className={getCellClasses(
             cell,
             cn(
-              `relative shrink-0 flex-grow cursor-pointer truncate overflow-hidden border-r border-b border-neutral-800 p-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:outline-none focus-within:ring-inset`,
+              `relative shrink-0 flex-grow truncate overflow-hidden border-r border-b border-neutral-800 p-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:outline-none focus-within:ring-inset`,
               rowIndex === 0 && 'border-t',
               colIndex === 0 && 'border-l',
               rowIndex === numRows - 1 && colIndex === 0 && 'rounded-bl-sm',
               rowIndex === numRows - 1 &&
                 colIndex === numCols - 1 &&
                 'rounded-br-sm',
-              cell.readOnly && 'text-neutral-500'
+              cell.readOnly && 'cursor-not-allowed text-neutral-500'
             )
           )}
           onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}
@@ -719,14 +719,12 @@ function getValueFromCircuitBlock(block: CircuitBlock, field: string): string {
 function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
   // Direct access to cell metadata - no grid rebuild needed!
   const cell = change.cell
-  console.log('cell', change)
 
   if (!cell) return workout
 
   const newBlocks = [...workout.blocks]
   const originalBlockIndex = cell.originalBlockIndex!
   const blockToUpdate = newBlocks[originalBlockIndex]
-  console.log('blockToUpdate', blockToUpdate)
 
   if (!blockToUpdate) return workout
 
@@ -741,7 +739,6 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
         name: change.exercise.name,
       }
     } else if (isCellChange(change)) {
-      console.log('cell.colType', cell.colType)
       if (cell.colType === 'exercise_name') {
         updatedBlock.exercise = {
           ...updatedBlock.exercise,
@@ -768,11 +765,16 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
       if (isCellChange(change)) {
         if (cell.colType === 'exercise_name') {
           updatedBlock.circuit.name = change.newValue
-        } else if (['sets', 'rest', 'notes'].includes(cell.colType)) {
+        } else if (['rest', 'notes'].includes(cell.colType)) {
           updatedBlock.circuit.metadata = {
             ...updatedBlock.circuit.metadata,
             [cell.colType]: change.newValue,
           }
+        } else if (cell.colType === 'sets') {
+          updatedBlock.circuit.metadata.sets = change.newValue
+          updatedBlock.circuit.exercises.forEach((exercise) => {
+            exercise.exercise.metadata.sets = change.newValue
+          })
         }
       }
     } else {
