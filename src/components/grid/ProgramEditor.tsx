@@ -297,7 +297,7 @@ export default function ProgramEditor() {
                                 id="action menu"
                                 className="flex items-center justify-center pl-2"
                               >
-                                {workoutIdx === 0 && weekIdx === 0 ? null : (
+                                {workouts.length === 1 ? null : (
                                   <Button
                                     size="icon"
                                     variant="ghost"
