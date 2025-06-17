@@ -71,8 +71,21 @@ const newInitialProgram = (exercises: Exercise[]): Program => {
         {
           type: 'exercise',
           exercise: {
-            id: exercises[0].id,
-            name: exercises[0].name,
+            id: exercises[2].id,
+            name: exercises[2].name,
+            metadata: {
+              sets: '3',
+              reps: '12',
+              weight: '100',
+              rest: '30s',
+            },
+          },
+        },
+        {
+          type: 'exercise',
+          exercise: {
+            id: exercises[3].id,
+            name: exercises[3].name,
             metadata: {
               sets: '3',
               reps: '12',
