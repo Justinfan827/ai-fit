@@ -6,6 +6,7 @@ import AddRowDropdown from '@/components/grid/AddRowDropdown'
 import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
+import { useWorkoutHistory } from '@/hooks/use-workout-history'
 import {
   CircuitBlock,
   Exercise,
@@ -97,23 +98,34 @@ interface Cell {
   isCircuitExercise?: boolean
 }
 
+interface WorkoutGridProps {
+  workout: Workout
+  onWorkoutChange: (workout: Workout) => void
+  columns: Column[]
+}
+
 export default function WorkoutGrid({
   workout,
   onWorkoutChange,
   columns,
-}: {
-  workout: Workout
-  onWorkoutChange: (workout: Workout) => void
-  columns: Column[]
-}) {
+}: WorkoutGridProps) {
   const [showDebug, setShowDebug] = useState(false)
+
+  // Always use history hook
+  const workoutHistory = useWorkoutHistory(workout)
+
+  const handleWorkoutChange = (newWorkout: Workout) => {
+    // Save current state before making changes
+    workoutHistory.saveToHistory(newWorkout)
+    onWorkoutChange(newWorkout)
+  }
 
   return (
     <div className="text-sm">
       <GridHeaderRow columns={columns} />
       <GridContentRows
-        workout={workout}
-        onWorkoutChange={onWorkoutChange}
+        workout={workoutHistory.currentWorkout}
+        onWorkoutChange={handleWorkoutChange}
         columns={columns}
       />
       {showDebug && (
@@ -122,7 +134,22 @@ export default function WorkoutGrid({
             Debug: Current Workout
           </h3>
           <pre className="overflow-auto text-xs text-neutral-300">
-            {JSON.stringify(workout, null, 2)}
+            {JSON.stringify(workoutHistory.currentWorkout, null, 2)}
+          </pre>
+          <h4 className="mt-3 mb-1 text-xs font-medium text-neutral-400">
+            History State
+          </h4>
+          <pre className="overflow-auto text-xs text-neutral-300">
+            {JSON.stringify(
+              {
+                currentIndex: workoutHistory.currentIndex,
+                historyLength: workoutHistory.historyLength,
+                canUndo: workoutHistory.canUndo,
+                canRedo: workoutHistory.canRedo,
+              },
+              null,
+              2
+            )}
           </pre>
         </div>
       )}

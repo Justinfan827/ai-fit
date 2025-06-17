@@ -1,7 +1,7 @@
 'use server'
 
 import { Exercise, exercisesSchema } from '@/lib/domain/workouts'
-import { GenerateProgramSchema } from '@/lib/domain/workouts_v2'
+import { GenerateProgramSchema } from '@/lib/domain/workouts_ai_response'
 import { z } from 'zod'
 import { withActionAuthSchema } from './middleware/withAuth'
 import openaiGenerate from './openai-generation'

@@ -4,7 +4,7 @@ import { systemPromptv1 } from '@/lib/ai/prompts/prompts'
 import {
   GenerateProgramSchema,
   generateProgramSchema,
-} from '@/lib/domain/workouts_v2'
+} from '@/lib/domain/workouts_ai_response'
 import { sendDebugLog } from '@/lib/supabase/server/database.operations.mutations'
 import { APIResponse } from '@/lib/types/apires'
 import { getError } from '@/lib/utils/util'

@@ -19,34 +19,34 @@ import { ExerciseSelectionDialog } from './ExerciseSelectionDialog'
 const ProgramParametersFormSchema = z
   .object({
     lengthOfWorkout: z.string(),
-    lengthOfProgram: z.string(),
+    // lengthOfProgram: z.string(),
     daysPerWeek: z.string(),
     preferredExercises: exercisesSchema,
     otherNotes: z.string(),
   })
   .superRefine((data, ctx) => {
-    if (data.lengthOfProgram === '') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Please enter the length of the program`,
-      })
-      return
-    }
-    const lengthOfProgram = parseInt(data.lengthOfProgram)
-    if (isNaN(lengthOfProgram)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Please enter a valid number for the length of the program`,
-      })
-      return
-    }
-    if (lengthOfProgram < 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Please enter a positive number for the length of the program`,
-      })
-      return
-    }
+    // if (data.lengthOfProgram === '') {
+    //   ctx.addIssue({
+    //     code: z.ZodIssueCode.custom,
+    //     message: `Please enter the length of the program`,
+    //   })
+    //   return
+    // }
+    // const lengthOfProgram = parseInt(data.lengthOfProgram)
+    // if (isNaN(lengthOfProgram)) {
+    //   ctx.addIssue({
+    //     code: z.ZodIssueCode.custom,
+    //     message: `Please enter a valid number for the length of the program`,
+    //   })
+    //   return
+    // }
+    // if (lengthOfProgram < 0) {
+    //   ctx.addIssue({
+    //     code: z.ZodIssueCode.custom,
+    //     message: `Please enter a positive number for the length of the program`,
+    //   })
+    //   return
+    // }
 
     if (data.lengthOfWorkout === '') {
       ctx.addIssue({
@@ -136,7 +136,7 @@ export function ProgramParametersForm({
     defaultValues: {
       lengthOfWorkout: '30',
       daysPerWeek: '3',
-      lengthOfProgram: '12',
+      // lengthOfProgram: '12',
       otherNotes: '',
       preferredExercises: serverExercises,
     },
@@ -187,7 +187,7 @@ export function ProgramParametersForm({
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="lengthOfProgram"
           render={({ field }) => (
@@ -208,7 +208,7 @@ export function ProgramParametersForm({
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <FormField
           control={form.control}
           name="preferredExercises"

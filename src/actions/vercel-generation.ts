@@ -1,5 +1,5 @@
 import { systemPromptv1 } from '@/lib/ai/prompts/prompts'
-import { generateProgramSchema } from '@/lib/domain/workouts_v2'
+import { generateProgramSchema } from '@/lib/domain/workouts_ai_response'
 
 export default async function vercelGenerate({ prompt }: { prompt: string }) {
   try {
