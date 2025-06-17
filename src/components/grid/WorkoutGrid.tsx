@@ -328,6 +328,7 @@ function GridContentRows({
     colIndex: number,
     type: 'exercise' | 'circuit' | 'exercise-in-circuit'
   ) => {
+    console.log('handleAddRow', rowIndex, colIndex, type)
     if (type === 'exercise-in-circuit') {
       // Handle adding exercise within a circuit
       const currentCell = grid[rowIndex]?.[0]
@@ -398,7 +399,17 @@ function GridContentRows({
         },
       }
 
-      newBlocks.splice(rowIndex + 1, 0, newBlock)
+      // Convert grid row index to workout block index
+      const currentCell = grid[rowIndex]?.[0]
+      if (currentCell && currentCell.originalBlockIndex !== undefined) {
+        const blockInsertIndex = currentCell.originalBlockIndex + 1
+        newBlocks.splice(blockInsertIndex, 0, newBlock)
+      } else {
+        // Fallback: add to end if we can't determine position
+        // TODO: LOG ERROR here
+        newBlocks.push(newBlock)
+      }
+
       const updatedWorkout = { ...workout, blocks: newBlocks }
       onWorkoutChange(updatedWorkout)
       setActiveCell({ row: rowIndex + 1, col: colIndex })
@@ -434,7 +445,17 @@ function GridContentRows({
           ],
         },
       }
-      newBlocks.splice(rowIndex + 1, 0, newBlock)
+
+      // Convert grid row index to workout block index
+      const currentCell = grid[rowIndex]?.[0]
+      if (currentCell && currentCell.originalBlockIndex !== undefined) {
+        const blockInsertIndex = currentCell.originalBlockIndex + 1
+        newBlocks.splice(blockInsertIndex, 0, newBlock)
+      } else {
+        // Fallback: add to end if we can't determine position
+        newBlocks.push(newBlock)
+      }
+
       const updatedWorkout = { ...workout, blocks: newBlocks }
       onWorkoutChange(updatedWorkout)
       setActiveCell({ row: rowIndex + 1, col: colIndex })
