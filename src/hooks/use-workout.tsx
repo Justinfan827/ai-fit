@@ -1,30 +1,41 @@
 'use client'
 
-import { AIProgram } from '@/lib/domain/workouts'
+import { GenerateProgramSchema } from '@/lib/domain/workouts_ai_response'
 import { createContext, useContext, useState } from 'react'
 
-interface AIProgramContext {
-  program: AIProgram | undefined
-  setProgram: (p: AIProgram) => void
+interface AIGeneratedWorkoutsContext {
+  generatedProgram: GenerateProgramSchema | undefined
+  setGeneratedProgram: (p: GenerateProgramSchema) => void
   setIsPending: (p: boolean) => void
   isPending: boolean
+  clearGeneratedProgram: () => void
 }
-const Context = createContext<AIProgramContext | undefined>(undefined)
+const Context = createContext<AIGeneratedWorkoutsContext | undefined>(undefined)
 
-interface TableProviderProps {
+interface AIGeneratedWorkoutsProviderProps {
   children: React.ReactNode
 }
 
-export default function AIProgramProvider({ children }: TableProviderProps) {
-  const [program, setProgram] = useState<AIProgram | undefined>(undefined)
+export default function AIGeneratedWorkoutsProvider({
+  children,
+}: AIGeneratedWorkoutsProviderProps) {
+  const [generatedProgram, setGeneratedProgram] = useState<
+    GenerateProgramSchema | undefined
+  >(undefined)
   const [isPending, setIsPending] = useState(false)
+
+  const clearGeneratedProgram = () => {
+    setGeneratedProgram(undefined)
+  }
+
   return (
     <Context.Provider
       value={{
-        program,
-        setProgram,
+        generatedProgram,
+        setGeneratedProgram,
         isPending,
         setIsPending,
+        clearGeneratedProgram,
       }}
     >
       <>{children}</>
@@ -32,10 +43,15 @@ export default function AIProgramProvider({ children }: TableProviderProps) {
   )
 }
 
-export const useAIProgram = () => {
+export const useAIGeneratedWorkouts = () => {
   const context = useContext(Context)
   if (context === undefined) {
-    throw new Error('useWorkout() must be used inside ProgramProvider')
+    throw new Error(
+      'useAIGeneratedWorkouts() must be used inside AIGeneratedWorkoutsProvider'
+    )
   }
   return context
 }
+
+// Keep the old export for backward compatibility during transition
+export const useAIProgram = useAIGeneratedWorkouts

@@ -4,14 +4,14 @@ import {
   programSchema,
   WorkoutExercise,
 } from '@/lib/domain/workouts'
-import { Res } from '@/lib/types/types'
+import { Maybe } from '@/lib/types/types'
 import { createServerClient } from '../../create-server-client'
 import { Database } from '../../database.types'
 import { DBClient } from '../../types'
 
 export async function resolveProgram(
   dbProgram: Database['public']['Tables']['programs']['Row']
-): Promise<Res<Program>> {
+): Promise<Maybe<Program>> {
   const client = await createServerClient()
   const { data: wData, error: wErr } = await client
     .from('workouts')
@@ -49,7 +49,7 @@ export async function resolveProgram(
 export async function resolvePrograms(
   client: DBClient,
   pData: Database['public']['Tables']['programs']['Row'][]
-): Promise<Res<Program[]>> {
+): Promise<Maybe<Program[]>> {
   const returnData: Program[] = []
   const res = await Promise.all(
     pData.map(async (p) => {

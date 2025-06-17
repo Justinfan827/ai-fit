@@ -2,7 +2,7 @@ import { ErrorBase, ErrorOptions } from '@/lib/error-base'
 import { z, ZodError } from 'zod'
 import { generateErrorMessage } from 'zod-error'
 
-export const ErrorCode = z.enum([
+const ErrorCode = z.enum([
   'bad_request',
   'not_found',
   'internal_server_error',
@@ -16,9 +16,9 @@ export const ErrorCode = z.enum([
   'unprocessable_entity',
 ])
 
-export type ErrorCode = z.infer<typeof ErrorCode>
+type ErrorCode = z.infer<typeof ErrorCode>
 
-export class APIError extends ErrorBase<ErrorCode> {
+class APIError extends ErrorBase<ErrorCode> {
   constructor({
     message,
     code,
@@ -31,18 +31,19 @@ export class APIError extends ErrorBase<ErrorCode> {
     super({ message, code, ...options })
   }
 }
-export const ErrBase = z.object({
+const ErrBaseSchema = z.object({
   code: ErrorCode,
   message: z.string(),
 })
 
-export const ErrorSchema = z.object({
-  error: ErrBase,
+const ErrorSchema = z.object({
+  error: ErrBaseSchema,
 })
 
-export type ErrorResponse = z.infer<typeof ErrorSchema>
+type ErrBase = z.infer<typeof ErrBaseSchema>
+type ErrorResponse = z.infer<typeof ErrorSchema>
 
-export function fromZodError(error: ZodError): ErrorResponse {
+function fromZodError(error: ZodError): ErrorResponse {
   return {
     error: {
       code: 'unprocessable_entity',
@@ -68,7 +69,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
     },
   }
 }
-export const errorCodeToHttpStatus: Record<ErrorCode, number> = {
+const errorCodeToHttpStatus: Record<ErrorCode, number> = {
   bad_request: 400,
   unauthorized: 401,
   forbidden: 403,
@@ -80,4 +81,15 @@ export const errorCodeToHttpStatus: Record<ErrorCode, number> = {
   unprocessable_entity: 422,
   rate_limit_exceeded: 429,
   internal_server_error: 500,
+}
+
+export {
+  APIError,
+  ErrBaseSchema,
+  errorCodeToHttpStatus,
+  fromZodError,
+  type ErrBase,
+  type ErrorCode,
+  type ErrorResponse,
+  type ErrorSchema,
 }

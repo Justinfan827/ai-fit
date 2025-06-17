@@ -10,6 +10,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { useAIGeneratedWorkouts } from '@/hooks/use-workout'
 import { ClientHomePage } from '@/lib/domain/clients'
 import { Exercise } from '@/lib/domain/workouts'
 import { useTransition } from 'react'
@@ -39,6 +40,9 @@ export function ProgramEditorSidebar({
   ...props
 }: ProgramEditorSidebarProps) {
   const [isPending, startTransition] = useTransition()
+  const { setGeneratedProgram, setIsPending: setAIIsPending } =
+    useAIGeneratedWorkouts()
+
   const basicInfo = [
     { name: 'Age', value: client.age },
     { name: 'Weight', value: client.weightKg },
@@ -49,28 +53,42 @@ export function ProgramEditorSidebar({
     },
     { name: 'Gender', value: client.gender },
   ]
+
   const handleOnSubmit = (formData: ProgramParametersFormType) => {
     startTransition(async () => {
-      const { data, error } = await generateClientProgramAction({
-        entities: {
-          trainerId,
-          clientId: client.id,
-        },
-        body: {
-          lengthOfWorkout: parseInt(formData.lengthOfWorkout),
-          // lengthOfProgram: parseInt(formData.lengthOfWorkout),
-          preferredExercises: formData.preferredExercises,
-          daysPerWeek: parseInt(formData.daysPerWeek),
-          otherNotes: formData.otherNotes,
-        },
-      })
-      if (error) {
-        toast('Error generating workout', {
-          description: `Code: ${error.code}, Message: ${error.message}`,
+      setAIIsPending(true)
+
+      try {
+        const { data, error } = await generateClientProgramAction({
+          entities: {
+            trainerId,
+            clientId: client.id,
+          },
+          body: {
+            lengthOfWorkout: parseInt(formData.lengthOfWorkout),
+            preferredExercises: formData.preferredExercises,
+            daysPerWeek: parseInt(formData.daysPerWeek),
+            otherNotes: formData.otherNotes,
+          },
         })
-        return
+
+        if (error) {
+          toast.error('Error generating workout', {
+            description: `Code: ${error.code}, Message: ${error.message}`,
+          })
+          return
+        }
+
+        // Set the generated program in the context
+        setGeneratedProgram(data)
+        toast.success('Program generated successfully')
+      } catch (err) {
+        toast.error('Error generating workout', {
+          description: 'An unexpected error occurred',
+        })
+      } finally {
+        setAIIsPending(false)
       }
-      toast('Generated workout!')
     })
   }
 

@@ -1,23 +1,17 @@
-/*
-
-These are the return types for API calls 
-
-*/
-
-export interface SuccessRes<T> {
+interface OK<T> {
   data: T
   error: null
 }
 
-export interface ErrorRes {
+interface NotOK<TError> {
   data: null
-  error: Error
+  error: TError
 }
 
-export type Res<T> = SuccessRes<T> | ErrorRes
+type Maybe<T, TError = Error> = OK<T> | NotOK<TError>
 
-export type AsyncRes<T> = Promise<Res<T>>
-
-export type NextJSSearchParams = Promise<{
+type NextJSSearchParams = Promise<{
   [key: string]: string | string[] | undefined
 }>
+
+export { type Maybe, type NextJSSearchParams, type NotOK, type OK }

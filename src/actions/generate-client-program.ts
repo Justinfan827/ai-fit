@@ -112,10 +112,10 @@ export const generateClientProgramAction = withActionAuthSchema(
   {
     schema,
   },
-  async ({ data }): Promise<GenerateProgramSchema> => {
+  async ({ input }): Promise<GenerateProgramSchema> => {
     // look at how to do this:
     // https://sdk.vercel.ai/cookbook/rsc/generate-object
-    const prompt = `Generate workout program in JSON format for this client with the following parameters: ${parameterString(data.body)}`
+    const prompt = `Generate workout program in JSON format for this client with the following parameters: ${parameterString(input.body)}`
     const { data: aiGeneratedProgram, error } = await openaiGenerate({
       context: [
         {
@@ -129,13 +129,18 @@ export const generateClientProgramAction = withActionAuthSchema(
       throw error
     }
 
+    console.log('aiGeneratedProgram', aiGeneratedProgram)
+
     // TODO: validate ai generated exercises are in the input exercise list
     // + verify format of sets/reps/weight/rest?
     const { data: validationData, error: validationErr } = validateProgram({
       program: aiGeneratedProgram,
-      preferredExercises: data.body.preferredExercises,
-      daysPerWeek: data.body.daysPerWeek,
+      preferredExercises: input.body.preferredExercises,
+      daysPerWeek: input.body.daysPerWeek,
     })
+
+    console.log('validationData', validationData)
+    console.log('validationErr', validationErr)
 
     if (validationErr) {
       throw validationErr

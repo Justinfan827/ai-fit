@@ -10,12 +10,12 @@ import {
   WorkoutInstance,
   workoutSchema,
 } from '@/lib/domain/workouts'
-import { Res } from '@/lib/types/types'
+import { Maybe } from '@/lib/types/types'
 import { createServerClient } from '../create-server-client'
 import { isClient } from '../utils'
 import { resolveProgram, resolvePrograms } from './programs/utils'
 
-export async function getCurrentUserClients(): Promise<Res<Client[]>> {
+export async function getCurrentUserClients(): Promise<Maybe<Client[]>> {
   const client = await createServerClient()
 
   const { data: userRes, error: getUserError } = await client.auth.getUser()
@@ -49,7 +49,7 @@ export interface CurrentUser {
     role: 'trainer' | 'client'
   }
 }
-export async function getCurrentUser(): Promise<Res<CurrentUser>> {
+export async function getCurrentUser(): Promise<Maybe<CurrentUser>> {
   const client = await createServerClient()
   const { data: userRes, error: getUserError } = await client.auth.getUser()
   if (getUserError) {
@@ -81,7 +81,7 @@ export async function getCurrentUser(): Promise<Res<CurrentUser>> {
 
 export async function getLatestWorkoutInstance(
   _workoutid: string
-): Promise<Res<WorkoutInstance | undefined>> {
+): Promise<Maybe<WorkoutInstance | undefined>> {
   return { data: null, error: new Error('Not implemented') }
   // const client = await createServerClient()
   // const { data, error } = await client.auth.getUser()
@@ -122,7 +122,9 @@ export async function getLatestWorkoutInstance(
   // }
 }
 
-export async function getUserWorkout(workoutid: string): Promise<Res<Workout>> {
+export async function getUserWorkout(
+  workoutid: string
+): Promise<Maybe<Workout>> {
   const client = await createServerClient()
   const { data, error } = await client.auth.getUser()
   if (error) {
@@ -158,7 +160,7 @@ export async function getUserWorkout(workoutid: string): Promise<Res<Workout>> {
 
 export async function getWorkoutInstances(
   _: string
-): Promise<Res<WorkoutInstance[]>> {
+): Promise<Maybe<WorkoutInstance[]>> {
   return { data: null, error: new Error('Not implemented') }
   // const client = await createServerClient()
   // const { data, error } = await client.auth.getUser()
@@ -201,7 +203,9 @@ export async function getExercises() {
   return client.from('exercises').select('*')
 }
 
-export async function getProgramById(programId: string): Promise<Res<Program>> {
+export async function getProgramById(
+  programId: string
+): Promise<Maybe<Program>> {
   const client = await createServerClient()
   const { data: pData, error: pErr } = await client
     .from('programs')
@@ -215,7 +219,7 @@ export async function getProgramById(programId: string): Promise<Res<Program>> {
   return resolveProgram(pData)
 }
 
-export async function getUserPrograms(): Promise<Res<Program[]>> {
+export async function getUserPrograms(): Promise<Maybe<Program[]>> {
   const client = await createServerClient()
   const { data, error } = await client.auth.getUser()
   if (error) {
@@ -233,7 +237,7 @@ export async function getUserPrograms(): Promise<Res<Program[]>> {
   return resolvePrograms(client, pData)
 }
 
-export async function getAllPrograms(): Promise<Res<Program[]>> {
+export async function getAllPrograms(): Promise<Maybe<Program[]>> {
   const client = await createServerClient()
   const { data: wData, error: wErr } = await client
     .from('programs')
@@ -245,7 +249,7 @@ export async function getAllPrograms(): Promise<Res<Program[]>> {
   return resolvePrograms(client, wData)
 }
 export async function getAllCurrentUserUnassignedPrograms(): Promise<
-  Res<Program[]>
+  Maybe<Program[]>
 > {
   const sb = await createServerClient()
   const { data: userRes, error: getUserError } = await sb.auth.getUser()
@@ -269,7 +273,7 @@ export async function getAllCurrentUserUnassignedPrograms(): Promise<
  * Currently, just the latest assigned program
  */
 export async function getClientActiveProgram(): Promise<
-  Res<Program | undefined | null>
+  Maybe<Program | undefined | null>
 > {
   const client = await createServerClient()
   const { data, error } = await client.auth.getUser()
@@ -293,7 +297,7 @@ export async function getClientActiveProgram(): Promise<
 }
 
 export async function signInUserCode({ code }: { code: string }): Promise<
-  Res<{
+  Maybe<{
     userId: string
   }>
 > {

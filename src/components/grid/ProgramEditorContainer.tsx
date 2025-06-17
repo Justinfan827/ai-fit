@@ -1,5 +1,6 @@
 'use client'
 
+import AIGeneratedWorkoutsProvider from '@/hooks/use-workout'
 import { EditorProgramProvider } from '@/hooks/zustand/program-editor'
 import { Exercise, Program } from '@/lib/domain/workouts'
 import ProgramEditor from './ProgramEditor'
@@ -16,7 +17,9 @@ export default function ProgramEditorContainer({
       initialProgram={serverProgram}
       exercises={serverExercises}
     >
-      <ProgramEditor />
+      <AIGeneratedWorkoutsProvider>
+        <ProgramEditor />
+      </AIGeneratedWorkoutsProvider>
     </EditorProgramProvider>
   )
 }

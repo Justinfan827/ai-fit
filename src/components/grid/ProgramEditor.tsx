@@ -11,7 +11,7 @@ import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import apiCreateProgram from '@/fetches/create-program'
 import apiEditProgram from '@/fetches/edit-program'
-import { useAIProgram } from '@/hooks/use-workout'
+import { useAIGeneratedWorkouts } from '@/hooks/use-workout'
 import {
   usezEditorActions,
   usezIsNewProgram,
@@ -51,37 +51,34 @@ export default function ProgramEditor() {
   const isNewProgram = usezIsNewProgram()
 
   // update grid when ai program gets generated
-  const { program, isPending: isAIGenPending } = useAIProgram()
+  const {
+    generatedProgram,
+    isPending: isAIGenPending,
+    clearGeneratedProgram,
+  } = useAIGeneratedWorkouts()
   useEffect(() => {
-    if (program) {
-      const workouts: Workout[] = program.workouts.map((w, idx) => {
+    if (generatedProgram) {
+      const workouts: Workout[] = generatedProgram.workouts.map((w, idx) => {
         return {
           ...w,
           id: uuidv4().toString(), // populated on create
-          program_id: uuidv4().toString(), // populated on create
+          program_id: programId, // use existing program id
           program_order: idx,
-          blocks: w.blocks.map((b) => {
-            // Transform aiExerciseSchema to ExerciseBlock
-            return {
-              type: 'exercise' as const,
-              exercise: {
-                id: uuidv4().toString(),
-                name: b.exercise_name,
-                metadata: {
-                  sets: b.sets,
-                  reps: b.reps,
-                  weight: b.weight,
-                  rest: b.rest,
-                  notes: b.notes,
-                },
-              },
-            }
-          }),
+          week: programType === 'weekly' ? 0 : undefined, // set week for weekly programs
+          blocks: w.blocks, // blocks are already in the correct format from AI generation
         }
       })
       setWorkouts(workouts)
+      // Clear the generated program after applying it
+      clearGeneratedProgram()
     }
-  }, [program])
+  }, [
+    generatedProgram,
+    programId,
+    programType,
+    setWorkouts,
+    clearGeneratedProgram,
+  ])
 
   const addNewWorkoutToWeek = ({ week }: { week?: number }) => {
     /*
@@ -175,18 +172,14 @@ export default function ProgramEditor() {
     setIsPending(true)
     const { error } = await apiEditProgram({ body: domainProgram })
     if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: `Oops! We couldn't save your workout.Please try again`,
+      toast.error('Error', {
+        description: `Oops! We couldn't save your workout. Please try again`,
       })
       setIsPending(false)
       return
     }
-    toast({
-      variant: 'default',
-      title: 'Success',
-      description: <pre>{programName} saved</pre>,
+    toast.success('Success', {
+      description: `${programName} saved`,
     })
     setIsPending(false)
     router.refresh()

@@ -3,7 +3,7 @@ import 'server-only'
 import { ClientHomePage } from '@/lib/domain/clients'
 import { Exercise } from '@/lib/domain/workouts'
 import createAdminClient from '@/lib/supabase/create-admin-client'
-import { Res } from '@/lib/types/types'
+import { Maybe } from '@/lib/types/types'
 import { v4 as uuidv4 } from 'uuid'
 import { createServerClient } from '../../create-server-client'
 import { resolvePrograms } from '../programs/utils'
@@ -23,7 +23,7 @@ export class TrainerClientRepo {
   // as well as any custom exercises the trainer has created.
   public async getAllExercises(
     trainerId: string
-  ): Promise<Res<{ base: Exercise[]; custom: Exercise[] }>> {
+  ): Promise<Maybe<{ base: Exercise[]; custom: Exercise[] }>> {
     const sb = await createServerClient()
     const [base, custom] = await Promise.all([
       sb.from('exercises').select('*').is('owner_id', null),
@@ -206,7 +206,7 @@ export class TrainerClientRepo {
    */
   public async getClientHomePageData(
     clientId: string
-  ): Promise<Res<ClientHomePage>> {
+  ): Promise<Maybe<ClientHomePage>> {
     const sb = await createServerClient()
 
     const { data: userRes, error: getUserError } = await sb.auth.getUser()

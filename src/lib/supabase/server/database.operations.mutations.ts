@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { Program, Workout, WorkoutInstance } from '@/lib/domain/workouts'
-import { Res } from '@/lib/types/types'
+import { Maybe } from '@/lib/types/types'
 import { createServerClient } from '../create-server-client'
 import { Database } from '../database.types'
 
@@ -30,7 +30,7 @@ export async function sendDebugLog(request?: any, response?: any) {
 export async function createProgram(
   userId: string,
   body: Program
-): Promise<Res<Program>> {
+): Promise<Maybe<Program>> {
   const client = await createServerClient()
   const { data, error } = await client
     .from('programs')
@@ -73,7 +73,7 @@ export async function createProgram(
 export async function updateProgram(
   userId: string,
   program: Program
-): Promise<Res<Program>> {
+): Promise<Maybe<Program>> {
   const client = await createServerClient()
   const { data: dbProgramData, error } = await client
     .from('programs')
@@ -158,7 +158,7 @@ export async function assignProgramToUser({
   trainerId: string
   clientId: string
   programId: string
-}): Promise<Res<undefined>> {
+}): Promise<Maybe<undefined>> {
   const client = await createServerClient()
   const { data, error } = await client
     .from('programs')
@@ -229,7 +229,7 @@ export async function assignProgramToUser({
 
 export async function updateWorkoutInstance(
   _workoutInstance: WorkoutInstance
-): Promise<Res<undefined>> {
+): Promise<Maybe<undefined>> {
   return { data: null, error: new Error('Not implemented') }
   // const client = await createServerClient()
   // const { error } = await client
@@ -248,7 +248,7 @@ export async function updateWorkoutInstance(
 export async function createWorkoutInstance(
   _userId: string,
   _workout: Workout
-): Promise<Res<WorkoutInstance>> {
+): Promise<Maybe<WorkoutInstance>> {
   return { data: null, error: new Error('Not implemented') }
   // const exerciseSets: WorkoutInstanceBlock[] = workout.blocks.map(
   //   (exercise) => {
