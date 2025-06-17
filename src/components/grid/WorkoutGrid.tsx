@@ -561,7 +561,8 @@ function GridContentRow({
               rowIndex === numRows - 1 && colIndex === 0 && 'rounded-bl-sm',
               rowIndex === numRows - 1 &&
                 colIndex === numCols - 1 &&
-                'rounded-br-sm'
+                'rounded-br-sm',
+              cell.readOnly && 'text-neutral-500'
             )
           )}
           onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}
@@ -587,10 +588,7 @@ function GridContentRow({
               />
             ) : (
               <input
-                className={getCellClasses(
-                  cell,
-                  'm-0 h-full w-full truncate py-2 text-sm focus-within:outline-none focus:outline-none'
-                )}
+                className="m-0 h-full w-full truncate py-2 text-sm focus-within:outline-none focus:outline-none"
                 value={editingValue}
                 onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
                 onBlur={() => {
@@ -663,6 +661,7 @@ function createGridFromWorkout(workout: Workout, columns: Column[]): Cell[][] {
           width: col.width || 100,
           rowIndex: currentRowIndex,
           colIndex,
+          readOnly: col.field === 'sets',
           blockType: 'exercise' as const,
           originalBlockIndex: blockIndex,
           isCircuitExercise: true,
