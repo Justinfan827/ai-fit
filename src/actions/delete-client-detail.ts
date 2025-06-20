@@ -15,11 +15,11 @@ export const deleteClientDetailAction = withActionAuthSchema(
   {
     schema,
   },
-  async ({ data }) => {
+  async ({ input }) => {
     const { data: userData, error } =
       await newTrainerRepo().deleteClientDetailById({
-        clientId: data.clientId,
-        detailId: data.detailId,
+        clientId: input.clientId,
+        detailId: input.detailId,
       })
     if (error) {
       return {
@@ -27,7 +27,7 @@ export const deleteClientDetailAction = withActionAuthSchema(
         error,
       }
     }
-    revalidatePath(`/home/clients/${data.clientId}`)
+    revalidatePath(`/home/clients/${input.clientId}`)
     return {
       data: userData,
       error: null,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 import EditableTypography from '@/components/EditableTypeography'
@@ -13,13 +13,13 @@ import apiCreateProgram from '@/fetches/create-program'
 import apiEditProgram from '@/fetches/edit-program'
 import { useAIGeneratedWorkouts } from '@/hooks/use-workout'
 import {
-  usezEditorActions,
-  usezIsNewProgram,
-  usezProgramCreatedAt,
-  usezProgramId,
-  usezProgramName,
-  usezProgramType,
-  usezProgramWorkouts,
+  useZEditorActions,
+  useZIsNewProgram,
+  useZProgramCreatedAt,
+  useZProgramId,
+  useZProgramName,
+  useZProgramType,
+  useZProgramWorkouts,
 } from '@/hooks/zustand/program-editor'
 import { Program, programSchema, Workout } from '@/lib/domain/workouts'
 import { useRouter } from 'next/navigation'
@@ -33,12 +33,12 @@ import WorkoutGrid from './WorkoutGrid'
 export default function ProgramEditor() {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
-  const workouts = usezProgramWorkouts()
-  const programType = usezProgramType()
-  const programName = usezProgramName()
-  const programCreatedAt = usezProgramCreatedAt()
-  const programId = usezProgramId()
-  const { setProgramType, setProgramName, setWorkouts } = usezEditorActions()
+  const workouts = useZProgramWorkouts()
+  const programType = useZProgramType()
+  const programName = useZProgramName()
+  const programCreatedAt = useZProgramCreatedAt()
+  const programId = useZProgramId()
+  const { setProgramType, setProgramName, setWorkouts } = useZEditorActions()
   const workoutsByWeek = workouts.reduce((acc, w) => {
     const week = w.week || 0
     if (!acc[week]) {
@@ -48,37 +48,48 @@ export default function ProgramEditor() {
     return acc
   }, [] as Workout[][])
 
-  const isNewProgram = usezIsNewProgram()
+  const isNewProgram = useZIsNewProgram()
 
   // update grid when ai program gets generated
-  const {
-    generatedProgram,
-    isPending: isAIGenPending,
-    clearGeneratedProgram,
-  } = useAIGeneratedWorkouts()
+  const { generatedProgram, isPending: isAIGenPending } =
+    useAIGeneratedWorkouts()
   useEffect(() => {
     if (generatedProgram) {
       const workouts: Workout[] = generatedProgram.workouts.map((w, idx) => {
         return {
           ...w,
           id: uuidv4().toString(), // populated on create
-          program_id: programId, // use existing program id
+          program_id: uuidv4().toString(), // populated on create
           program_order: idx,
-          week: programType === 'weekly' ? 0 : undefined, // set week for weekly programs
-          blocks: w.blocks, // blocks are already in the correct format from AI generation
+          blocks: w.blocks.map((b) => {
+            if (b.type === 'exercise') {
+              // Transform aiExerciseSchema to ExerciseBlock
+              return {
+                type: 'exercise' as const,
+                exercise: {
+                  id: uuidv4().toString(),
+                  name: b.exercise.name,
+                  metadata: {
+                    sets: b.exercise.metadata.sets,
+                    reps: b.exercise.metadata.reps,
+                    weight: b.exercise.metadata.weight,
+                    rest: b.exercise.metadata.rest,
+                    notes: '',
+                  },
+                },
+              }
+            } else {
+              return {
+                type: 'circuit' as const,
+                circuit: b.circuit,
+              }
+            }
+          }),
         }
       })
       setWorkouts(workouts)
-      // Clear the generated program after applying it
-      clearGeneratedProgram()
     }
-  }, [
-    generatedProgram,
-    programId,
-    programType,
-    setWorkouts,
-    clearGeneratedProgram,
-  ])
+  }, [generatedProgram, setWorkouts])
 
   const addNewWorkoutToWeek = ({ week }: { week?: number }) => {
     /*
@@ -152,28 +163,32 @@ export default function ProgramEditor() {
   }
 
   const [error, setError] = useState(new Error())
-  const domainProgram: Program = {
-    id: programId,
-    created_at: programCreatedAt,
-    name: programName,
-    type: programType,
-    workouts,
-  }
+  const domainProgram: Program = useMemo(
+    () => ({
+      id: programId,
+      created_at: programCreatedAt,
+      name: programName,
+      type: programType,
+      workouts,
+    }),
+    [programId, programCreatedAt, programName, programType, workouts]
+  )
   useEffect(() => {
     const { error } = programSchema.safeParse(domainProgram)
     if (error) {
+      // TODO: show error to user / highlight problematic fields!
       setError(error)
     } else {
       setError(new Error())
     }
-  }, [programId, programCreatedAt, programName, programType, workouts])
+  }, [domainProgram])
 
   const handleOnSave = async () => {
     setIsPending(true)
     const { error } = await apiEditProgram({ body: domainProgram })
     if (error) {
       toast.error('Error', {
-        description: `Oops! We couldn't save your workout. Please try again`,
+        description: `Oops! We couldn't save your workout.Please try again`,
       })
       setIsPending(false)
       return
@@ -297,7 +312,7 @@ export default function ProgramEditor() {
                                 id="action menu"
                                 className="flex items-center justify-center pl-2"
                               >
-                                {workouts.length === 1 ? null : (
+                                {workoutIdx === 0 && weekIdx === 0 ? null : (
                                   <Button
                                     size="icon"
                                     variant="ghost"

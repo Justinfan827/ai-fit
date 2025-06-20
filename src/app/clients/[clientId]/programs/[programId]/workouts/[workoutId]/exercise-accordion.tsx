@@ -30,44 +30,45 @@ export function WorkoutAccordion({
   form: WorkoutForm
 }) {
   return (
-    <Form {...form}>
-      <form id="workout-form" className="space-y-6">
-        <Accordion type="multiple" className="w-full">
-          {workout.blocks.map((exercise, index) => (
-            <AccordionItem
-              key={exercise.exercise_name}
-              value={exercise.exercise_name}
-            >
-              <AccordionTrigger>
-                <div
-                  key={index}
-                  className="flex items-center justify-start space-x-3"
-                >
-                  <div className="h-10 w-10 rounded-sm border border-neutral-700 p-2 text-center font-mono">
-                    {index + 1}
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold">
-                      {exercise.exercise_name}
-                    </p>
-                    <p className="font-mono tracking-wider">
-                      {exercise.sets}x{exercise.reps} @ {exercise.weight}lb
-                    </p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <SetsContent
-                  exerciseIdx={index}
-                  form={form}
-                  exercise={exercise}
-                />
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </form>
-    </Form>
+    // <Form {...form}>
+    //   <form id="workout-form" className="space-y-6">
+    //     <Accordion type="multiple" className="w-full">
+    //       {workout.blocks.map((exercise, index) => (
+    //         <AccordionItem
+    //           key={exercise.exercise_name}
+    //           value={exercise.exercise_name}
+    //         >
+    //           <AccordionTrigger>
+    //             <div
+    //               key={index}
+    //               className="flex items-center justify-start space-x-3"
+    //             >
+    //               <div className="h-10 w-10 rounded-sm border border-neutral-700 p-2 text-center font-mono">
+    //                 {index + 1}
+    //               </div>
+    //               <div>
+    //                 <p className="text-lg font-semibold">
+    //                   {exercise.exercise_name}
+    //                 </p>
+    //                 <p className="font-mono tracking-wider">
+    //                   {exercise.sets}x{exercise.reps} @ {exercise.weight}lb
+    //                 </p>
+    //               </div>
+    //             </div>
+    //           </AccordionTrigger>
+    //           <AccordionContent>
+    //             <SetsContent
+    //               exerciseIdx={index}
+    //               form={form}
+    //               exercise={exercise}
+    //             />
+    //           </AccordionContent>
+    //         </AccordionItem>
+    //       ))}
+    //     </Accordion>
+    //   </form>
+    // </Form>
+    <div></div>
   )
 }
 

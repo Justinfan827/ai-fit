@@ -137,7 +137,9 @@ export class TrainerClientRepo {
       return { data: null, error }
     }
     const metadata: any = data.metadata || {}
-    metadata.details = (metadata.details || []).filter((d) => d.id !== detailId)
+    metadata.details = (metadata.details || []).filter(
+      (d: any) => d.id !== detailId
+    )
     const { data: user, error: updateErr } = await sb
       .from('users')
       .update({

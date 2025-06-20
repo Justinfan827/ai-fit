@@ -1,9 +1,4 @@
-import {
-  Exercise,
-  Program,
-  programSchema,
-  WorkoutExercise,
-} from '@/lib/domain/workouts'
+import { Blocks, Program, programSchema } from '@/lib/domain/workouts'
 import { Maybe } from '@/lib/types/types'
 import { createServerClient } from '../../create-server-client'
 import { Database } from '../../database.types'
@@ -32,7 +27,7 @@ export async function resolveProgram(
       program_order: workout.program_order,
       program_id: workout.program_id,
       name: workout.name,
-      blocks: workout.blocks as WorkoutExercise[],
+      blocks: workout.blocks as Blocks,
     })),
   }
   const { data: programData, error: parseErr } =
@@ -72,7 +67,7 @@ export async function resolvePrograms(
           program_order: workout.program_order,
           program_id: workout.program_id,
           name: workout.name,
-          blocks: workout.blocks as WorkoutExercise[],
+          blocks: workout.blocks as Blocks,
         })),
       }
       const { data: programData, error: parseErr } =
@@ -97,14 +92,5 @@ export async function resolvePrograms(
   return {
     data: returnData,
     error: null,
-  }
-}
-
-export function asInternalExercise(
-  dbEx: Database['public']['Tables']['exercises']['Row']
-): Exercise {
-  return {
-    id: dbEx.id,
-    name: dbEx.name,
   }
 }

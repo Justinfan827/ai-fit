@@ -20,10 +20,10 @@ export const createClientAction = withActionAuthSchema(
   {
     schema,
   },
-  async ({ data, user }) => {
+  async ({ input, user }) => {
     const { data: userData, error } = await newTrainerRepo().createClient({
       trainerId: user.id,
-      newClient: data,
+      newClient: input,
     })
     if (error) {
       return {

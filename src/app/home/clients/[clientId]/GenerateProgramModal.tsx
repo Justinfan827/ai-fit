@@ -1,10 +1,7 @@
 'use client'
 
 import { createClientProgramAction } from '@/actions/create-client-program-action'
-import {
-  ProgramParametersForm,
-  ProgramParametersFormType,
-} from '@/components/forms/ProgramParametersForm'
+import { ProgramParametersFormType } from '@/components/forms/ProgramParametersForm'
 import { Icons } from '@/components/icons'
 import LoadingButton from '@/components/loading-button'
 import { Button } from '@/components/ui/button'
@@ -54,9 +51,9 @@ export default function GenerateProgramModal({
         programParameters: {
           lengthOfWorkout: parseInt(data.lengthOfWorkout),
           daysPerWeek: parseInt(data.daysPerWeek),
-          lengthOfProgram: parseInt(data.lengthOfProgram),
+          // lengthOfProgram: parseInt(data.lengthOfProgram),
           otherNotes: data.otherNotes,
-        },
+        } as any,
       })
     })
   }
@@ -71,11 +68,13 @@ export default function GenerateProgramModal({
       <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <DialogTitle>Generate {client.firstName}'s Program</DialogTitle>
+            <DialogTitle>
+              Generate {client.firstName}&apos;s Program
+            </DialogTitle>
             <Icons.sparkles className="h-5 w-5" />
           </div>
           <DialogDescription>
-            Review {client.firstName}'s profile and generate a custom
+            Review {client.firstName}&apos;s profile and generate a custom
             indvidualized program.
           </DialogDescription>
         </DialogHeader>
@@ -117,10 +116,10 @@ export default function GenerateProgramModal({
             <div className="space-y-3">
               <p>Program Parameters</p>
               <Separator className="" />
-              <ProgramParametersForm
+              {/* <ProgramParametersForm
                 formName="programParametersForm"
                 onSubmit={handleOnSubmit}
-              />
+              /> */}
             </div>
           </div>
         </ScrollArea>

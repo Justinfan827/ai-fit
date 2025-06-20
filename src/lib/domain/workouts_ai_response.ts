@@ -41,7 +41,7 @@ const workoutSchema = z.object({
   blocks: z.array(blockSchema).describe('Individual blocks of the workout'),
 })
 
-// This zod schema has certain restrictions! This 
+// This zod schema has certain restrictions! This
 // https://platform.openai.com/docs/guides/structured-outputs?api-mode=responses
 const generateProgramSchema = z.object({
   workouts: z.array(workoutSchema).describe('Array of workouts'),

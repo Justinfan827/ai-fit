@@ -4,9 +4,9 @@ import { User } from '@supabase/supabase-js'
 
 import { Client } from '@/lib/domain/clients'
 import {
+  Blocks,
   Program,
   Workout,
-  WorkoutExercise,
   WorkoutInstance,
   workoutSchema,
 } from '@/lib/domain/workouts'
@@ -146,7 +146,7 @@ export async function getUserWorkout(
     program_order: pData.program_order,
     program_id: pData.program_id,
     name: pData.name,
-    blocks: pData.blocks as WorkoutExercise[],
+    blocks: pData.blocks as Blocks,
   }
   const { data: wData, error: wErr } = workoutSchema.safeParse(resData)
   if (wErr) {
@@ -294,30 +294,4 @@ export async function getClientActiveProgram(): Promise<
     return { data: undefined, error: null }
   }
   return resolveProgram(pData[0])
-}
-
-export async function signInUserCode({ code }: { code: string }): Promise<
-  Maybe<{
-    userId: string
-  }>
-> {
-  const client = await createServerClient()
-  const { data, error } = await client
-    .from('user_codes')
-    .select('*, users (email)')
-    .eq('code', code)
-    .single()
-  if (error) {
-    return { data: null, error }
-  }
-
-  console.log({ da: data.users })
-  const { error: userErr } = await client.auth.signInWithPassword({
-    email: data.users?.email || '',
-    password: data.users?.email || '',
-  })
-  if (userErr) {
-    return { data: null, error: userErr }
-  }
-  return { data: { userId: data.user_id }, error: null }
 }

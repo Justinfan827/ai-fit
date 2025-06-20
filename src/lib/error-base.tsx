@@ -1,7 +1,7 @@
 export type ErrorLabels = 'userId' | 'vendorStatusCode'
 
 type Labels = Partial<Record<ErrorLabels, string | number>>
-type Annotations = Record<string, Object>
+type Annotations = Record<string, object>
 
 export type ErrorOptions = {
   // an original error that caused this error

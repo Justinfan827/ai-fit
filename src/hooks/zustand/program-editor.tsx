@@ -181,21 +181,21 @@ const useEditorStore = <T,>(selector: (state: EditorState) => T): T => {
   return useStore(store, selector)
 }
 
-const usezIsNewProgram = () => useEditorStore((state) => state.isNewProgram)
-const usezProgramCreatedAt = () => useEditorStore((state) => state.created_at)
-const usezProgramId = () => useEditorStore((state) => state.id)
-const usezProgramName = () => useEditorStore((state) => state.name)
-const usezProgramWorkouts = () => useEditorStore((state) => state.workouts)
-const usezProgramType = () => useEditorStore((state) => state.type)
-const usezEditorActions = () => useEditorStore((state) => state.actions)
+const useZIsNewProgram = () => useEditorStore((state) => state.isNewProgram)
+const useZProgramCreatedAt = () => useEditorStore((state) => state.created_at)
+const useZProgramId = () => useEditorStore((state) => state.id)
+const useZProgramName = () => useEditorStore((state) => state.name)
+const useZProgramWorkouts = () => useEditorStore((state) => state.workouts)
+const useZProgramType = () => useEditorStore((state) => state.type)
+const useZEditorActions = () => useEditorStore((state) => state.actions)
 
 export {
   EditorProgramProvider,
-  usezEditorActions,
-  usezIsNewProgram,
-  usezProgramCreatedAt,
-  usezProgramId,
-  usezProgramName,
-  usezProgramType,
-  usezProgramWorkouts,
+  useZEditorActions,
+  useZIsNewProgram,
+  useZProgramCreatedAt,
+  useZProgramId,
+  useZProgramName,
+  useZProgramType,
+  useZProgramWorkouts,
 }

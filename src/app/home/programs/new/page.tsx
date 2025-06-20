@@ -1,14 +1,11 @@
-import ProgramEditorContainer from '@/components/grid/ProgramEditorContainer'
 import Header from '@/components/header'
 import { PageLayout } from '@/components/page-layout'
-import { ProgramEditorSidebar } from '@/components/program-editor-sidebar'
 import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { SidebarProvider } from '@/components/ui/sidebar'
 import { getExercises } from '@/lib/supabase/server/database.operations.queries'
 
 export default async function Page() {
@@ -31,12 +28,12 @@ export default async function Page() {
           <BreadcrumbPage>New Program</BreadcrumbPage>
         </BreadcrumbItem>
       </Header>
-      <SidebarProvider>
+      {/* <SidebarProvider>
         <div className="w-full overflow-auto">
           <ProgramEditorContainer serverExercises={exercises.data} />
         </div>
         <ProgramEditorSidebar side="right" />
-      </SidebarProvider>
+      </SidebarProvider> */}
     </PageLayout>
   )
 }

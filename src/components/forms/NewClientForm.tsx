@@ -62,7 +62,7 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
                 <Input {...field} />
               </FormControl>
               <FormDescription className="sr-only">
-                Client's first name
+                Client&apos;s first name
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -80,7 +80,7 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
                 <Input {...field} />
               </FormControl>
               <FormDescription className="sr-only">
-                Client's last name
+                Client&apos;s last name
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -98,7 +98,7 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
                 <Input type="email" {...field} />
               </FormControl>
               <FormDescription className="sr-only">
-                Client's email address
+                Client&apos;s email address
               </FormDescription>
               <FormMessage />
             </FormItem>

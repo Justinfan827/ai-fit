@@ -1,6 +1,4 @@
-import ProgramEditorContainer from '@/components/grid/ProgramEditorContainer'
 import { Logo } from '@/components/icons'
-import { ProgramEditorSidebar } from '@/components/program-editor-sidebar'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -59,12 +57,12 @@ export default async function Page({
           </div>
           <SidebarTrigger className="-ml-1" />
         </header>
-        <ProgramEditorContainer
+        {/* <ProgramEditorContainer
           serverProgram={program.data}
           serverExercises={exercises.data}
-        />
+        /> */}
       </div>
-      <ProgramEditorSidebar side="right" />
+      {/* <ProgramEditorSidebar side="right" /> */}
     </SidebarProvider>
   )
 }

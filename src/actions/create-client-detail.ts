@@ -20,11 +20,11 @@ export const createClientDetailAction = withActionAuthSchema(
   {
     schema,
   },
-  async ({ data, user }) => {
+  async ({ input, user }) => {
     const { data: userData, error } =
       await newTrainerRepo().updateClientDetails({
         trainerId: user.id,
-        ...data,
+        ...input,
       })
     if (error) {
       return {
@@ -32,7 +32,7 @@ export const createClientDetailAction = withActionAuthSchema(
         error,
       }
     }
-    revalidatePath(`/home/clients/${data.clientId}`)
+    revalidatePath(`/home/clients/${input.clientId}`)
     return {
       data: userData,
       error: null,

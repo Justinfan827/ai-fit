@@ -53,7 +53,7 @@ export default async function ClientsPage() {
           actions={headerActions}
         />
         <PageContent>
-          <PageSection id="clients-container">
+          <PageSection>
             {clientsData.length === 0 ? (
               <EmptyStateCard
                 title="Add a client"

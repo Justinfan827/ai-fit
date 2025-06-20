@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { createBrowserClient } from '@/lib/supabase/create-browser-client'
 import { isClient } from '@/lib/supabase/utils'
+import { isLive } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
@@ -47,8 +48,8 @@ export function LoginForm() {
   const form = useForm<Inputs>({
     resolver: zodResolver(authSchema),
     defaultValues: {
-      email: 'user+1@test.com',
-      password: 'password123',
+      email: isLive() ? '' : 'user+1@test.com',
+      password: isLive() ? '' : 'password123',
     },
   })
 

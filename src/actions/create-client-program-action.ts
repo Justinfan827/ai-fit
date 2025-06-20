@@ -28,7 +28,7 @@ export const createClientProgramAction = withActionAuthSchema(
   {
     schema,
   },
-  async ({ data, user }) => {
+  async ({ input, user }) => {
     return {
       data: 'asdf',
       error: null,

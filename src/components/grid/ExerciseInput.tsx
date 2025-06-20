@@ -1,4 +1,4 @@
-import { usezEditorActions } from '@/hooks/zustand/program-editor'
+import { useZEditorActions } from '@/hooks/zustand/program-editor'
 import { Exercise } from '@/lib/domain/workouts'
 import {
   Combobox,
@@ -26,7 +26,7 @@ export default function ExerciseInput({
   onSelectExercise: (exercise: Exercise) => void
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
 }) {
-  const { search } = usezEditorActions()
+  const { search } = useZEditorActions()
   const [exercises, setExercises] = useState(() => search(value)) // Initialize with the current search results
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
