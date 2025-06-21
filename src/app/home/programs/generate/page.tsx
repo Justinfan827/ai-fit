@@ -1,6 +1,9 @@
 import { PageLayout } from '@/components/page-layout'
 import { createServerClient } from '@/lib/supabase/create-server-client'
-import { getCurrentUser } from '@/lib/supabase/server/database.operations.queries'
+import {
+  getCurrentUser,
+  getCurrentUserClients,
+} from '@/lib/supabase/server/database.operations.queries'
 import newTrainerRepo from '@/lib/supabase/server/users/trainer-repo'
 import { NextJSSearchParams } from '@/lib/types/types'
 import ClientPage from './client-page'
@@ -25,27 +28,50 @@ export default async function Page({
     return <div>error: no session</div>
   }
 
-  const [user, exercises, client] = await Promise.all([
+  // First get the required data
+  const [user, exercises, clients] = await Promise.all([
     getCurrentUser(),
     trainerRepo.getAllExercises(sessiondata.session.user.id),
-    ...(clientId ? [trainerRepo.getClientHomePageData(clientId)] : []),
+    getCurrentUserClients(),
   ])
+
   if (user.error) {
     return <div>error: {user.error.message}</div>
   }
   if (exercises.error) {
     return <div>error: {exercises.error.message}</div>
   }
-  if (client.error) {
-    return <div>error: {client.error.message}</div>
+  if (clients.error) {
+    return <div>error: {clients.error.message}</div>
   }
+
+  // Optionally get client data if clientId is provided
+  let clientData = undefined
+  if (clientId) {
+    const clientResult = await trainerRepo.getClientHomePageData(clientId)
+    if (clientResult.error) {
+      return <div>error: {clientResult.error.message}</div>
+    }
+    clientData = clientResult.data
+  }
+
   return (
     <PageLayout>
       <ClientPage
         baseExercises={exercises.data.base}
         trainerExercises={exercises.data.custom}
         trainerId={user.data.sbUser.id}
-        clientData={client.data}
+        clientData={clientData}
+        availableClients={clients.data.map((c) => ({
+          ...c,
+          programs: [],
+          age: 0,
+          liftingExperienceMonths: 0,
+          gender: '',
+          weightKg: 0,
+          heightCm: 0,
+          details: [],
+        }))} // Convert Client[] to ClientHomePage[]
       />
     </PageLayout>
   )

@@ -13,11 +13,13 @@ export default function ClientPage({
   clientData,
   baseExercises,
   trainerExercises,
+  availableClients = [],
 }: {
   trainerId: string
-  clientData: ClientHomePage
+  clientData?: ClientHomePage
   baseExercises: Exercise[]
   trainerExercises: Exercise[]
+  availableClients?: ClientHomePage[]
 }) {
   return (
     <EditorProgramProvider exercises={trainerExercises.concat(baseExercises)}>
@@ -36,6 +38,7 @@ export default function ClientPage({
             exercises={trainerExercises}
             trainerId={trainerId}
             client={clientData}
+            availableClients={availableClients}
             side="right"
           />
         </SidebarProvider>

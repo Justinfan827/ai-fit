@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import * as React from 'react'
 
 import { Exercise } from '@/lib/domain/workouts'
 import { ExerciseTable } from './ExerciseTable'
@@ -15,36 +16,70 @@ import { ExerciseTable } from './ExerciseTable'
 export function ExerciseSelectionDialog({
   exercises,
   setExercises,
+  selectedExercises,
+  allExercises,
+  children,
 }: {
   exercises: Exercise[]
   setExercises: (exercises: Exercise[]) => void
+  selectedExercises: Exercise[]
+  allExercises: Exercise[]
+  children: React.ReactNode
 }) {
-  const exerciseCount = exercises.length
+  const [selectedExerciseIds, setSelectedExerciseIds] = React.useState<
+    Record<string, boolean>
+  >(() => {
+    const initial: Record<string, boolean> = {}
+    selectedExercises.forEach((e) => {
+      initial[e.id] = true
+    })
+    return initial
+  })
+
+  // Sync local selection state if selectedExercises prop changes
+  React.useEffect(() => {
+    const updated: Record<string, boolean> = {}
+    selectedExercises.forEach((e) => {
+      updated[e.id] = true
+    })
+    setSelectedExerciseIds(updated)
+  }, [selectedExercises])
+
+  const handleSelectionChange = (selectedIds: Record<string, boolean>) => {
+    setSelectedExerciseIds(selectedIds)
+  }
+
+  const handleSave = () => {
+    const newExercises = allExercises.filter((e) => selectedExerciseIds[e.id])
+    setExercises(newExercises)
+  }
+
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline">{exerciseCount} Exercises Selected</Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
+          <DialogTitle>Select Exercises</DialogTitle>
           <DialogDescription>
             Choose the exercises you want to include in the generated program.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          {/* <ExerciseCombobox exercises={exercises} /> */}
           <ExerciseTable
-            data={exercises.map((e) => ({
+            data={allExercises.map((e) => ({
               id: e.id,
               name: e.name,
               muscleGroup: e.muscleGroup,
               isCustom: e.ownerId !== null,
             }))}
+            selectedRows={selectedExerciseIds}
+            onSelectionChange={handleSelectionChange}
           />
         </div>
         <DialogFooter>
-          <Button type="submit">Select {exerciseCount} Exercises</Button>
+          <Button onClick={handleSave}>
+            Select {Object.keys(selectedExerciseIds).length} Exercises
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

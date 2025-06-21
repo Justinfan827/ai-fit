@@ -3,6 +3,7 @@
 import {
   ColumnDef,
   ColumnFiltersState,
+  RowSelectionState,
   SortingState,
   VisibilityState,
   flexRender,
@@ -16,6 +17,7 @@ import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
 import * as React from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -43,28 +45,28 @@ export type TableExercise = {
 }
 
 export const columns: ColumnDef<TableExercise>[] = [
-  // {
-  //   id: 'select',
-  //   header: ({ table }) => (
-  //     <Checkbox
-  //       checked={
-  //         table.getIsAllPageRowsSelected() ||
-  //         (table.getIsSomePageRowsSelected() && 'indeterminate')
-  //       }
-  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-  //       aria-label="Select all"
-  //     />
-  //   ),
-  //   cell: ({ row }) => (
-  //     <Checkbox
-  //       checked={row.getIsSelected()}
-  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-  //       aria-label="Select row"
-  //     />
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: 'name',
     header: ({ column }) => {
@@ -136,14 +138,33 @@ export const columns: ColumnDef<TableExercise>[] = [
   },
 ]
 
-export function ExerciseTable({ data }: { data: TableExercise[] }) {
+export function ExerciseTable({
+  data,
+  selectedRows,
+  onSelectionChange,
+}: {
+  data: TableExercise[]
+  selectedRows: RowSelectionState
+  onSelectionChange: (selectedIds: RowSelectionState) => void
+}) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
+  const [pagination] = React.useState({ pageIndex: 0, pageSize: 7 })
+
+  const handleSelectionChange = (updaterOrValue: unknown) => {
+    if (typeof updaterOrValue === 'function') {
+      const updater = updaterOrValue as (
+        old: RowSelectionState
+      ) => RowSelectionState
+      onSelectionChange(updater(selectedRows))
+    } else {
+      onSelectionChange(updaterOrValue as RowSelectionState)
+    }
+  }
 
   const table = useReactTable({
     data,
@@ -155,12 +176,14 @@ export function ExerciseTable({ data }: { data: TableExercise[] }) {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: handleSelectionChange,
+    enableRowSelection: true,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
+      rowSelection: selectedRows,
+      pagination,
     },
   })
 

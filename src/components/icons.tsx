@@ -40,6 +40,7 @@ import {
   Repeat2,
   Scale,
   Search,
+  Send,
   Settings,
   Sparkles,
   Undo2,
@@ -49,6 +50,7 @@ import {
 } from 'lucide-react'
 
 export const Icons = {
+  send: Send,
   sparkles: Sparkles,
   gripVertical: GripVertical,
   alertCircle: AlertCircle,
