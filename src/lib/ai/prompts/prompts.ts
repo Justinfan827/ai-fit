@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 export const systemPromptv1 = `
 You are a fitness expert and applied biomechanics specialist focused on designing highly personalized,
 structured workout programs for clients. Your primary goal is to help coaches and trainers create safe, effective,
@@ -15,7 +17,7 @@ Key Responsibilities
      - Reps
      - Weight
      - Rest time
-   - These variables should be adjusted based on the client’s fitness level, goals, and recovery capacity.
+   - These variables should be adjusted based on the client's fitness level, goals, and recovery capacity.
 
 3. Program Structure
    - The output MUST match the requested number of training days per week.
@@ -107,3 +109,100 @@ Here are a couple of additional rules.
 2. DO NOT generate generic exercises like 'Dynamic warm ups'. Each exercise MUST be specific.
 3. sets, reps, weight, rpe, and rest should be filled out for each exercise.
 `
+
+// Types for context items
+const clientContextSchemaInternal = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  age: z.number().optional(),
+  weightKg: z.number().optional(),
+  heightCm: z.number().optional(),
+  liftingExperienceMonths: z.number().optional(),
+  gender: z.string().optional(),
+  details: z
+    .array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        description: z.string(),
+      })
+    )
+    .optional(),
+})
+
+const exerciseContextSchemaInternal = z.object({
+  id: z.string(),
+  name: z.string(),
+  category: z.string().optional(),
+  equipment: z.string().optional(),
+  muscleGroups: z.array(z.string()).optional(),
+})
+
+const contextItemSchemaInternal = z.object({
+  type: z.enum(['client', 'exercises']),
+  data: z.union([
+    clientContextSchemaInternal,
+    z.object({
+      exercises: z.array(exerciseContextSchemaInternal),
+      title: z.string().optional(),
+    }),
+  ]),
+})
+
+export type ContextItem = z.infer<typeof contextItemSchemaInternal>
+
+/**
+ * Builds the system prompt by combining the base `systemPromptv1` with any client or exercise context.
+ *
+ * The contextItems must match the shape defined by `ContextItem`. If no context is provided
+ * the base prompt is returned with a note indicating that general fitness advice can be given.
+ */
+export function buildSystemPrompt(contextItems: ContextItem[] = []): string {
+  const contextSections: string[] = []
+
+  contextItems.forEach((item) => {
+    if (item.type === 'client') {
+      const clientData = item.data as z.infer<
+        typeof clientContextSchemaInternal
+      >
+
+      contextSections.push(`
+Current Client Context:
+- Name: ${clientData.firstName}
+- Age: ${clientData.age ?? 'Not specified'}
+- Weight: ${clientData.weightKg ? `${clientData.weightKg} kg` : 'Not specified'}
+- Height: ${clientData.heightCm ? `${clientData.heightCm} cm` : 'Not specified'}
+- Lifting Experience: ${clientData.liftingExperienceMonths ? `${clientData.liftingExperienceMonths} months` : 'Not specified'}
+- Gender: ${clientData.gender ?? 'Not specified'}
+
+Client Details:
+${
+  clientData.details?.map((d) => `- ${d.title}: ${d.description}`).join('\n') ??
+  'No additional details provided'
+}`)
+    } else if (item.type === 'exercises') {
+      const exerciseData = item.data as {
+        exercises: z.infer<typeof exerciseContextSchemaInternal>[]
+        title?: string
+      }
+
+      contextSections.push(`
+${exerciseData.title ?? "Trainer's Preferred Exercises"}:
+${exerciseData.exercises
+  .map(
+    (ex) =>
+      `- ${ex.name}${ex.category ? ` (${ex.category})` : ''}${ex.equipment ? ` - ${ex.equipment}` : ''}`
+  )
+  .join('\n')}`)
+    }
+  })
+
+  const contextString =
+    contextSections.length > 0
+      ? contextSections.join('\n\n')
+      : 'No specific context provided - you can help with general fitness advice and program design.'
+
+  return `${systemPromptv1}
+
+${contextString}`
+}

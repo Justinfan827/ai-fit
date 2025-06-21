@@ -1,5 +1,6 @@
 'use client'
 
+import { Markdown } from '@/components/markdown'
 import { useChat } from '@ai-sdk/react'
 import { Dumbbell, Plus, UserIcon, X } from 'lucide-react'
 import * as React from 'react'
@@ -244,7 +245,7 @@ export function ProgramEditorSidebar({
 
                   {message.role === 'assistant' && (
                     <div className="text-primary flex flex-col gap-2 text-sm leading-relaxed">
-                      {message.content}
+                      <Markdown>{message.content}</Markdown>
                     </div>
                   )}
 
