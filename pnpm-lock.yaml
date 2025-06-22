@@ -144,6 +144,9 @@ dependencies:
   '@tiptap/starter-kit':
     specifier: ^2.9.1
     version: 2.11.7
+  '@types/common-tags':
+    specifier: ^1.8.4
+    version: 1.8.4
   '@types/node':
     specifier: 22.9.0
     version: 22.9.0
@@ -180,6 +183,9 @@ dependencies:
   commander:
     specifier: ^12.1.0
     version: 12.1.0
+  common-tags:
+    specifier: ^1.8.2
+    version: 1.8.2
   date-fns:
     specifier: ^4.1.0
     version: 4.1.0
@@ -3741,6 +3747,10 @@ packages:
     dev: false
     optional: true
 
+  /@types/common-tags@1.8.4:
+    resolution: {integrity: sha512-S+1hLDJPjWNDhcGxsxEbepzaxWqURP/o+3cP4aa2w7yBXgdcmKGQtZzP8JbyfOd0m+33nh+8+kvxYE2UJtBDkg==}
+    dev: false
+
   /@types/cookie@0.6.0:
     resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
     dev: false
@@ -4614,6 +4624,11 @@ packages:
   /commander@12.1.0:
     resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
     engines: {node: '>=18'}
+    dev: false
+
+  /common-tags@1.8.2:
+    resolution: {integrity: sha512-gk/Z852D2Wtb//0I+kRFNKKE9dIIVirjoqPoA1wJU+XePVXZfGeBpk45+A1rKO4Q43prqWBNY/MiIeRLbPWUaA==}
+    engines: {node: '>=4.0.0'}
     dev: false
 
   /concat-map@0.0.1:

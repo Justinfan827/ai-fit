@@ -10,7 +10,6 @@ import { Exercise } from '@/lib/domain/workouts'
 
 export default function ClientPage({
   trainerId,
-  clientData,
   baseExercises,
   trainerExercises,
   availableClients = [],
@@ -37,7 +36,6 @@ export default function ClientPage({
           <ProgramEditorSidebar
             exercises={trainerExercises}
             trainerId={trainerId}
-            client={clientData}
             availableClients={availableClients}
             side="right"
           />

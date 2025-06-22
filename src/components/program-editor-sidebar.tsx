@@ -12,6 +12,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { useZProgramWorkouts } from '@/hooks/zustand/program-editor'
 import { ClientHomePage } from '@/lib/domain/clients'
 import { Exercise } from '@/lib/domain/workouts'
 import { cn } from '@/lib/utils'
@@ -51,6 +52,7 @@ export function ProgramEditorSidebar({
   availableClients = [],
   ...props
 }: ProgramEditorSidebarProps) {
+  const workouts = useZProgramWorkouts()
   const [exercises, setExercises] = React.useState<Exercise[]>(initialExercises)
   const [contextItems, setContextItems] = React.useState<ContextItem[]>(() => {
     return [
@@ -76,25 +78,32 @@ export function ProgramEditorSidebar({
                 title: item.label,
               },
       })),
+      workouts,
     },
     initialMessages: [],
   })
+  console.log(messages)
 
   const scrollAreaRef = React.useRef<HTMLDivElement>(null)
+  const bottomRef = React.useRef<HTMLDivElement>(null)
 
-  // Auto-scroll to bottom when new messages arrive
-  React.useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector(
-        '[data-radix-scroll-area-viewport]'
-      )
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight
-      }
+  // Utility function to scroll to bottom
+  const scrollToBottom = React.useCallback(() => {
+    if (bottomRef.current) {
+      // Ensure we wait until next paint so DOM is up to date
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+      })
     }
-  }, [messages])
+  }, [])
+
+  // Auto-scroll to bottom when new messages arrive or when typing
+  React.useEffect(() => {
+    scrollToBottom()
+  }, [messages, status, scrollToBottom])
 
   const addClientContext = (selectedClient: ClientHomePage) => {
+    console.log('adding client context', selectedClient)
     const clientItem: ContextItem = {
       id: `client-${selectedClient.id}`,
       type: 'client',
@@ -264,6 +273,9 @@ export function ProgramEditorSidebar({
                   </div>
                 </div>
               )}
+
+              {/* bottom sentinel to keep viewport anchored */}
+              <div ref={bottomRef} />
             </div>
           </ScrollArea>
         </div>
