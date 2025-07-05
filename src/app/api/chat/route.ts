@@ -3,112 +3,106 @@ import {
   buildSystemPrompt,
   buildWorkoutModificationPrompt,
 } from '@/lib/ai/prompts/prompts'
-import { workoutsSchema } from '@/lib/domain/workouts'
+import { createWorkoutChanges } from '@/lib/ai/tools/create-workout-changes'
 import { aiWorkoutDiffSchema } from '@/lib/types/workout-diff'
 import { openai } from '@ai-sdk/openai'
 import {
   convertToCoreMessages,
-  generateObject,
+  createDataStream,
+  DataStreamWriter,
   generateText,
   streamObject,
   streamText,
 } from 'ai'
-import { z } from 'zod'
+import { requestSchema } from './schema'
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30
-
-const messageSchema = z.object({
-  role: z.enum(['user', 'assistant']),
-  content: z.string(),
-})
-
-const clientContextSchema = z.object({
-  id: z.string(),
-  firstName: z.string(),
-  age: z.number().optional(),
-  weightKg: z.number().optional(),
-  heightCm: z.number().optional(),
-  liftingExperienceMonths: z.number().optional(),
-  gender: z.string().optional(),
-  details: z
-    .array(
-      z.object({
-        id: z.string(),
-        title: z.string(),
-        description: z.string(),
-      })
-    )
-    .optional(),
-})
-
-const exerciseContextSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  category: z.string().optional(),
-  equipment: z.string().optional(),
-  muscleGroups: z.array(z.string()).optional(),
-})
-
-const contextItemSchema = z.object({
-  type: z.enum(['client', 'exercises']),
-  data: z.union([
-    clientContextSchema,
-    z.object({
-      exercises: z.array(exerciseContextSchema),
-      title: z.string().optional(),
-    }),
-  ]),
-})
-
-const requestSchema = z.object({
-  messages: z.array(messageSchema),
-  contextItems: z.array(contextItemSchema).optional(),
-  workouts: workoutsSchema,
-})
-
-// Intent classification schema
-const intentSchema = z.object({
-  type: z.enum(['general', 'workout_modification']),
-  reasoning: z.string(),
-  modificationDetails: z
-    .object({
-      targetWorkout: z.string().optional(),
-      requestedChanges: z.array(z.string()).optional(),
-    })
-    .optional(),
-})
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { messages, contextItems = [], workouts } = requestSchema.parse(body)
-
+    const systemPrompt = buildSystemPrompt(contextItems, workouts)
+    const coreMessages = convertToCoreMessages(messages)
     const lastMessage = messages[messages.length - 1]
 
-    // Step 1: Classify intent
-    const { object: intent } = await generateObject({
-      model: openai('gpt-4o-mini'),
-      schema: intentSchema,
-      prompt: `Classify this user message in the context of fitness coaching:
-      
-Message: "${lastMessage.content}"
+    //     // Step 1: Classify intent
+    //     const { object: intent } = await generateObject({
+    //       model: openai('gpt-4o-mini'),
+    //       schema: intentSchema,
+    //       prompt: `Classify this user message in the context of fitness coaching:
 
-Context: The user is a fitness coach working with a client program that contains ${workouts.length} workout(s).
+    // Message: "${lastMessage.content}"
 
-Determine if this is:
-- "general": Questions about the program, client info, exercises, or general fitness advice
-- "workout_modification": Requests to edit, modify, add, or remove exercises/sets/reps from workouts
+    // Context: The user is a fitness coach working with a client program that contains ${workouts.length} workout(s).
 
-If it's a workout modification, identify what they want to change.`,
-    })
+    // Determine if this is:
+    // - "general": Questions about the program, client info, exercises, or general fitness advice
+    // - "workout_modification": Requests to edit, modify, add, or remove exercises/sets/reps from workouts
+
+    // If it's a workout modification, identify what they want to change.`,
+    //     })
 
     // Build system prompt
-    const systemPrompt = buildSystemPrompt(contextItems, workouts)
+    console.log('System prompt:')
+    console.log('--------------------------------')
+    console.log(systemPrompt)
+    console.log('--------------------------------')
+    console.log('Last message:')
+    console.log('--------------------------------')
+    console.log(lastMessage.content)
+    console.log('--------------------------------')
+    console.log('Core messages:')
+    console.log('--------------------------------')
+    console.log(coreMessages)
+    console.log('--------------------------------')
+
+    const stream = createDataStream({
+      execute: async (dataStream: DataStreamWriter) => {
+        try {
+          const result = streamText({
+            model: openai('gpt-4o-mini'),
+            system: systemPrompt,
+            messages: coreMessages,
+            tools: {
+              createWorkoutChanges: createWorkoutChanges({
+                messages: coreMessages,
+                contextItems,
+                existingWorkouts: workouts,
+                dataStream,
+              }),
+            },
+            maxSteps: 3,
+            onFinish: async ({ steps }) => {
+              console.log('--------------------------------')
+              console.log('On finish steps:')
+              console.log('--------------------------------')
+              console.log(JSON.stringify(steps, null, 2))
+              console.log('--------------------------------')
+            },
+            onError: (error) => {
+              console.log('--------------------------------')
+              console.log('Error:')
+              console.log('--------------------------------')
+              console.log(error)
+              console.log('--------------------------------')
+            },
+          })
+          result.mergeIntoDataStream(dataStream)
+        } catch (error) {
+          console.log('--------------------------------')
+          console.log('Stream error:')
+          console.log('--------------------------------')
+          console.log(JSON.stringify(error, null, 2))
+          console.log('--------------------------------')
+        }
+      },
+    })
+    return new Response(stream)
 
     // Step 2: Route based on intent
     if (intent.type === 'general') {
-      // General chat - use existing streaming approach
       const result = streamText({
         model: openai('gpt-4o-mini'),
         system: systemPrompt,

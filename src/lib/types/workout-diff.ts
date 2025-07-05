@@ -48,12 +48,14 @@ export const workoutDiffSchema = z.object({
   summary: z.string().optional(), // short natural-language description
 })
 
+export const gridDiffSchema = z.array(gridChangeSchema)
 // AI schema to pass to LLM
 export const aiWorkoutDiffSchema = z.object({
-  diff: z.array(gridChangeSchema),
+  diff: gridDiffSchema,
   summary: z.string(),
 })
 
+export type GridDiff = z.infer<typeof gridDiffSchema>
 export type AiWorkoutDiff = z.infer<typeof aiWorkoutDiffSchema>
 
 // Export types

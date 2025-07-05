@@ -20,7 +20,9 @@ import {
   useZProgramName,
   useZProgramType,
   useZProgramWorkouts,
+  useZProposedChanges,
 } from '@/hooks/zustand/program-editor'
+import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
 import { Program, programSchema, Workout } from '@/lib/domain/workouts'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -48,6 +50,19 @@ export default function ProgramEditor() {
     return acc
   }, [] as Workout[][])
 
+  const proposedChanges = useZProposedChanges()
+  // group proposed changes by workout index
+  const proposedChangesByWorkoutIndex = proposedChanges.reduce(
+    (acc, change) => {
+      if (!acc[change.workoutIndex]) {
+        acc[change.workoutIndex] = []
+      }
+      acc[change.workoutIndex].push(change)
+      return acc
+    },
+    {} as Record<number, WorkoutChange[]>
+  )
+  console.log(proposedChangesByWorkoutIndex)
   const isNewProgram = useZIsNewProgram()
 
   // update grid when ai program gets generated
@@ -325,6 +340,7 @@ export default function ProgramEditor() {
                               </div>
                             </div>
                             <WorkoutGrid
+                              proposedChanges={proposedChangesByWorkoutIndex[workoutIdx]}
                               workout={workout}
                               columns={defaultColumns}
                               onWorkoutChange={(updatedWorkout) => {

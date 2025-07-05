@@ -88,9 +88,7 @@ export type ContextItem = z.infer<typeof contextItemSchemaInternal>
 /**
  * Formats exercise context into a standardized XML-tagged section
  */
-export function formatExerciseContext(
-  contextItems: ContextItem[],
-): string {
+export function formatExerciseContext(contextItems: ContextItem[]): string {
   const exerciseContext = contextItems
     .filter((item) => item.type === 'exercises')
     .map((item) => {
@@ -283,81 +281,72 @@ Analyze the current program, make the requested modifications while maintaining 
  */
 export function buildDiffGenerationPrompt(
   workouts: Workouts,
-  updatedWorkoutText: string,
-  contextItems: ContextItem[] = []
+  updatedWorkoutText: string
 ): string {
-  // Use shared utility function for exercise context formatting
-  const exerciseContextText = formatExerciseContext(
-    contextItems,
-    'AVAILABLE_EXERCISES'
-  )
+  return `
+You are given an original workout program in json and text format, and an updated workout program in text format.
 
-  return `You are a data transformation specialist. Your job is to analyze two workout programs (original and updated) and generate a structured diff representing the exact changes made.
+<ORIGINAL_WORKOUT_JSON>
+${JSON.stringify(workouts, null, 2)}
+</ORIGINAL_WORKOUT_JSON>
 
-## CRITICAL REQUIREMENT - Exercise IDs
-- The updated workout text should contain real exercise IDs (UUIDs) from the trainer's exercise database
-- When generating exercise substitutions or additions, use the exact exercise IDs provided in the updated workout text
-- NEVER generate placeholder IDs like "NEW_EXERCISE_ID" in the final diff output
-- All exercise IDs in the diff must be valid UUIDs that match the exercises in the updated workout
-- Reference the <AVAILABLE_EXERCISES> section below to validate exercise IDs
-
-${exerciseContextText}
-
-## Your Task
-Compare the original and updated workout programs line by line and identify all differences. Generate a structured diff that captures every modification, addition, and removal.
-
-## Guidelines for Analysis
-- Compare workouts line by line systematically
-- Identify changes in sets, reps, weight, rest periods, and notes
-- Detect exercise substitutions (different exercise names/IDs)
-- Find added or removed exercise blocks
-- Ensure all changes are captured with precise coordinates
-
-## Change Types to Generate
-
-### Cell Changes (type: "cell")
-For modifications to existing exercise parameters:
-- **workoutId**: The ID of the workout being modified
-- **blockIndex**: Zero-based index of the block within the workout
-- **exerciseIndex**: Zero-based index within circuit (undefined for exercise blocks)
-- **field**: One of "sets", "reps", "weight", "rest", "notes"
-- **oldValue**: Previous value (can be undefined for new fields)
-- **newValue**: Updated value
-
-### Exercise Substitutions (type: "exercise")
-For replacing one exercise with another:
-- **workoutId**: The ID of the workout being modified
-- **blockIndex**: Zero-based index of the block within the workout
-- **exerciseIndex**: Zero-based index within circuit (undefined for exercise blocks)
-- **oldExerciseId**: Previous exercise ID (can be undefined for new exercises)
-- **newExerciseId**: New exercise ID - MUST be a valid UUID from the updated workout text, never a placeholder
-
-### Block Operations
-- **block_add**: Adding new exercise blocks
-- **block_remove**: Removing existing exercise blocks
-
-## Coordinate System
-- Workouts are identified by their ID strings
-- Blocks are indexed starting from 0 within each workout
-- For circuit blocks, exercises within the circuit are indexed starting from 0
-- For single exercise blocks, exerciseIndex should be undefined
-
-## Output Requirements
-Generate a diff object with:
-- **id**: A unique UUID for this diff
-- **changes**: Array of GridChange objects representing all modifications
-- **summary**: Brief description of what was changed
-- **workoutHash**: Optional hash for validation (you can omit this)
-
-Be precise and systematic in your analysis. Every difference between the original and updated workouts should be captured in the changes array.
-
-<ORIGINAL_WORKOUT>
-${formatWorkoutsAsText(workouts)}
-</ORIGINAL_WORKOUT>
-
-<UPDATED_WORKOUT>
+<UPDATED_WORKOUT_TEXT>
 ${updatedWorkoutText}
-</UPDATED_WORKOUT>
+</UPDATED_WORKOUT_TEXT>
 
-Generate a comprehensive diff that captures all changes between these two workout versions.`
+Return a json array of changes that were made to the original workout program. Make sure that the json adheres to the schema provided.
+
+There are 6 different types of changes that can be made to the workout program:
+- replace-block
+- add-block
+- remove-block
+- add-circuit-exercise
+- remove-circuit-exercise
+- replace-circuit-exercise
+
+Here is an example of the different types of changes that can be made to the workout program:
+
+{
+  "type": "replace-block",
+  "workoutIndex": 0,
+  "blockIndex": 0,
+  "block": ... // The block to replace with
+}
+
+{
+  "type": "add-block",
+  "workoutIndex": 0,
+  "afterBlockIndex": 0,
+  "block": ... // The block to add
+}
+
+{
+  "type": "remove-block",
+  "workoutIndex": 0,
+  "blockIndex": 0
+}
+
+{
+  "type": "add-circuit-exercise",
+  "workoutIndex": 0,
+  "circuitBlockIndex": 0,
+  "afterExerciseIndex": 0,
+  "exercise": ... // The exercise to add
+}
+
+{
+  "type": "remove-circuit-exercise",
+  "workoutIndex": 0,
+  "circuitBlockIndex": 0,
+  "exerciseIndex": 0
+}
+
+{
+  "type": "replace-circuit-exercise",
+  "workoutIndex": 0,
+  "circuitBlockIndex": 0,
+  "exerciseIndex": 0,
+  "exercise": ... // The exercise to replace with
+}
+`
 }

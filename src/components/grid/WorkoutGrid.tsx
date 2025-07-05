@@ -15,6 +15,7 @@ import {
 } from '@/lib/domain/workouts'
 import { cn } from '@/lib/utils'
 import { Column } from './columns'
+import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
 
 // Utility function for getting row-specific styling
 function getRowStyles(cell: Cell) {
@@ -99,12 +100,14 @@ interface Cell {
 }
 
 interface WorkoutGridProps {
+  proposedChanges: WorkoutChange[]
   workout: Workout
   onWorkoutChange: (workout: Workout) => void
   columns: Column[]
 }
 
 export default function WorkoutGrid({
+  proposedChanges,
   workout,
   onWorkoutChange,
   columns,

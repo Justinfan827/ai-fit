@@ -16,6 +16,7 @@ import { useZProgramWorkouts } from '@/hooks/zustand/program-editor'
 import { ClientHomePage } from '@/lib/domain/clients'
 import { Exercise } from '@/lib/domain/workouts'
 import { cn } from '@/lib/utils'
+import { DataStreamHandler } from './DataStreamHandler'
 import { ExerciseSelectionDialog } from './forms/ExerciseSelectionDialog'
 import { Icons } from './icons'
 import { Avatar, AvatarFallback } from './ui/avatar'
@@ -65,7 +66,14 @@ export function ProgramEditorSidebar({
     ]
   })
 
-  const { messages, input, handleInputChange, handleSubmit, status } = useChat({
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    status,
+    data: dataStream,
+  } = useChat({
     api: '/api/chat',
     body: {
       contextItems: contextItems.map((item) => ({
@@ -82,7 +90,6 @@ export function ProgramEditorSidebar({
     },
     initialMessages: [],
   })
-  console.log(messages)
 
   const scrollAreaRef = React.useRef<HTMLDivElement>(null)
   const bottomRef = React.useRef<HTMLDivElement>(null)
@@ -233,6 +240,7 @@ export function ProgramEditorSidebar({
       </SidebarHeader>
       <SidebarContent className="flex flex-col">
         {/* Chat Messages Area */}
+        <DataStreamHandler dataStream={dataStream} />
         <div className="flex min-h-0 flex-1 flex-col">
           <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
             <div className="space-y-4 py-4">
@@ -254,7 +262,41 @@ export function ProgramEditorSidebar({
 
                   {message.role === 'assistant' && (
                     <div className="text-primary flex flex-col gap-2 text-sm leading-relaxed">
-                      <Markdown>{message.content}</Markdown>
+                      {status === 'streaming' && (
+                        <div className="text-muted-foreground flex animate-pulse items-center gap-2">
+                          <Icons.sparkles className="size-3" />
+                          <span>Thinking...</span>
+                        </div>
+                      )}
+                      {status === 'streaming' && message.parts ? (
+                        // Handle streaming parts
+                        message.parts.map((part, index) => {
+                          if (part.type === 'tool-invocation') {
+                            const toolInvocation = part.toolInvocation
+                            return (
+                              <div
+                                key={`tool-${index}`}
+                                className="text-muted-foreground flex animate-pulse items-center gap-2"
+                              >
+                                <Icons.wrench className="size-3" />
+                                <span>
+                                  Running {toolInvocation.toolName}...
+                                </span>
+                              </div>
+                            )
+                          }
+                          if (part.type === 'text') {
+                            return (
+                              <Markdown key={`text-${index}`}>
+                                {part.text}
+                              </Markdown>
+                            )
+                          }
+                          return null
+                        })
+                      ) : (
+                        <Markdown>{message.content}</Markdown>
+                      )}
                     </div>
                   )}
 

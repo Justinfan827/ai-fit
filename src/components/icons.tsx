@@ -45,6 +45,7 @@ import {
   Sparkles,
   Undo2,
   UserPlus,
+  Wrench,
   X,
   XCircle,
 } from 'lucide-react'
@@ -98,6 +99,7 @@ export const Icons = {
   view: Eye,
   x: X,
   xCircle: XCircle,
+  wrench: Wrench,
 }
 
 // guide for logos

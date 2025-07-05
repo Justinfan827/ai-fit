@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { create, StoreApi, UseBoundStore, useStore } from 'zustand'
 
+import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
 import {
   Block,
   Blocks,
@@ -22,6 +23,7 @@ type ProgramState = {
   name: string
   type: 'weekly' | 'splits'
   workouts: Workouts
+  proposedChanges: WorkoutChange[]
 }
 
 interface EditorState extends ProgramState {
@@ -35,6 +37,7 @@ type WorkoutActions = {
   setProgramType: (pType: 'weekly' | 'splits') => void
   setProgramName: (name: string) => void
   setWorkouts: (workouts: Workouts) => void
+  setProposedChanges: (changes: WorkoutChange[]) => void
 }
 
 const newInitialProgram = (exercises: Exercise[]): Program => {
@@ -132,6 +135,26 @@ const EditorProgramProvider = ({
       exercises,
       created_at: program.created_at,
       name: program.name,
+      proposedChanges: [
+        {
+          type: 'add-block',
+          workoutIndex: 0,
+          afterBlockIndex: 0,
+          block: {
+            type: 'exercise',
+            exercise: {
+              id: exercises[0].id,
+              name: exercises[0].name,
+              metadata: {
+                sets: '3',
+                reps: '12',
+                weight: '100',
+                rest: '30s',
+              },
+            },
+          },
+        },
+      ],
       id: program.id,
       isNewProgram,
       type: program.type,
@@ -139,6 +162,9 @@ const EditorProgramProvider = ({
       actions: {
         setWorkouts: (workouts: Workouts) => {
           set({ workouts })
+        },
+        setProposedChanges: (changes: WorkoutChange[]) => {
+          set({ proposedChanges: changes })
         },
         setProgramType: (pType: 'weekly' | 'splits') => {
           set({ type: pType })
@@ -185,6 +211,8 @@ const useZIsNewProgram = () => useEditorStore((state) => state.isNewProgram)
 const useZProgramCreatedAt = () => useEditorStore((state) => state.created_at)
 const useZProgramId = () => useEditorStore((state) => state.id)
 const useZProgramName = () => useEditorStore((state) => state.name)
+const useZProposedChanges = () =>
+  useEditorStore((state) => state.proposedChanges)
 const useZProgramWorkouts = () => useEditorStore((state) => state.workouts)
 const useZProgramType = () => useEditorStore((state) => state.type)
 const useZEditorActions = () => useEditorStore((state) => state.actions)
@@ -198,4 +226,5 @@ export {
   useZProgramName,
   useZProgramType,
   useZProgramWorkouts,
+  useZProposedChanges,
 }
