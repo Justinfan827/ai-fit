@@ -122,6 +122,7 @@ interface Cell {
   originalBlockIndex?: number
   readOnly?: boolean
   isCircuitExercise?: boolean
+  exerciseIndexInCircuit?: number // Add this property
   // Proposed change properties
   isProposed?: boolean
   proposedChangeIndex?: number
@@ -426,12 +427,8 @@ function GridContentRows({
         },
       }
 
-      // Find the position within the circuit's exercises array
-      const exerciseIndexInCircuit = findExerciseIndexInCircuit(
-        workout,
-        rowIndex,
-        circuitBlockIndex
-      )
+      // Get the exercise index from the current cell
+      const exerciseIndexInCircuit = currentCell.exerciseIndexInCircuit
 
       // Create updated circuit block
       const updatedCircuitBlock = { ...circuitBlock }
@@ -440,7 +437,7 @@ function GridContentRows({
 
       // Insert the new exercise after the current exercise in the circuit
       const insertIndex =
-        exerciseIndexInCircuit >= 0
+        exerciseIndexInCircuit !== undefined && exerciseIndexInCircuit >= 0
           ? exerciseIndexInCircuit + 1
           : updatedExercises.length
       updatedExercises.splice(insertIndex, 0, newExercise)
@@ -806,7 +803,7 @@ function createGridFromWorkout(workout: Workout, columns: Column[]): Cell[][] {
       currentRowIndex++
 
       // Circuit exercises
-      block.circuit.exercises.forEach((exerciseBlock) => {
+      block.circuit.exercises.forEach((exerciseBlock, exerciseIndex) => {
         const exerciseRow = columns.map((col, colIndex) => ({
           type:
             col.field === 'exercise_name'
@@ -821,6 +818,7 @@ function createGridFromWorkout(workout: Workout, columns: Column[]): Cell[][] {
           blockType: 'exercise' as const,
           originalBlockIndex: blockIndex,
           isCircuitExercise: true,
+          exerciseIndexInCircuit: exerciseIndex, // Store the index
         }))
         grid.push(exerciseRow)
         currentRowIndex++
@@ -951,6 +949,7 @@ function createGridFromWorkoutWithChanges(
           blockType: 'exercise' as const,
           originalBlockIndex: blockIndex,
           isCircuitExercise: true,
+          exerciseIndexInCircuit: exerciseIndex, // Store the index
           // Mark for removal if needed (circuit exercises can be marked for removal individually or as part of entire circuit)
           isProposed: isMarkedForRemoval || isExerciseMarkedForRemoval,
           proposedChangeIndex: isExerciseMarkedForRemoval
@@ -1023,7 +1022,7 @@ function createGridFromWorkoutWithChanges(
 
         // Create proposed circuit exercises
         proposedBlock.circuit.exercises.forEach(
-          (exerciseBlock: ExerciseBlock) => {
+          (exerciseBlock: ExerciseBlock, exerciseIndex: number) => {
             const proposedExerciseRow = columns.map((col, colIndex) => ({
               type:
                 col.field === 'exercise_name'
@@ -1038,6 +1037,7 @@ function createGridFromWorkoutWithChanges(
               blockType: 'exercise' as const,
               originalBlockIndex: -1, // Indicates this is a proposed change
               isCircuitExercise: true,
+              exerciseIndexInCircuit: exerciseIndex, // Store the index
               isProposed: true,
               proposedChangeIndex: changeIndex,
               proposedChangeType: 'add-block' as const,
@@ -1095,7 +1095,6 @@ function getValueFromCircuitBlock(block: CircuitBlock, field: string): string {
 
 // Incremental update function
 function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
-  // Direct access to cell metadata - no grid rebuild needed!
   const cell = change.cell
 
   if (!cell) return workout
@@ -1157,14 +1156,10 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
       }
     } else {
       // Update exercise within circuit
-      // Find which exercise in the circuit this row corresponds to
-      const exerciseIndexInCircuit = findExerciseIndexInCircuit(
-        workout,
-        cell.rowIndex,
-        originalBlockIndex
-      )
+      // Use the stored exercise index
+      const exerciseIndexInCircuit = cell.exerciseIndexInCircuit
 
-      if (exerciseIndexInCircuit >= 0) {
+      if (exerciseIndexInCircuit !== undefined && exerciseIndexInCircuit >= 0) {
         const updatedExercises = [...updatedBlock.circuit.exercises]
         const exerciseToUpdate = { ...updatedExercises[exerciseIndexInCircuit] }
 
@@ -1199,48 +1194,12 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
     newBlocks[originalBlockIndex] = updatedBlock
   }
 
+  console.log('newBlocks', newBlocks)
+
   return {
     ...workout,
     blocks: newBlocks,
   }
 }
 
-// Helper function to find which exercise within a circuit corresponds to a grid row
-function findExerciseIndexInCircuit(
-  workout: Workout,
-  gridRow: number,
-  circuitBlockIndex: number
-): number {
-  let currentRow = 0
-
-  for (let blockIndex = 0; blockIndex < workout.blocks.length; blockIndex++) {
-    const block = workout.blocks[blockIndex]
-
-    if (block.type === 'exercise') {
-      if (currentRow === gridRow) {
-        return -1 // This is not a circuit exercise
-      }
-      currentRow++
-    } else if (block.type === 'circuit') {
-      if (currentRow === gridRow) {
-        return -1 // This is the circuit header
-      }
-      currentRow++ // Circuit header row
-
-      if (blockIndex === circuitBlockIndex) {
-        // We're in the right circuit block
-        for (let i = 0; i < block.circuit.exercises.length; i++) {
-          if (currentRow === gridRow) {
-            return i
-          }
-          currentRow++
-        }
-      } else {
-        // Skip exercises in other circuits
-        currentRow += block.circuit.exercises.length
-      }
-    }
-  }
-
-  return -1
-}
+// Helper function removed - exercise index is now stored in cell.exerciseIndexInCircuit
