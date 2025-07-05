@@ -297,20 +297,20 @@ ${updatedWorkoutText}
 Return a json array of changes that were made to the original workout program. Make sure that the json adheres to the schema provided.
 
 There are 6 different types of changes that can be made to the workout program:
-- replace-block
+- update-block
 - add-block
 - remove-block
 - add-circuit-exercise
 - remove-circuit-exercise
-- replace-circuit-exercise
+- update-circuit-exercise
 
 Here is an example of the different types of changes that can be made to the workout program:
 
 {
-  "type": "replace-block",
+  "type": "update-block",
   "workoutIndex": 0,
   "blockIndex": 0,
-  "block": ... // The block to replace with
+  "block": ... // The updated block
 }
 
 {
@@ -342,11 +342,11 @@ Here is an example of the different types of changes that can be made to the wor
 }
 
 {
-  "type": "replace-circuit-exercise",
+  "type": "update-circuit-exercise",
   "workoutIndex": 0,
   "circuitBlockIndex": 0,
   "exerciseIndex": 0,
-  "exercise": ... // The exercise to replace with
+  "exercise": ... // The updated exercise
 }
 `
 }

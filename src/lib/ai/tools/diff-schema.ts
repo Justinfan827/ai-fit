@@ -4,34 +4,41 @@ import {
 } from '@/lib/domain/workouts_ai_response'
 import { z } from 'zod'
 
-const replaceBlockSchema = z
+const updateBlockSchema = z
   .object({
-    type: z.literal('replace-block'),
-    workoutIndex: z.number().describe('The index of the workout to replace the block in'),
-    blockIndex: z.number().describe('The index of the block to replace'),
-    block: blockSchema.describe('The block to replace with'),
+    type: z.literal('update-block'),
+    workoutIndex: z
+      .number()
+      .describe('The index of the workout to update the block in'),
+    blockIndex: z.number().describe('The index of the block to update'),
+    block: blockSchema.describe('The updated block'),
   })
-  .describe('Replace a block in the workout program')
+  .describe('Update a block in the workout program')
 const addBlockSchema = z
   .object({
     type: z.literal('add-block'),
-    workoutIndex: z.number().describe('The index of the workout to add the block to'),
+    workoutIndex: z
+      .number()
+      .describe('The index of the workout to add the block to'),
     afterBlockIndex: z.number().describe('The index of the block to add after'),
     block: blockSchema.describe('The block to add'),
   })
   .describe('Add a block to the workout program')
-
 const removeBlockSchema = z
   .object({
     type: z.literal('remove-block'),
-    workoutIndex: z.number().describe('The index of the workout to remove the block from'),
+    workoutIndex: z
+      .number()
+      .describe('The index of the workout to remove the block from'),
     blockIndex: z.number().describe('The index of the block to remove'),
   })
   .describe('Remove a block from the workout program')
 const addCircuitExerciseSchema = z
   .object({
     type: z.literal('add-circuit-exercise'),
-    workoutIndex: z.number().describe('The index of the workout to add the exercise to'),
+    workoutIndex: z
+      .number()
+      .describe('The index of the workout to add the exercise to'),
     circuitBlockIndex: z
       .number()
       .describe('The index of the circuit block to add the exercise to'),
@@ -46,7 +53,9 @@ const addCircuitExerciseSchema = z
 const removeCircuitExerciseSchema = z
   .object({
     type: z.literal('remove-circuit-exercise'),
-    workoutIndex: z.number().describe('The index of the workout to remove the exercise from'),
+    workoutIndex: z
+      .number()
+      .describe('The index of the workout to remove the exercise from'),
     circuitBlockIndex: z
       .number()
       .describe('The index of the circuit block to remove the exercise from'),
@@ -54,25 +63,27 @@ const removeCircuitExerciseSchema = z
   })
   .describe('Remove an exercise from a circuit block')
 
-const replaceCircuitExerciseSchema = z
+const updateCircuitExerciseSchema = z
   .object({
-    type: z.literal('replace-circuit-exercise'),
-    workoutIndex: z.number().describe('The index of the workout to replace the exercise in'),
+    type: z.literal('update-circuit-exercise'),
+    workoutIndex: z
+      .number()
+      .describe('The index of the workout to update the exercise in'),
     circuitBlockIndex: z
       .number()
-      .describe('The index of the circuit block to replace the exercise in'),
-    exerciseIndex: z.number().describe('The index of the exercise to replace'),
-    exercise: exerciseBlockSchema.describe('The exercise to replace with'),
+      .describe('The index of the circuit block to update the exercise in'),
+    exerciseIndex: z.number().describe('The index of the exercise to update'),
+    exercise: exerciseBlockSchema.describe('The updated exercise'),
   })
-  .describe('Replace an exercise in a circuit block')
+  .describe('Update an exercise in a circuit block')
 
 const workoutChangeSchema = z.union([
-  replaceBlockSchema,
+  updateBlockSchema,
   addBlockSchema,
   removeBlockSchema,
   addCircuitExerciseSchema,
   removeCircuitExerciseSchema,
-  replaceCircuitExerciseSchema,
+  updateCircuitExerciseSchema,
 ])
 
 type WorkoutChange = z.infer<typeof workoutChangeSchema>
@@ -82,8 +93,8 @@ export {
   addCircuitExerciseSchema,
   removeBlockSchema,
   removeCircuitExerciseSchema,
-  replaceBlockSchema,
-  replaceCircuitExerciseSchema,
+  updateBlockSchema,
+  updateCircuitExerciseSchema,
   workoutChangeSchema,
   type WorkoutChange,
 }

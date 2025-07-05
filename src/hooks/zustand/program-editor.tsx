@@ -101,6 +101,48 @@ const newInitialProgram = (exercises: Exercise[]): Program => {
     },
   }
 
+  const circuitBlock2: CircuitBlock = {
+    type: 'circuit',
+    circuit: {
+      isDefault: false,
+      name: 'Circuit 2',
+      description: 'Circuit 2 description',
+      metadata: {
+        sets: '3',
+        rest: '30s',
+        notes: 'Circuit 2 notes',
+      },
+      exercises: [
+        {
+          type: 'exercise',
+          exercise: {
+            id: exercises[6].id,
+            name: exercises[6].name,
+            metadata: {
+              sets: '3',
+              reps: '12',
+              weight: '100',
+              rest: '30s',
+            },
+          },
+        },
+        {
+          type: 'exercise',
+          exercise: {
+            id: exercises[7].id,
+            name: exercises[7].name,
+            metadata: {
+              sets: '3',
+              reps: '12',
+              weight: '100',
+              rest: '30s',
+            },
+          },
+        },
+      ],
+    },
+  }
+
   return {
     id: uuidv4().toString(),
     created_at: new Date().toISOString(),
@@ -112,7 +154,7 @@ const newInitialProgram = (exercises: Exercise[]): Program => {
         name: 'workout 1',
         program_id: uuidv4().toString(), // populated on create
         program_order: 0,
-        blocks: [...exerciseBlocks, circuitBlock],
+        blocks: [...exerciseBlocks, circuitBlock, circuitBlock2],
       },
     ],
   }
@@ -143,8 +185,8 @@ const EditorProgramProvider = ({
           block: {
             type: 'exercise',
             exercise: {
-              id: exercises[0].id,
-              name: exercises[0].name,
+              id: exercises[4].id,
+              name: exercises[4].name,
               metadata: {
                 sets: '3',
                 reps: '12',
@@ -153,6 +195,35 @@ const EditorProgramProvider = ({
               },
             },
           },
+        },
+        {
+          type: 'update-block',
+          workoutIndex: 0,
+          blockIndex: 0,
+          block: {
+            type: 'exercise',
+            exercise: {
+              id: exercises[7].id,
+              name: exercises[7].name,
+              metadata: {
+                sets: '3',
+                reps: '12',
+                weight: '100',
+                rest: '30s',
+              },
+            },
+          },
+        },
+        {
+          type: 'remove-block',
+          workoutIndex: 0,
+          blockIndex: 2,
+        },
+        {
+          type: 'remove-circuit-exercise',
+          workoutIndex: 0,
+          circuitBlockIndex: 3,
+          exerciseIndex: 0,
         },
       ],
       id: program.id,
