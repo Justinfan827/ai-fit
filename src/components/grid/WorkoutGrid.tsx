@@ -8,7 +8,6 @@ import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { useWorkoutHistory } from '@/hooks/use-workout-history'
 import { useZEditorActions } from '@/hooks/zustand/program-editor'
-import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
 import {
   CircuitBlock,
   Exercise,
@@ -40,22 +39,28 @@ function getCellClasses(cell: Cell, baseClasses: string) {
     baseClasses,
     // Proposed change styling (takes precedence)
     styles.proposedChange &&
-      cell.proposedChangeType === 'add-block' &&
+      cell.proposedChangeType === 'adding' &&
       'bg-green-950/30 border-green-500/50',
     styles.proposedChange &&
-      cell.proposedChangeType === 'add-block' &&
+      cell.proposedChangeType === 'adding' &&
       cell.colIndex === 0 &&
       'shadow-[-2px_0_0_0_rgb(34_197_94_/_0.7)]',
     // Proposed removal styling
     styles.proposedChange &&
-      (cell.proposedChangeType === 'remove-block' ||
-        cell.proposedChangeType === 'remove-circuit-exercise') &&
+      cell.proposedChangeType === 'removing' &&
       'bg-red-950/30 border-red-500/50 opacity-75',
     styles.proposedChange &&
-      (cell.proposedChangeType === 'remove-block' ||
-        cell.proposedChangeType === 'remove-circuit-exercise') &&
+      cell.proposedChangeType === 'removing' &&
       cell.colIndex === 0 &&
       'shadow-[-2px_0_0_0_rgb(239_68_68_/_0.7)]',
+    // Proposed update styling
+    styles.proposedChange &&
+      cell.proposedChangeType === 'updating' &&
+      'bg-blue-950/30 border-blue-500/50',
+    styles.proposedChange &&
+      cell.proposedChangeType === 'updating' &&
+      cell.colIndex === 0 &&
+      'shadow-[-2px_0_0_0_rgb(59_130_246_/_0.7)]',
 
     // Circuit header styling
     !styles.proposedChange &&
@@ -127,23 +132,16 @@ interface Cell {
   // Proposed change properties
   isProposed?: boolean
   proposedChangeIndex?: number
-  proposedChangeType?:
-    | 'add-block'
-    | 'remove-block'
-    | 'replace-block'
-    | 'remove-circuit-exercise'
+  proposedChangeType?: 'adding' | 'removing' | 'updating'
 }
 
 interface WorkoutGridProps {
-  proposedChanges: WorkoutChange[]
   workout: Workout
   onWorkoutChange: (workout: Workout) => void
-  onProposedChangesChange: (changes: WorkoutChange[]) => void
   columns: Column[]
 }
 
 export default function WorkoutGrid({
-  proposedChanges,
   workout,
   onWorkoutChange,
   columns,
@@ -166,7 +164,6 @@ export default function WorkoutGrid({
         workout={workoutHistory.currentWorkout}
         onWorkoutChange={handleWorkoutChange}
         columns={columns}
-        proposedChanges={proposedChanges || []}
       />
       {showDebug && (
         <div className="mt-4 rounded-lg border border-neutral-800 bg-neutral-950 p-4">
@@ -225,19 +222,13 @@ function GridContentRows({
   columns,
   workout,
   onWorkoutChange,
-  proposedChanges,
 }: {
   columns: Column[]
   workout: Workout
   onWorkoutChange: (workout: Workout) => void
-  proposedChanges: WorkoutChange[]
 }) {
   // Create grid directly from workout
-  const grid = createGridFromWorkoutWithChanges(
-    workout,
-    columns,
-    proposedChanges
-  )
+  const grid = createGridFromWorkoutWithChanges(workout, columns)
   const numRows = grid.length
   const numCols = columns.length
   const [activeCell, setActiveCell] = useState<Position | null>(null)
@@ -540,36 +531,15 @@ function GridContentRows({
       return
     }
 
-    const proposedChange = proposedChanges[cell.proposedChangeIndex]
-    if (!proposedChange) {
-      return
-    }
-
+    // For now, we'll handle this differently since the structure has changed
+    // The logic for accepting/rejecting proposed changes will need to be updated
+    // based on the new pendingStatus structure
     switch (action) {
       case 'accept':
-        if (proposedChange.type === 'add-block') {
-          // Apply the add-block change to the workout
-          const newBlocks = [...workout.blocks]
-          const insertIndex = proposedChange.afterBlockIndex + 1
-          newBlocks.splice(insertIndex, 0, proposedChange.block)
-
-          const updatedWorkout = {
-            ...workout,
-            blocks: newBlocks,
-          }
-
-          // Remove the accepted proposal from the list
-          const updatedProposedChanges = proposedChanges.filter(
-            (_, index) => index !== cell.proposedChangeIndex
-          )
-
-          // TODO: Support undoing accepting a workout proposal
-          onWorkoutChange(updatedWorkout)
-          setProposedChanges(updatedProposedChanges)
-        }
+        // TODO: Implement accept logic with new pendingStatus structure
         break
       case 'reject':
-        // TODO: Implement reject logic
+        // TODO: Implement reject logic with new pendingStatus structure
         break
     }
   }
@@ -598,7 +568,7 @@ function GridContentRows({
             stopEditing={stopEditing}
             startEditing={startEditing}
             grid={grid}
-            proposedChanges={proposedChanges}
+            workout={workout}
           />
         )
       })}
@@ -633,7 +603,7 @@ type GridRowProps = {
   stopEditing: (row: number, col: number) => void
   startEditing: (row: number, col: number, initialValue?: string) => void
   grid: Cell[][]
-  proposedChanges: WorkoutChange[]
+  workout: Workout
 }
 
 function GridContentRow({
@@ -655,7 +625,7 @@ function GridContentRow({
   stopEditing,
   startEditing,
   grid,
-  proposedChanges,
+  workout,
 }: GridRowProps) {
   return (
     <div key={`row-${rowIndex}`} className="group flex h-9 w-full">
@@ -672,17 +642,16 @@ function GridContentRow({
         // - Circuit exercises with remove-circuit-exercise
         (row[0]?.isCircuitHeader ||
           !row[0]?.isCircuitExercise ||
-          row[0]?.proposedChangeType === 'remove-circuit-exercise') ? (
+          row[0]?.proposedChangeType === 'removing') ? (
           // Proposed change action buttons
           <>
             <Button
               size="icon"
               variant="ghost"
               className={`h-6 w-6 cursor-pointer transition-opacity ease-in-out group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100 ${
-                row[0]?.proposedChangeType === 'add-block'
+                row[0]?.proposedChangeType === 'adding'
                   ? 'text-green-400 hover:text-green-300'
-                  : row[0]?.proposedChangeType === 'remove-block' ||
-                      row[0]?.proposedChangeType === 'remove-circuit-exercise'
+                  : row[0]?.proposedChangeType === 'removing'
                     ? 'text-red-400 hover:text-red-300'
                     : 'text-blue-400 hover:text-blue-300'
               }`}
@@ -807,42 +776,17 @@ function GridContentRow({
 // Enhanced workout-to-grid mapping function that includes proposed changes
 function createGridFromWorkoutWithChanges(
   workout: Workout,
-  columns: Column[],
-  proposedChanges: WorkoutChange[]
+  columns: Column[]
 ): Cell[][] {
   const grid: Cell[][] = []
   let currentRowIndex = 0
 
-  // Create a set of block indices that should be marked for removal
-  const blocksToRemove = new Set(
-    proposedChanges
-      .filter((change) => change.type === 'remove-block')
-      .map((change) => change.blockIndex)
-  )
-
-  // Create a map of circuit exercises to remove: blockIndex -> Set of exerciseIndices
-  const circuitExercisesToRemove = new Map<number, Set<number>>()
-  proposedChanges
-    .filter((change) => change.type === 'remove-circuit-exercise')
-    .forEach((change) => {
-      if (change.type === 'remove-circuit-exercise') {
-        if (!circuitExercisesToRemove.has(change.circuitBlockIndex)) {
-          circuitExercisesToRemove.set(change.circuitBlockIndex, new Set())
-        }
-        circuitExercisesToRemove
-          .get(change.circuitBlockIndex)!
-          .add(change.exerciseIndex)
-      }
-    })
-
-  // Process each block and check for proposed changes that should be inserted after it
+  // Process each block and check for pending status
   workout.blocks.forEach((block, blockIndex) => {
-    // Check if this block is marked for removal
-    const isMarkedForRemoval = blocksToRemove.has(blockIndex)
-    const removalChangeIndex = proposedChanges.findIndex(
-      (change) =>
-        change.type === 'remove-block' && change.blockIndex === blockIndex
-    )
+    // Get the pending status for this block
+    const blockPendingStatus = block.pendingStatus
+    const isBlockProposed = blockPendingStatus !== undefined
+    const blockChangeIndex = isBlockProposed ? 0 : undefined
 
     if (block.type === 'exercise') {
       // Regular exercise row
@@ -859,14 +803,10 @@ function createGridFromWorkoutWithChanges(
         blockType: 'exercise' as const,
         originalBlockIndex: blockIndex,
         isCircuitExercise: false,
-        // Mark for removal if needed
-        isProposed: isMarkedForRemoval,
-        proposedChangeIndex: isMarkedForRemoval
-          ? removalChangeIndex
-          : undefined,
-        proposedChangeType: isMarkedForRemoval
-          ? ('remove-block' as const)
-          : undefined,
+        // Set proposed change properties based on pendingStatus
+        isProposed: isBlockProposed,
+        proposedChangeIndex: blockChangeIndex,
+        proposedChangeType: blockPendingStatus?.type,
       }))
       grid.push(exerciseRow)
       currentRowIndex++
@@ -884,31 +824,20 @@ function createGridFromWorkoutWithChanges(
         originalBlockIndex: blockIndex,
         readOnly: col.field === 'reps' || col.field === 'weight',
         isCircuitExercise: false,
-        // Mark for removal if needed
-        isProposed: isMarkedForRemoval,
-        proposedChangeIndex: isMarkedForRemoval
-          ? removalChangeIndex
-          : undefined,
-        proposedChangeType: isMarkedForRemoval
-          ? ('remove-block' as const)
-          : undefined,
+        // Set proposed change properties based on pendingStatus
+        isProposed: isBlockProposed,
+        proposedChangeIndex: blockChangeIndex,
+        proposedChangeType: blockPendingStatus?.type,
       }))
       grid.push(circuitHeaderRow)
       currentRowIndex++
 
       // Circuit exercises
       block.circuit.exercises.forEach((exerciseBlock, exerciseIndex) => {
-        // Check if this specific exercise is marked for removal
-        const isExerciseMarkedForRemoval =
-          circuitExercisesToRemove.get(blockIndex)?.has(exerciseIndex) || false
-        const exerciseRemovalChangeIndex = isExerciseMarkedForRemoval
-          ? proposedChanges.findIndex(
-              (change) =>
-                change.type === 'remove-circuit-exercise' &&
-                change.circuitBlockIndex === blockIndex &&
-                change.exerciseIndex === exerciseIndex
-            )
-          : undefined
+        // Get the pending status for this exercise
+        const exercisePendingStatus = exerciseBlock.pendingStatus
+        const isExerciseProposed = exercisePendingStatus !== undefined
+        const exerciseChangeIndex = isExerciseProposed ? 0 : undefined
 
         const exerciseRow = columns.map((col, colIndex) => ({
           type:
@@ -925,104 +854,23 @@ function createGridFromWorkoutWithChanges(
           originalBlockIndex: blockIndex,
           isCircuitExercise: true,
           exerciseIndexInCircuit: exerciseIndex, // Store the index
-          // Mark for removal if needed (circuit exercises can be marked for removal individually or as part of entire circuit)
-          isProposed: isMarkedForRemoval || isExerciseMarkedForRemoval,
-          proposedChangeIndex: isExerciseMarkedForRemoval
-            ? exerciseRemovalChangeIndex
-            : isMarkedForRemoval
-              ? removalChangeIndex
+          // Exercise can be proposed individually or as part of a circuit block
+          isProposed: isBlockProposed || isExerciseProposed,
+          proposedChangeIndex: isExerciseProposed
+            ? exerciseChangeIndex
+            : isBlockProposed
+              ? blockChangeIndex
               : undefined,
-          proposedChangeType: isExerciseMarkedForRemoval
-            ? ('remove-circuit-exercise' as const)
-            : isMarkedForRemoval
-              ? ('remove-block' as const)
+          proposedChangeType: isExerciseProposed
+            ? exercisePendingStatus?.type
+            : isBlockProposed
+              ? blockPendingStatus?.type
               : undefined,
         }))
         grid.push(exerciseRow)
         currentRowIndex++
       })
     }
-
-    // Check for 'add-block' changes that should be inserted after this block
-    const addBlockChanges = proposedChanges.filter(
-      (change) =>
-        change.type === 'add-block' && change.afterBlockIndex === blockIndex
-    )
-
-    addBlockChanges.forEach((change, changeIndex) => {
-      if (change.type !== 'add-block') return
-      const proposedBlock = change.block
-
-      if (proposedBlock.type === 'exercise') {
-        // Create proposed exercise row
-        const proposedExerciseRow = columns.map((col, colIndex) => ({
-          type:
-            col.field === 'exercise_name'
-              ? ('select' as const)
-              : ('input' as const),
-          value: getValueFromBlock(proposedBlock, col.field),
-          colType: col.field,
-          width: col.width || 100,
-          rowIndex: currentRowIndex,
-          colIndex,
-          blockType: 'exercise' as const,
-          originalBlockIndex: -1, // Indicates this is a proposed change
-          isCircuitExercise: false,
-          isProposed: true,
-          proposedChangeIndex: changeIndex,
-          proposedChangeType: 'add-block' as const,
-        }))
-        grid.push(proposedExerciseRow)
-        currentRowIndex++
-      } else if (proposedBlock.type === 'circuit') {
-        // Create proposed circuit header row
-        const proposedCircuitHeaderRow = columns.map((col, colIndex) => ({
-          type: 'input' as const,
-          value: getValueFromCircuitBlock(proposedBlock, col.field),
-          colType: col.field,
-          width: col.width || 100,
-          rowIndex: currentRowIndex,
-          colIndex,
-          isCircuitHeader: true,
-          blockType: 'circuit' as const,
-          originalBlockIndex: -1, // Indicates this is a proposed change
-          readOnly: col.field === 'reps' || col.field === 'weight',
-          isCircuitExercise: false,
-          isProposed: true,
-          proposedChangeIndex: changeIndex,
-          proposedChangeType: 'add-block' as const,
-        }))
-        grid.push(proposedCircuitHeaderRow)
-        currentRowIndex++
-
-        // Create proposed circuit exercises
-        proposedBlock.circuit.exercises.forEach(
-          (exerciseBlock: ExerciseBlock, exerciseIndex: number) => {
-            const proposedExerciseRow = columns.map((col, colIndex) => ({
-              type:
-                col.field === 'exercise_name'
-                  ? ('select' as const)
-                  : ('input' as const),
-              value: getValueFromBlock(exerciseBlock, col.field),
-              colType: col.field,
-              width: col.width || 100,
-              rowIndex: currentRowIndex,
-              colIndex,
-              readOnly: col.field === 'sets' || col.field === 'rest',
-              blockType: 'exercise' as const,
-              originalBlockIndex: -1, // Indicates this is a proposed change
-              isCircuitExercise: true,
-              exerciseIndexInCircuit: exerciseIndex, // Store the index
-              isProposed: true,
-              proposedChangeIndex: changeIndex,
-              proposedChangeType: 'add-block' as const,
-            }))
-            grid.push(proposedExerciseRow)
-            currentRowIndex++
-          }
-        )
-      }
-    })
   })
 
   return grid

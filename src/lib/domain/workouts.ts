@@ -20,7 +20,28 @@ export const workoutExerciseSchema = z.object({
   notes: z.string(),
 })
 
-const exerciseBlockSchema = z.object({
+// Define pending status schemas first
+export const pendingAddSchema = z.object({
+  type: z.literal('adding'),
+})
+
+export const pendingRemoveSchema = z.object({
+  type: z.literal('removing'),
+})
+
+export const pendingUpdateSchema = z.object({
+  type: z.literal('updating'),
+  oldBlock: z.any(), // Use z.any() to break circular dependency
+})
+
+export const pendingChangeTypeSchema = z.union([
+  pendingAddSchema,
+  pendingRemoveSchema,
+  pendingUpdateSchema,
+])
+
+// Define exercise block schema that can have pending status
+export const exerciseBlockSchema = z.object({
   type: z.literal('exercise'),
   exercise: z.object({
     id: z.string().uuid(),
@@ -33,9 +54,11 @@ const exerciseBlockSchema = z.object({
       notes: z.string().optional(),
     }),
   }),
+  pendingStatus: pendingChangeTypeSchema.optional(),
 })
 
-const circuitBlockSchema = z.object({
+// Define circuit block schema
+export const circuitBlockSchema = z.object({
   type: z.literal('circuit'),
   circuit: z.object({
     isDefault: z.boolean(),
@@ -48,10 +71,12 @@ const circuitBlockSchema = z.object({
     }),
     exercises: z.array(exerciseBlockSchema),
   }),
+  pendingStatus: pendingChangeTypeSchema.optional(),
 })
 
-const blockSchema = exerciseBlockSchema.or(circuitBlockSchema)
-const blocksSchema = z.array(blockSchema)
+// Define block schema
+export const blockSchema = exerciseBlockSchema.or(circuitBlockSchema)
+export const blocksSchema = z.array(blockSchema)
 
 export const workoutSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string

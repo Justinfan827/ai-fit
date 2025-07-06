@@ -30,6 +30,7 @@ import PlusButton from '../buttons/PlusButton'
 import LoadingButton from '../loading-button'
 import { Badge } from '../ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { mergeWorkoutWithProposedChanges } from './workout-merge'
 import WorkoutGrid from './WorkoutGrid'
 
 export default function ProgramEditor() {
@@ -244,7 +245,6 @@ export default function ProgramEditor() {
       </LoadingButton>
     </div>
   )
-
   return (
     <div className="w-full">
       <PageHeader
@@ -304,6 +304,11 @@ export default function ProgramEditor() {
                   </div>
                   <div id="workouts-data" className="w-full grow space-y-8">
                     {weeksWorkouts.map((workout, workoutIdx) => {
+                      const mergedWorkout = mergeWorkoutWithProposedChanges(
+                        workout,
+                        proposedChangesByWorkoutIndex[workoutIdx]
+                      )
+                      console.log(JSON.stringify(mergedWorkout, null, 2))
                       return (
                         <div key={workout.id} className="flex gap-4">
                           <div className="grow space-y-4">
@@ -340,8 +345,7 @@ export default function ProgramEditor() {
                               </div>
                             </div>
                             <WorkoutGrid
-                              proposedChanges={proposedChangesByWorkoutIndex[workoutIdx]}
-                              workout={workout}
+                              workout={mergedWorkout}
                               columns={defaultColumns}
                               onWorkoutChange={(updatedWorkout) => {
                                 // Update the workout in the workouts array
