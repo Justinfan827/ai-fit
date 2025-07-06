@@ -6,12 +6,10 @@ import { Button } from '@/components/ui/button'
 import {
   useZCurrentChangeId,
   useZEditorActions,
-  useZProgramWorkouts,
   useZProposedChanges,
 } from '@/hooks/zustand/program-editor'
 import { cn } from '@/lib/utils'
 import { useCallback, useEffect, useMemo } from 'react'
-import { groupWorkoutsByWeek } from './grid/workout-utils'
 
 interface ProposedChangesMenuProps {
   className?: string
@@ -19,11 +17,12 @@ interface ProposedChangesMenuProps {
 
 export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
   const proposedChanges = useZProposedChanges()
-  const workouts = useZProgramWorkouts()
-  const workoutsByWeek = groupWorkoutsByWeek(workouts)
-  // TODO: handle applying changes to multiple weeks
-  const workoutsWeek0 = workoutsByWeek[0]
-  const { setProposedChanges, setCurrentChangeId } = useZEditorActions()
+  const {
+    setProposedChanges,
+    setCurrentChangeId,
+    removePendingStatus,
+    rejectProposal,
+  } = useZEditorActions()
   const currentChangeId = useZCurrentChangeId()
 
   const hasChanges = proposedChanges.length > 0
@@ -50,6 +49,9 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
 
   const acceptChange = useCallback(
     (changeId: string) => {
+      // Remove the pending status from the workout
+      removePendingStatus(changeId)
+
       // Remove the accepted change from the list
       const updatedChanges = proposedChanges.filter(
         (change) => change.id !== changeId
@@ -74,18 +76,20 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
       currentChangeIndex,
       setProposedChanges,
       setCurrentChangeId,
+      removePendingStatus,
     ]
   )
 
   const rejectChange = useCallback(
     (changeId: string) => {
-      // Remove the rejected change from the list
+      // Use the rejectProposal action which handles reverting changes and removing from proposals
+      rejectProposal(changeId)
+
+      // Update current change ID
       const updatedChanges = proposedChanges.filter(
         (change) => change.id !== changeId
       )
-      setProposedChanges(updatedChanges)
 
-      // Update current change ID
       if (updatedChanges.length > 0) {
         // If there are still changes, set the next one as current
         const nextIndex = Math.min(
@@ -98,23 +102,32 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
         setCurrentChangeId(null)
       }
     },
-    [
-      proposedChanges,
-      currentChangeIndex,
-      setProposedChanges,
-      setCurrentChangeId,
-    ]
+    [proposedChanges, currentChangeIndex, rejectProposal, setCurrentChangeId]
   )
 
   const acceptAllChanges = useCallback(() => {
+    // Remove pending status for all changes
+    proposedChanges.forEach((change) => {
+      removePendingStatus(change.id)
+    })
+
     setProposedChanges([])
     setCurrentChangeId(null)
-  }, [setProposedChanges, setCurrentChangeId])
+  }, [
+    proposedChanges,
+    removePendingStatus,
+    setProposedChanges,
+    setCurrentChangeId,
+  ])
 
   const rejectAllChanges = useCallback(() => {
-    setProposedChanges([])
+    // Use rejectProposal for each change to revert them
+    proposedChanges.forEach((change) => {
+      rejectProposal(change.id)
+    })
+
     setCurrentChangeId(null)
-  }, [setProposedChanges, setCurrentChangeId])
+  }, [proposedChanges, rejectProposal, setCurrentChangeId])
 
   const navigateToNext = useCallback(() => {
     if (proposedChanges.length > 0) {
@@ -148,18 +161,10 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
         rejectChange(currentChange.id)
       }
       // Cmd+Shift+Enter to accept all changes
-      else if (e.metaKey && e.shiftKey && e.key === 'Enter') {
-        e.preventDefault()
-        acceptAllChanges()
-      }
-      // Arrow keys to navigate
-      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        e.preventDefault()
-        navigateToPrevious()
-      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        e.preventDefault()
-        navigateToNext()
-      }
+      // else if (e.metaKey && e.shiftKey && e.key === 'Enter') {
+      //   e.preventDefault()
+      //   acceptAllChanges()
+      // }
     }
 
     window.addEventListener('keydown', handleKeyDown)

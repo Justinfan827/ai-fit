@@ -1,7 +1,8 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { create, StoreApi, UseBoundStore, useStore } from 'zustand'
 
+import { mergeWorkoutWithProposedChanges } from '@/components/grid/workout-merge'
 import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
 import {
   Block,
@@ -9,6 +10,7 @@ import {
   CircuitBlock,
   Exercise,
   Program,
+  Workout,
   Workouts,
 } from '@/lib/domain/workouts'
 import Fuse from 'fuse.js'
@@ -16,6 +18,11 @@ import Fuse from 'fuse.js'
 const EditorStoreContext = createContext<UseBoundStore<
   StoreApi<EditorState>
 > | null>(null)
+
+interface WorkoutHistory {
+  history: Workout[]
+  currentIndex: number
+}
 
 type ProgramState = {
   id: string
@@ -25,6 +32,7 @@ type ProgramState = {
   workouts: Workouts
   proposedChanges: WorkoutChange[]
   currentChangeId: string | null
+  workoutHistories: Record<string, WorkoutHistory>
 }
 
 interface EditorState extends ProgramState {
@@ -40,6 +48,18 @@ type WorkoutActions = {
   setWorkouts: (workouts: Workouts) => void
   setProposedChanges: (changes: WorkoutChange[]) => void
   setCurrentChangeId: (changeId: string | null) => void
+  removePendingStatus: (proposalId: string) => void
+  addProposal: (change: WorkoutChange) => void
+  rejectProposal: (proposalId: string) => void
+
+  // History actions
+  saveWorkoutToHistory: (workoutId: string, workout: Workout) => void
+  undoWorkout: (workoutId: string) => void
+  redoWorkout: (workoutId: string) => void
+  canUndoWorkout: (workoutId: string) => boolean
+  canRedoWorkout: (workoutId: string) => boolean
+  resetWorkoutHistory: (workoutId: string, workout: Workout) => void
+  getCurrentWorkout: (workoutId: string) => Workout | undefined
 }
 
 const newInitialProgram = (exercises: Exercise[]): Program => {
@@ -277,21 +297,52 @@ const EditorProgramProvider = ({
       exerciseIndex: 0,
     },
   ])
-  console.log('sortedProposedChanges', sortedProposedChanges)
+  // merge proposed changes with workouts
+  const mergedWorkouts = program.workouts.map((workout) => {
+    return mergeWorkoutWithProposedChanges(workout, sortedProposedChanges)
+  })
+  const programWithMergedWorkouts = {
+    ...program,
+    workouts: mergedWorkouts,
+  }
+
+  // Initialize workout histories for initial workouts
+  const initialWorkoutHistories: Record<string, WorkoutHistory> = {}
+  programWithMergedWorkouts.workouts.forEach((workout) => {
+    initialWorkoutHistories[workout.id] = {
+      history: [workout],
+      currentIndex: 0,
+    }
+  })
+
   const [store] = useState(() =>
     create<EditorState>((set, get) => ({
       exercises,
-      created_at: program.created_at,
-      name: program.name,
+      created_at: programWithMergedWorkouts.created_at,
+      name: programWithMergedWorkouts.name,
       proposedChanges: sortedProposedChanges,
-      id: program.id,
+      id: programWithMergedWorkouts.id,
       isNewProgram,
-      type: program.type,
-      workouts: program.workouts,
+      type: programWithMergedWorkouts.type,
+      workouts: programWithMergedWorkouts.workouts,
       currentChangeId: null,
+      workoutHistories: initialWorkoutHistories,
       actions: {
         setWorkouts: (workouts: Workouts) => {
-          set({ workouts })
+          const { workoutHistories } = get()
+          const updatedHistories = { ...workoutHistories }
+
+          // Initialize history for any new workouts
+          workouts.forEach((workout) => {
+            if (!updatedHistories[workout.id]) {
+              updatedHistories[workout.id] = {
+                history: [workout],
+                currentIndex: 0,
+              }
+            }
+          })
+
+          set({ workouts, workoutHistories: updatedHistories })
         },
         setProposedChanges: (changes: WorkoutChange[]) => {
           set({ proposedChanges: changes })
@@ -321,6 +372,289 @@ const EditorProgramProvider = ({
             limit: 10,
           })
           return result.map((r) => r.item)
+        },
+        removePendingStatus: (proposalId: string) => {
+          const { workouts } = get()
+          const updatedWorkouts = workouts.map((workout) => ({
+            ...workout,
+            blocks: workout.blocks.map((block) => {
+              // Check if this block has a pending status with the matching proposalId
+              if (block.pendingStatus?.proposalId === proposalId) {
+                // Remove the pendingStatus
+                const { pendingStatus, ...blockWithoutPending } = block
+                return blockWithoutPending
+              }
+
+              // For circuit blocks, also check exercises within the circuit
+              if (block.type === 'circuit') {
+                return {
+                  ...block,
+                  circuit: {
+                    ...block.circuit,
+                    exercises: block.circuit.exercises.map((exercise) => {
+                      if (exercise.pendingStatus?.proposalId === proposalId) {
+                        const { pendingStatus, ...exerciseWithoutPending } =
+                          exercise
+                        return exerciseWithoutPending
+                      }
+                      return exercise
+                    }),
+                  },
+                }
+              }
+
+              return block
+            }),
+          }))
+          set({ workouts: updatedWorkouts })
+        },
+        addProposal: (change: WorkoutChange) => {
+          const { workouts, proposedChanges } = get()
+
+          // Apply the change immediately to workouts
+          const updatedWorkouts = mergeWorkoutWithProposedChanges(
+            workouts[change.workoutIndex],
+            [change]
+          )
+          const newWorkouts = workouts.map((workout, index) =>
+            index === change.workoutIndex ? updatedWorkouts : workout
+          )
+
+          set({
+            workouts: newWorkouts,
+            proposedChanges: [...proposedChanges, change],
+          })
+        },
+        rejectProposal: (proposalId: string) => {
+          const { workouts, proposedChanges } = get()
+
+          // Find the proposal to reject
+          const proposal = proposedChanges.find((p) => p.id === proposalId)
+          if (!proposal) return
+
+          // Revert the change in workouts
+          const updatedWorkouts = workouts.map((workout, workoutIndex) => {
+            if (workoutIndex !== proposal.workoutIndex) return workout
+
+            return {
+              ...workout,
+              blocks: workout.blocks
+                .map((block, blockIndex) => {
+                  // Handle block-level changes
+                  if (
+                    proposal.type === 'add-block' &&
+                    blockIndex === proposal.blockIndex
+                  ) {
+                    // Remove the added block if it has the matching proposal ID
+                    if (block.pendingStatus?.proposalId === proposalId) {
+                      return null // Mark for removal
+                    }
+                  }
+
+                  if (
+                    proposal.type === 'remove-block' &&
+                    blockIndex === proposal.blockIndex
+                  ) {
+                    // Restore the removed block by removing pending status
+                    if (block.pendingStatus?.proposalId === proposalId) {
+                      const { pendingStatus, ...blockWithoutPending } = block
+                      return blockWithoutPending
+                    }
+                  }
+
+                  if (
+                    proposal.type === 'update-block' &&
+                    blockIndex === proposal.blockIndex
+                  ) {
+                    // Restore the original block
+                    if (
+                      block.pendingStatus?.proposalId === proposalId &&
+                      block.pendingStatus.type === 'updating'
+                    ) {
+                      return block.pendingStatus.oldBlock
+                    }
+                  }
+
+                  // Handle circuit exercise changes
+                  if (
+                    block.type === 'circuit' &&
+                    (proposal.type === 'add-circuit-exercise' ||
+                      proposal.type === 'remove-circuit-exercise' ||
+                      proposal.type === 'update-circuit-exercise') &&
+                    blockIndex === proposal.circuitBlockIndex
+                  ) {
+                    return {
+                      ...block,
+                      circuit: {
+                        ...block.circuit,
+                        exercises: block.circuit.exercises
+                          .map((exercise, exerciseIndex) => {
+                            if (exerciseIndex === proposal.exerciseIndex) {
+                              if (proposal.type === 'add-circuit-exercise') {
+                                // Remove the added exercise if it has the matching proposal ID
+                                if (
+                                  exercise.pendingStatus?.proposalId ===
+                                  proposalId
+                                ) {
+                                  return null // Mark for removal
+                                }
+                              }
+
+                              if (proposal.type === 'remove-circuit-exercise') {
+                                // Restore the removed exercise by removing pending status
+                                if (
+                                  exercise.pendingStatus?.proposalId ===
+                                  proposalId
+                                ) {
+                                  const {
+                                    pendingStatus,
+                                    ...exerciseWithoutPending
+                                  } = exercise
+                                  return exerciseWithoutPending
+                                }
+                              }
+
+                              if (proposal.type === 'update-circuit-exercise') {
+                                // Restore the original exercise
+                                if (
+                                  exercise.pendingStatus?.proposalId ===
+                                    proposalId &&
+                                  exercise.pendingStatus.type === 'updating'
+                                ) {
+                                  return exercise.pendingStatus.oldBlock
+                                }
+                              }
+                            }
+                            return exercise
+                          })
+                          .filter(Boolean), // Remove null exercises
+                      },
+                    }
+                  }
+
+                  return block
+                })
+                .filter(Boolean), // Remove null blocks
+            }
+          })
+
+          set({
+            workouts: updatedWorkouts,
+            proposedChanges: proposedChanges.filter(
+              (change) => change.id !== proposalId
+            ),
+          })
+        },
+
+        // History actions
+        saveWorkoutToHistory: (workoutId: string, workout: Workout) => {
+          const { workoutHistories } = get()
+          const currentHistory = workoutHistories[workoutId]
+
+          // If we're not at the end of history, remove future states
+          let newHistory = currentHistory
+            ? currentHistory.history.slice(0, currentHistory.currentIndex + 1)
+            : []
+
+          // Add new state
+          newHistory.push(workout)
+
+          // Limit history size to prevent memory issues (keep last 50 states)
+          const maxHistorySize = 50
+          if (newHistory.length > maxHistorySize) {
+            newHistory.shift()
+          }
+
+          set({
+            workoutHistories: {
+              ...workoutHistories,
+              [workoutId]: {
+                history: newHistory,
+                currentIndex: newHistory.length - 1,
+              },
+            },
+          })
+        },
+        undoWorkout: (workoutId: string) => {
+          const { workoutHistories, workouts } = get()
+          const history = workoutHistories[workoutId]?.history || []
+          const currentIndex = workoutHistories[workoutId]?.currentIndex || 0
+
+          if (currentIndex > 0) {
+            const newCurrentIndex = currentIndex - 1
+            const previousWorkout = history[newCurrentIndex]
+
+            // Update both history and main workouts array
+            const updatedWorkouts = workouts.map((w) =>
+              w.id === workoutId ? previousWorkout : w
+            )
+
+            set({
+              workouts: updatedWorkouts,
+              workoutHistories: {
+                ...workoutHistories,
+                [workoutId]: {
+                  history: history,
+                  currentIndex: newCurrentIndex,
+                },
+              },
+            })
+          }
+        },
+        redoWorkout: (workoutId: string) => {
+          const { workoutHistories, workouts } = get()
+          const history = workoutHistories[workoutId]?.history || []
+          const currentIndex = workoutHistories[workoutId]?.currentIndex || 0
+
+          if (currentIndex < history.length - 1) {
+            const newCurrentIndex = currentIndex + 1
+            const nextWorkout = history[newCurrentIndex]
+
+            // Update both history and main workouts array
+            const updatedWorkouts = workouts.map((w) =>
+              w.id === workoutId ? nextWorkout : w
+            )
+
+            set({
+              workouts: updatedWorkouts,
+              workoutHistories: {
+                ...workoutHistories,
+                [workoutId]: {
+                  history: history,
+                  currentIndex: newCurrentIndex,
+                },
+              },
+            })
+          }
+        },
+        canUndoWorkout: (workoutId: string) => {
+          const { workoutHistories } = get()
+          return (workoutHistories[workoutId]?.currentIndex || 0) > 0
+        },
+        canRedoWorkout: (workoutId: string) => {
+          const { workoutHistories } = get()
+          return (
+            (workoutHistories[workoutId]?.currentIndex || 0) <
+            (workoutHistories[workoutId]?.history.length || 0) - 1
+          )
+        },
+        resetWorkoutHistory: (workoutId: string, workout: Workout) => {
+          const { workoutHistories } = get()
+          set({
+            workoutHistories: {
+              ...workoutHistories,
+              [workoutId]: {
+                history: [workout],
+                currentIndex: 0,
+              },
+            },
+          })
+        },
+        getCurrentWorkout: (workoutId: string) => {
+          const { workoutHistories } = get()
+          return workoutHistories[workoutId]?.history[
+            workoutHistories[workoutId]?.currentIndex || 0
+          ]
         },
       },
     }))
@@ -353,6 +687,37 @@ const useZProgramWorkouts = () => useEditorStore((state) => state.workouts)
 const useZProgramType = () => useEditorStore((state) => state.type)
 const useZEditorActions = () => useEditorStore((state) => state.actions)
 
+// Hook to handle keyboard shortcuts for workout history
+export const useWorkoutHistoryKeyboardShortcuts = (workoutId: string) => {
+  const { undoWorkout, redoWorkout, canUndoWorkout, canRedoWorkout } =
+    useZEditorActions()
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) {
+          if (canRedoWorkout(workoutId)) {
+            redoWorkout(workoutId)
+          }
+        } else {
+          if (canUndoWorkout(workoutId)) {
+            undoWorkout(workoutId)
+          }
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [workoutId, undoWorkout, redoWorkout, canUndoWorkout, canRedoWorkout])
+}
+
+const useZWorkoutHistories = () =>
+  useEditorStore((state) => state.workoutHistories)
+const useZWorkoutHistory = (workoutId: string) =>
+  useEditorStore((state) => state.workoutHistories[workoutId])
+
 export {
   EditorProgramProvider,
   useZCurrentChangeId,
@@ -364,4 +729,6 @@ export {
   useZProgramType,
   useZProgramWorkouts,
   useZProposedChanges,
+  useZWorkoutHistories,
+  useZWorkoutHistory,
 }

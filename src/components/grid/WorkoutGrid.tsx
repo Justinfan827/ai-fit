@@ -6,8 +6,8 @@ import AddRowDropdown from '@/components/grid/AddRowDropdown'
 import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
-import { useWorkoutHistory } from '@/hooks/use-workout-history'
 import {
+  useWorkoutHistoryKeyboardShortcuts,
   useZCurrentChangeId,
   useZEditorActions,
 } from '@/hooks/zustand/program-editor'
@@ -196,13 +196,14 @@ export default function WorkoutGrid({
   onProposalAction,
 }: WorkoutGridProps) {
   const [showDebug, setShowDebug] = useState(false)
+  const { saveWorkoutToHistory } = useZEditorActions()
 
-  // Always use history hook
-  const workoutHistory = useWorkoutHistory(workout)
+  // Enable keyboard shortcuts for this workout
+  useWorkoutHistoryKeyboardShortcuts(workout.id)
 
   const handleWorkoutChange = (newWorkout: Workout) => {
-    // Save current state before making changes
-    workoutHistory.saveToHistory(newWorkout)
+    // Save current state to history before making changes
+    saveWorkoutToHistory(workout.id, newWorkout)
     onWorkoutChange(newWorkout)
   }
 
@@ -210,7 +211,7 @@ export default function WorkoutGrid({
     <div className="text-sm">
       <GridHeaderRow columns={columns} />
       <GridContentRows
-        workout={workoutHistory.currentWorkout}
+        workout={workout}
         onWorkoutChange={handleWorkoutChange}
         columns={columns}
         onProposalAction={onProposalAction}
@@ -221,22 +222,7 @@ export default function WorkoutGrid({
             Debug: Current Workout
           </h3>
           <pre className="overflow-auto text-xs text-neutral-300">
-            {JSON.stringify(workoutHistory.currentWorkout, null, 2)}
-          </pre>
-          <h4 className="mt-3 mb-1 text-xs font-medium text-neutral-400">
-            History State
-          </h4>
-          <pre className="overflow-auto text-xs text-neutral-300">
-            {JSON.stringify(
-              {
-                currentIndex: workoutHistory.currentIndex,
-                historyLength: workoutHistory.historyLength,
-                canUndo: workoutHistory.canUndo,
-                canRedo: workoutHistory.canRedo,
-              },
-              null,
-              2
-            )}
+            {JSON.stringify(workout, null, 2)}
           </pre>
         </div>
       )}
@@ -280,7 +266,9 @@ function GridContentRows({
   onProposalAction?: (proposalId: string, action: 'accept' | 'reject') => void
 }) {
   // Create grid directly from workout
+  console.log('grid created from workout', workout)
   const grid = createGridFromWorkoutWithChanges(workout, columns)
+  console.log('grid', grid)
   const numRows = grid.length
   const numCols = columns.length
   const [activeCell, setActiveCell] = useState<Position | null>(null)

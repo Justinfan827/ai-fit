@@ -22,7 +22,6 @@ import {
   useZProgramWorkouts,
   useZProposedChanges,
 } from '@/hooks/zustand/program-editor'
-import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
 import { Program, programSchema, Workout } from '@/lib/domain/workouts'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -31,7 +30,6 @@ import LoadingButton from '../loading-button'
 import { ProposedChangesMenu } from '../proposed-changes-menu'
 import { Badge } from '../ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
-import { mergeWorkoutWithProposedChanges } from './workout-merge'
 import { groupWorkoutsByWeek } from './workout-utils'
 import WorkoutGrid from './WorkoutGrid'
 
@@ -48,17 +46,6 @@ export default function ProgramEditor() {
   const workoutsByWeek = groupWorkoutsByWeek(workouts)
 
   const proposedChanges = useZProposedChanges()
-  // group proposed changes by workout index
-  const proposedChangesByWorkoutIndex = proposedChanges.reduce(
-    (acc, change) => {
-      if (!acc[change.workoutIndex]) {
-        acc[change.workoutIndex] = []
-      }
-      acc[change.workoutIndex].push(change)
-      return acc
-    },
-    {} as Record<number, WorkoutChange[]>
-  )
   const isNewProgram = useZIsNewProgram()
 
   // Handle proposal actions (accept/reject)
@@ -319,12 +306,7 @@ export default function ProgramEditor() {
                   </div>
                   <div id="workouts-data" className="w-full grow space-y-8">
                     {weeksWorkouts.map((workout, workoutIdx) => {
-                      console.log('workout pre merge', workout)
-                      const mergedWorkout = mergeWorkoutWithProposedChanges(
-                        workout,
-                        proposedChangesByWorkoutIndex[workoutIdx]
-                      )
-                      console.log(mergedWorkout)
+                      console.log('workout in program editor', workout)
                       return (
                         <div key={workout.id} className="flex gap-4">
                           <div className="grow space-y-4">
@@ -332,7 +314,7 @@ export default function ProgramEditor() {
                               <EditableTypography
                                 value={workout.name}
                                 onChange={(value) => {
-                                  const newWorkouts = weeksWorkouts.map((w) => {
+                                  const newWorkouts = workouts.map((w) => {
                                     if (w.id === workout.id) {
                                       return {
                                         ...w,
@@ -361,7 +343,7 @@ export default function ProgramEditor() {
                               </div>
                             </div>
                             <WorkoutGrid
-                              workout={mergedWorkout}
+                              workout={workout}
                               columns={defaultColumns}
                               onWorkoutChange={(updatedWorkout) => {
                                 // Update the workout in the workouts array

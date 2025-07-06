@@ -23,7 +23,6 @@ export function mergeWorkoutWithProposedChanges(
   if (!proposedChanges?.length) return workout
 
   const newWorkout = cloneDeep(workout)
-  console.log('applying proposed changes', proposedChanges)
 
   // Group changes by type
   const groupedChanges = {
@@ -94,21 +93,16 @@ export function mergeWorkoutWithProposedChanges(
         newWorkout.blocks[change.blockIndex] = removedBlock
         break
       case 'add-circuit-exercise':
-        console.log('applying change', change)
         const circuitBlock = workout.blocks[change.circuitBlockIndex]
-        console.log('circuitBlock', circuitBlock)
         if (circuitBlock.type !== 'circuit') {
           console.log('Attempted to add an exercise to a non-circuit block')
           break
         }
-        console.log('circuitBlock', circuitBlock)
         const newExercise: ExerciseBlock = {
           ...change.exercise,
           pendingStatus: { type: 'adding', proposalId: change.id },
         }
-        console.log('newExercise', newExercise)
         const targetCircuitBlock = newWorkout.blocks[change.circuitBlockIndex]
-        console.log('targetCircuitBlock', targetCircuitBlock)
         if (targetCircuitBlock.type === 'circuit') {
           targetCircuitBlock.circuit.exercises.splice(
             change.exerciseIndex,
@@ -116,7 +110,6 @@ export function mergeWorkoutWithProposedChanges(
             newExercise
           )
         }
-        console.log('newWorkout', newWorkout)
         break
       case 'remove-circuit-exercise':
         const circuitBlockToRemove = workout.blocks[change.circuitBlockIndex]
