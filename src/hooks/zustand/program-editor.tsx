@@ -237,6 +237,7 @@ const EditorProgramProvider = ({
         setProposedChanges: (changes: WorkoutChange[]) => {
           set({ proposedChanges: changes })
         },
+
         setProgramType: (pType: 'weekly' | 'splits') => {
           set({ type: pType })
         },

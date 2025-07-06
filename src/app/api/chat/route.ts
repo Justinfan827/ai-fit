@@ -1,17 +1,10 @@
-import {
-  buildDiffGenerationPrompt,
-  buildSystemPrompt,
-  buildWorkoutModificationPrompt,
-} from '@/lib/ai/prompts/prompts'
+import { buildSystemPrompt } from '@/lib/ai/prompts/prompts'
 import { createWorkoutChanges } from '@/lib/ai/tools/create-workout-changes'
-import { aiWorkoutDiffSchema } from '@/lib/types/workout-diff'
 import { openai } from '@ai-sdk/openai'
 import {
   convertToCoreMessages,
   createDataStream,
   DataStreamWriter,
-  generateText,
-  streamObject,
   streamText,
 } from 'ai'
 import { requestSchema } from './schema'
@@ -100,55 +93,6 @@ export async function POST(req: Request) {
       },
     })
     return new Response(stream)
-
-    // Step 2: Route based on intent
-    if (intent.type === 'general') {
-      const result = streamText({
-        model: openai('gpt-4o-mini'),
-        system: systemPrompt,
-        messages: convertToCoreMessages(messages),
-        maxTokens: 1000,
-        temperature: 0.7,
-        onFinish: async ({ response }) => {
-          console.log(
-            'General chat response:',
-            JSON.stringify(response.messages, null, 2)
-          )
-        },
-      })
-
-      return result.toDataStreamResponse()
-    } else {
-      console.log('Processing workout modification with 2-step approach...')
-
-      const { text: updatedWorkoutText } = await generateText({
-        model: openai('gpt-4o'),
-        system: buildWorkoutModificationPrompt(contextItems, workouts),
-        prompt: `Please modify the workout program based on this request: "${lastMessage.content}"`,
-        maxTokens: 2000,
-        temperature: 0.3,
-      })
-
-      console.log('Updated workout text:', updatedWorkoutText)
-
-      // Step 2: Convert text changes to structured diff
-      const result = streamObject({
-        model: openai('gpt-4o'),
-        schema: aiWorkoutDiffSchema,
-        system: buildDiffGenerationPrompt(
-          workouts,
-          updatedWorkoutText,
-          contextItems
-        ),
-        prompt: `Analyze the workout changes and generate a structured diff.`,
-        onFinish: async ({ response }) => {
-          console.log('Generated diff:', JSON.stringify(response, null, 2))
-        },
-      })
-
-      // Return structured response
-      return result.toTextStreamResponse()
-    }
   } catch (error) {
     console.error('Chat API Error:', error)
     return Response.json(

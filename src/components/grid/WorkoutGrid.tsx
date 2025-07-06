@@ -7,6 +7,7 @@ import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { useWorkoutHistory } from '@/hooks/use-workout-history'
+import { useZEditorActions } from '@/hooks/zustand/program-editor'
 import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
 import {
   CircuitBlock,
@@ -137,6 +138,7 @@ interface WorkoutGridProps {
   proposedChanges: WorkoutChange[]
   workout: Workout
   onWorkoutChange: (workout: Workout) => void
+  onProposedChangesChange: (changes: WorkoutChange[]) => void
   columns: Column[]
 }
 
@@ -399,7 +401,6 @@ function GridContentRows({
     colIndex: number,
     type: 'exercise' | 'circuit' | 'exercise-in-circuit'
   ) => {
-    console.log('handleAddRow', rowIndex, colIndex, type)
     if (type === 'exercise-in-circuit') {
       // Handle adding exercise within a circuit
       const currentCell = grid[rowIndex]?.[0]
@@ -529,6 +530,50 @@ function GridContentRows({
     }
   }
 
+  const { setProposedChanges } = useZEditorActions()
+  const handleProposalAction = (
+    rowIndex: number,
+    action: 'accept' | 'reject'
+  ) => {
+    const cell = grid[rowIndex]?.[0]
+    if (!cell || !cell.isProposed || cell.proposedChangeIndex === undefined) {
+      return
+    }
+
+    const proposedChange = proposedChanges[cell.proposedChangeIndex]
+    if (!proposedChange) {
+      return
+    }
+
+    switch (action) {
+      case 'accept':
+        if (proposedChange.type === 'add-block') {
+          // Apply the add-block change to the workout
+          const newBlocks = [...workout.blocks]
+          const insertIndex = proposedChange.afterBlockIndex + 1
+          newBlocks.splice(insertIndex, 0, proposedChange.block)
+
+          const updatedWorkout = {
+            ...workout,
+            blocks: newBlocks,
+          }
+
+          // Remove the accepted proposal from the list
+          const updatedProposedChanges = proposedChanges.filter(
+            (_, index) => index !== cell.proposedChangeIndex
+          )
+
+          // TODO: Support undoing accepting a workout proposal
+          onWorkoutChange(updatedWorkout)
+          setProposedChanges(updatedProposedChanges)
+        }
+        break
+      case 'reject':
+        // TODO: Implement reject logic
+        break
+    }
+  }
+
   return (
     <>
       {grid.map((row: Cell[], rowIndex: number) => {
@@ -547,10 +592,13 @@ function GridContentRows({
             handleOnSelectExercise={handleOnSelectExercise}
             handleInputChange={handleInputChange}
             handleKeyDown={handleKeyDown}
+            handleProposalAction={handleProposalAction}
             setActiveCell={setActiveCell}
             editingValue={editingValue}
             stopEditing={stopEditing}
             startEditing={startEditing}
+            grid={grid}
+            proposedChanges={proposedChanges}
           />
         )
       })}
@@ -576,6 +624,7 @@ type GridRowProps = {
     row: number,
     col: number
   ) => void
+  handleProposalAction: (rowIndex: number, action: 'accept' | 'reject') => void
   handleKeyDown: (e: KeyboardEvent, row: number, col: number) => void
   setActiveCell: (cell: Position | null) => void
   setOpenDropdownRow: (row: number | null) => void
@@ -583,6 +632,8 @@ type GridRowProps = {
   editingValue: string
   stopEditing: (row: number, col: number) => void
   startEditing: (row: number, col: number, initialValue?: string) => void
+  grid: Cell[][]
+  proposedChanges: WorkoutChange[]
 }
 
 function GridContentRow({
@@ -595,6 +646,7 @@ function GridContentRow({
   handleAddRow,
   handleOnSelectExercise,
   handleInputChange,
+  handleProposalAction,
   handleKeyDown,
   setActiveCell,
   setOpenDropdownRow,
@@ -602,6 +654,8 @@ function GridContentRow({
   editingValue,
   stopEditing,
   startEditing,
+  grid,
+  proposedChanges,
 }: GridRowProps) {
   return (
     <div key={`row-${rowIndex}`} className="group flex h-9 w-full">
@@ -633,12 +687,7 @@ function GridContentRow({
                     : 'text-blue-400 hover:text-blue-300'
               }`}
               onClick={() => {
-                // TODO: Implement accept proposed change logic
-                console.log(
-                  'Accept proposed change',
-                  row[0]?.proposedChangeIndex,
-                  row[0]?.proposedChangeType
-                )
+                handleProposalAction(rowIndex, 'accept')
               }}
               title={`Accept proposed ${row[0]?.proposedChangeType?.replace('-', ' ')}`}
             >
@@ -649,12 +698,7 @@ function GridContentRow({
               variant="ghost"
               className="h-6 w-6 cursor-pointer text-red-400 transition-opacity ease-in-out group-focus-within:opacity-100 group-hover:opacity-100 hover:text-red-300 focus:opacity-100"
               onClick={() => {
-                // TODO: Implement reject proposed change logic
-                console.log(
-                  'Reject proposed change',
-                  row[0]?.proposedChangeIndex,
-                  row[0]?.proposedChangeType
-                )
+                handleProposalAction(rowIndex, 'reject')
               }}
               title={`Reject proposed ${row[0]?.proposedChangeType?.replace('-', ' ')}`}
             >
@@ -758,75 +802,6 @@ function GridContentRow({
       ))}
     </div>
   )
-}
-
-// Direct workout-to-grid mapping function
-function createGridFromWorkout(workout: Workout, columns: Column[]): Cell[][] {
-  const grid: Cell[][] = []
-  let currentRowIndex = 0
-
-  workout.blocks.forEach((block, blockIndex) => {
-    if (block.type === 'exercise') {
-      // Regular exercise row
-      const exerciseRow = columns.map((col, colIndex) => ({
-        type:
-          col.field === 'exercise_name'
-            ? ('select' as const)
-            : ('input' as const),
-        value: getValueFromBlock(block, col.field),
-        colType: col.field,
-        width: col.width || 100,
-        rowIndex: currentRowIndex,
-        colIndex,
-        blockType: 'exercise' as const,
-        originalBlockIndex: blockIndex,
-        isCircuitExercise: false,
-      }))
-      grid.push(exerciseRow)
-      currentRowIndex++
-    } else if (block.type === 'circuit') {
-      // Circuit header row (dummy row)
-      const circuitHeaderRow = columns.map((col, colIndex) => ({
-        type: 'input' as const,
-        value: getValueFromCircuitBlock(block, col.field),
-        colType: col.field,
-        width: col.width || 100,
-        rowIndex: currentRowIndex,
-        colIndex,
-        isCircuitHeader: true,
-        blockType: 'circuit' as const,
-        originalBlockIndex: blockIndex,
-        readOnly: col.field === 'reps' || col.field === 'weight',
-        isCircuitExercise: false,
-      }))
-      grid.push(circuitHeaderRow)
-      currentRowIndex++
-
-      // Circuit exercises
-      block.circuit.exercises.forEach((exerciseBlock, exerciseIndex) => {
-        const exerciseRow = columns.map((col, colIndex) => ({
-          type:
-            col.field === 'exercise_name'
-              ? ('select' as const)
-              : ('input' as const),
-          value: getValueFromBlock(exerciseBlock, col.field),
-          colType: col.field,
-          width: col.width || 100,
-          rowIndex: currentRowIndex,
-          colIndex,
-          readOnly: col.field === 'sets' || col.field === 'rest',
-          blockType: 'exercise' as const,
-          originalBlockIndex: blockIndex,
-          isCircuitExercise: true,
-          exerciseIndexInCircuit: exerciseIndex, // Store the index
-        }))
-        grid.push(exerciseRow)
-        currentRowIndex++
-      })
-    }
-  })
-
-  return grid
 }
 
 // Enhanced workout-to-grid mapping function that includes proposed changes
