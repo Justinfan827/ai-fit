@@ -42,11 +42,7 @@ const addCircuitExerciseSchema = z
     circuitBlockIndex: z
       .number()
       .describe('The index of the circuit block to add the exercise to'),
-    afterExerciseIndex: z
-      .number()
-      .describe(
-        'The index of the exercise inside the circuit to add the new exercise after'
-      ),
+    exerciseIndex: z.number().describe('The index of the exercise to add'),
     exercise: exerciseBlockSchema.describe('The exercise to add'),
   })
   .describe('Add an exercise to a circuit block')

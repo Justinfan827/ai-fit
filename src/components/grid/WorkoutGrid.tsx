@@ -133,6 +133,8 @@ interface Cell {
   isProposed?: boolean
   proposedChangeIndex?: number
   proposedChangeType?: 'adding' | 'removing' | 'updating'
+  // Flag to track if this is an individual exercise change (not part of circuit change)
+  isIndividualChange?: boolean
 }
 
 interface WorkoutGridProps {
@@ -637,12 +639,12 @@ function GridContentRow({
       >
         {row[0]?.isProposed &&
         // Show accept/reject buttons on:
-        // - Circuit headers (for remove-block)
-        // - Non-circuit exercises (for remove-block or add-block)
-        // - Circuit exercises with remove-circuit-exercise
+        // - Circuit headers (for any circuit-related changes)
+        // - Standalone exercises (for remove-block or add-block)
+        // - Circuit exercises when individually being added/removed (not part of circuit removal)
         (row[0]?.isCircuitHeader ||
-          !row[0]?.isCircuitExercise ||
-          row[0]?.proposedChangeType === 'removing') ? (
+          (!row[0]?.isCircuitExercise && !row[0]?.isCircuitHeader) ||
+          (row[0]?.isCircuitExercise && row[0]?.isIndividualChange)) ? (
           // Proposed change action buttons
           <>
             <Button
@@ -866,6 +868,8 @@ function createGridFromWorkoutWithChanges(
             : isBlockProposed
               ? blockPendingStatus?.type
               : undefined,
+          // Flag to track if this is an individual exercise change (not part of circuit change)
+          isIndividualChange: isExerciseProposed,
         }))
         grid.push(exerciseRow)
         currentRowIndex++

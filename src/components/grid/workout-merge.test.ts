@@ -242,7 +242,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
           type: 'add-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 1,
-          afterExerciseIndex: 1,
+          exerciseIndex: 1,
           exercise: newExercise,
         },
       ]
@@ -281,7 +281,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
           type: 'add-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 0, // This is an exercise block, not a circuit
-          afterExerciseIndex: 0,
+          exerciseIndex: 0,
           exercise: newExercise,
         },
       ]
@@ -461,7 +461,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
           type: 'add-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 1,
-          afterExerciseIndex: 2,
+          exerciseIndex: 2,
           exercise: newExercise,
         },
         {

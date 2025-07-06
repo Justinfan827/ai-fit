@@ -179,6 +179,25 @@ const EditorProgramProvider = ({
       name: program.name,
       proposedChanges: [
         {
+          type: 'add-circuit-exercise',
+          workoutIndex: 0,
+          circuitBlockIndex: 3,
+          exerciseIndex: 0,
+          exercise: {
+            type: 'exercise',
+            exercise: {
+              id: exercises[4].id,
+              name: exercises[4].name,
+              metadata: {
+                sets: '3',
+                reps: '12',
+                weight: '100',
+                rest: '30s',
+              },
+            },
+          },
+        },
+        {
           type: 'add-block',
           workoutIndex: 0,
           afterBlockIndex: 0,

@@ -77,7 +77,7 @@ export function mergeWorkoutWithProposedChanges(
         const targetCircuitBlock = newWorkout.blocks[change.circuitBlockIndex]
         if (targetCircuitBlock.type === 'circuit') {
           targetCircuitBlock.circuit.exercises.splice(
-            change.afterExerciseIndex,
+            change.exerciseIndex,
             0,
             newExercise
           )
