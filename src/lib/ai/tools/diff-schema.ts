@@ -26,7 +26,7 @@ const addBlockSchema = baseChangeSchema
     workoutIndex: z
       .number()
       .describe('The index of the workout to add the block to'),
-    afterBlockIndex: z.number().describe('The index of the block to add after'),
+    blockIndex: z.number().describe('The index of the block to add'),
     block: blockSchema.describe('The block to add'),
   })
   .describe('Add a block to the workout program')

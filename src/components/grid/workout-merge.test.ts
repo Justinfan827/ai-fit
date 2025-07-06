@@ -1,3 +1,4 @@
+import { sortProposedChanges } from '@/hooks/zustand/program-editor'
 import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
 import {
   Block,
@@ -22,6 +23,52 @@ function createMockExerciseBlock(): ExerciseBlock {
         rest: '60',
         notes: 'Focus on form',
       },
+    },
+  }
+}
+
+function createMockCircuitBlock2(): CircuitBlock {
+  return {
+    type: 'circuit',
+    circuit: {
+      isDefault: false,
+      name: 'Upper Body Circuit',
+      description: 'A circuit for upper body strength',
+      metadata: {
+        sets: '3',
+        rest: '120',
+        notes: 'Complete all exercises before resting',
+      },
+      exercises: [
+        {
+          type: 'exercise',
+          exercise: {
+            id: '123e4567-e89b-12d3-a456-426614174018',
+            name: 'Push-ups',
+            metadata: {
+              sets: '3',
+              reps: '15',
+              weight: '0',
+              rest: '30',
+              notes: 'Keep core tight',
+            },
+          },
+        },
+        {
+          type: 'exercise',
+          exercise: {
+            id: '123e4567-e89b-12d3-a456-426614174019',
+            name: 'Pull-ups',
+            metadata: {
+              sets: '3',
+              reps: '8',
+              weight: '0',
+              rest: '30',
+              notes: 'Full range of motion',
+            },
+          },
+        },
+      ],
     },
   }
 }
@@ -72,6 +119,20 @@ function createMockCircuitBlock(): CircuitBlock {
   }
 }
 
+function createMockWorkout2Circuits(): Workout {
+  return {
+    id: '123e4567-e89b-12d3-a456-426614174003',
+    program_order: 1,
+    week: 1,
+    program_id: '123e4567-e89b-12d3-a456-426614174004',
+    name: 'Test Workout',
+    blocks: [
+      createMockExerciseBlock(),
+      createMockCircuitBlock(),
+      createMockCircuitBlock2(),
+    ],
+  }
+}
 function createMockWorkout(): Workout {
   return {
     id: '123e4567-e89b-12d3-a456-426614174003',
@@ -104,9 +165,10 @@ describe('mergeWorkoutWithProposedChanges', () => {
 
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174005',
           type: 'add-block',
           workoutIndex: 0,
-          afterBlockIndex: 1,
+          blockIndex: 1,
           block: newBlock,
         },
       ]
@@ -116,7 +178,10 @@ describe('mergeWorkoutWithProposedChanges', () => {
       expect(result.blocks).toHaveLength(3)
       expect(result.blocks[1]).toEqual({
         ...newBlock,
-        pendingStatus: { type: 'adding' },
+        pendingStatus: {
+          type: 'adding',
+          proposalId: '123e4567-e89b-12d3-a456-426614174005',
+        },
       })
     })
 
@@ -139,9 +204,10 @@ describe('mergeWorkoutWithProposedChanges', () => {
 
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174006',
           type: 'add-block',
           workoutIndex: 0,
-          afterBlockIndex: 0,
+          blockIndex: 0,
           block: newBlock,
         },
       ]
@@ -151,7 +217,10 @@ describe('mergeWorkoutWithProposedChanges', () => {
       expect(result.blocks).toHaveLength(3)
       expect(result.blocks[0]).toEqual({
         ...newBlock,
-        pendingStatus: { type: 'adding' },
+        pendingStatus: {
+          type: 'adding',
+          proposalId: '123e4567-e89b-12d3-a456-426614174006',
+        },
       })
     })
   })
@@ -177,6 +246,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
 
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174007',
           type: 'update-block',
           workoutIndex: 0,
           blockIndex: 0,
@@ -192,6 +262,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
         pendingStatus: {
           type: 'updating',
           oldBlock: mockExerciseBlock,
+          proposalId: '123e4567-e89b-12d3-a456-426614174007',
         },
       })
     })
@@ -203,6 +274,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
       const mockExerciseBlock = createMockExerciseBlock()
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174008',
           type: 'remove-block',
           workoutIndex: 0,
           blockIndex: 0,
@@ -214,7 +286,10 @@ describe('mergeWorkoutWithProposedChanges', () => {
       expect(result.blocks).toHaveLength(2)
       expect(result.blocks[0]).toEqual({
         ...mockExerciseBlock,
-        pendingStatus: { type: 'removing' },
+        pendingStatus: {
+          type: 'removing',
+          proposalId: '123e4567-e89b-12d3-a456-426614174008',
+        },
       })
     })
   })
@@ -239,6 +314,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
 
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174009',
           type: 'add-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 1,
@@ -254,7 +330,10 @@ describe('mergeWorkoutWithProposedChanges', () => {
       expect(circuitBlock.circuit.exercises).toHaveLength(3)
       expect(circuitBlock.circuit.exercises[1]).toEqual({
         ...newExercise,
-        pendingStatus: { type: 'adding' },
+        pendingStatus: {
+          type: 'adding',
+          proposalId: '123e4567-e89b-12d3-a456-426614174009',
+        },
       })
     })
 
@@ -278,6 +357,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
 
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174010',
           type: 'add-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 0, // This is an exercise block, not a circuit
@@ -315,6 +395,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
 
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174011',
           type: 'update-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 1,
@@ -333,6 +414,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
         pendingStatus: {
           type: 'updating',
           oldBlock: mockCircuitBlock.circuit.exercises[0],
+          proposalId: '123e4567-e89b-12d3-a456-426614174011',
         },
       })
     })
@@ -357,6 +439,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
 
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174017',
           type: 'update-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 0, // This is an exercise block, not a circuit
@@ -379,6 +462,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
       const mockCircuitBlock = createMockCircuitBlock()
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174012',
           type: 'remove-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 1,
@@ -393,7 +477,10 @@ describe('mergeWorkoutWithProposedChanges', () => {
       expect(circuitBlock.circuit.exercises).toHaveLength(2)
       expect(circuitBlock.circuit.exercises[0]).toEqual({
         ...mockCircuitBlock.circuit.exercises[0],
-        pendingStatus: { type: 'removing' },
+        pendingStatus: {
+          type: 'removing',
+          proposalId: '123e4567-e89b-12d3-a456-426614174012',
+        },
       })
     })
 
@@ -402,6 +489,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
       const mockExerciseBlock = createMockExerciseBlock()
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174013',
           type: 'remove-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 0, // This is an exercise block, not a circuit
@@ -450,14 +538,16 @@ describe('mergeWorkoutWithProposedChanges', () => {
         },
       }
 
-      const changes: WorkoutChange[] = [
+      const changes: WorkoutChange[] = sortProposedChanges([
         {
+          id: '123e4567-e89b-12d3-a456-426614174014',
           type: 'add-block',
           workoutIndex: 0,
-          afterBlockIndex: 2,
+          blockIndex: 2,
           block: newBlock,
         },
         {
+          id: '123e4567-e89b-12d3-a456-426614174015',
           type: 'add-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 1,
@@ -465,11 +555,12 @@ describe('mergeWorkoutWithProposedChanges', () => {
           exercise: newExercise,
         },
         {
+          id: '123e4567-e89b-12d3-a456-426614174016',
           type: 'remove-block',
           workoutIndex: 0,
           blockIndex: 0,
         },
-      ]
+      ])
 
       const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
 
@@ -477,20 +568,29 @@ describe('mergeWorkoutWithProposedChanges', () => {
       expect(result.blocks).toHaveLength(3)
 
       // First block should be marked for removal
-      expect(result.blocks[0].pendingStatus).toEqual({ type: 'removing' })
+      expect(result.blocks[0].pendingStatus).toEqual({
+        type: 'removing',
+        proposalId: '123e4567-e89b-12d3-a456-426614174016',
+      })
 
       // Circuit block should have 3 exercises (original 2 + 1 added)
       const circuitBlock = result.blocks[1] as CircuitBlock
       expect(circuitBlock.circuit.exercises).toHaveLength(3)
       expect(circuitBlock.circuit.exercises[2]).toEqual({
         ...newExercise,
-        pendingStatus: { type: 'adding' },
+        pendingStatus: {
+          type: 'adding',
+          proposalId: '123e4567-e89b-12d3-a456-426614174015',
+        },
       })
 
       // New block should be added at the end
       expect(result.blocks[2]).toEqual({
         ...newBlock,
-        pendingStatus: { type: 'adding' },
+        pendingStatus: {
+          type: 'adding',
+          proposalId: '123e4567-e89b-12d3-a456-426614174014',
+        },
       })
     })
   })
@@ -509,6 +609,7 @@ describe('mergeWorkoutWithProposedChanges', () => {
       const originalWorkout = JSON.parse(JSON.stringify(mockWorkout))
       const changes: WorkoutChange[] = [
         {
+          id: '123e4567-e89b-12d3-a456-426614174017',
           type: 'remove-block',
           workoutIndex: 0,
           blockIndex: 0,
@@ -518,6 +619,82 @@ describe('mergeWorkoutWithProposedChanges', () => {
       mergeWorkoutWithProposedChanges(mockWorkout, changes)
 
       expect(mockWorkout).toEqual(originalWorkout)
+    })
+  })
+  describe('multiple changes with index shifts from add block and add circuit exercise', () => {
+    it('Should properly handle multiple add-block and add-circuit-exercise changes', () => {
+      const mockWorkout = createMockWorkout2Circuits()
+      const newExercise: ExerciseBlock = {
+        type: 'exercise',
+        exercise: {
+          id: '123e4567-e89b-12d3-a456-426614174011',
+          name: 'Chin-ups',
+          metadata: {
+            sets: '3',
+            reps: '6',
+            weight: '0',
+            rest: '30',
+            notes: 'Underhand grip',
+          },
+        },
+      }
+      const newExercise2: ExerciseBlock = {
+        type: 'exercise',
+        exercise: {
+          id: '123e4567-e89b-12d3-a456-426614174052',
+          name: 'Push-ups',
+          metadata: {
+            sets: '3',
+            reps: '6',
+            weight: '0',
+            rest: '30',
+            notes: 'Underhand grip',
+          },
+        },
+      }
+
+      const changes: WorkoutChange[] = sortProposedChanges([
+        {
+          id: '123e4567-e89b-12d3-a456-426614174014',
+          type: 'add-block',
+          workoutIndex: 0,
+          blockIndex: 0,
+          block: newExercise2,
+        },
+        {
+          id: '123e4567-e89b-12d3-a456-426614174015',
+          type: 'add-circuit-exercise',
+          workoutIndex: 0,
+          circuitBlockIndex: 1, // add to the second block, which is a circuit!
+          exerciseIndex: 2,
+          exercise: newExercise,
+        },
+      ])
+
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      expect(result.blocks).toHaveLength(4)
+      expect(result.blocks[0].type).toEqual('exercise')
+      expect(result.blocks[1].type).toEqual('exercise')
+      expect(result.blocks[2].type).toEqual('circuit')
+      expect(result.blocks[3].type).toEqual('circuit')
+
+      const circuit1Block = result.blocks[2] as CircuitBlock
+      expect(circuit1Block.circuit.exercises).toHaveLength(3)
+      expect(circuit1Block.circuit.exercises[2]).toEqual({
+        ...newExercise,
+        pendingStatus: {
+          type: 'adding',
+          proposalId: changes[1].id,
+        },
+      })
+
+      expect(result.blocks[0]).toEqual({
+        ...newExercise2,
+        pendingStatus: {
+          type: 'adding',
+          proposalId: changes[0].id,
+        },
+      })
     })
   })
 })

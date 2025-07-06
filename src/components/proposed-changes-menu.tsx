@@ -4,12 +4,14 @@ import { Icons } from '@/components/icons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
+  useZCurrentChangeId,
   useZEditorActions,
+  useZProgramWorkouts,
   useZProposedChanges,
 } from '@/hooks/zustand/program-editor'
-import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
 import { cn } from '@/lib/utils'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
+import { groupWorkoutsByWeek } from './grid/workout-utils'
 
 interface ProposedChangesMenuProps {
   className?: string
@@ -17,11 +19,34 @@ interface ProposedChangesMenuProps {
 
 export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
   const proposedChanges = useZProposedChanges()
-  const { setProposedChanges } = useZEditorActions()
-  const [currentChangeIndex, setCurrentChangeIndex] = useState(0)
+  const workouts = useZProgramWorkouts()
+  const workoutsByWeek = groupWorkoutsByWeek(workouts)
+  // TODO: handle applying changes to multiple weeks
+  const workoutsWeek0 = workoutsByWeek[0]
+  const { setProposedChanges, setCurrentChangeId } = useZEditorActions()
+  const currentChangeId = useZCurrentChangeId()
 
   const hasChanges = proposedChanges.length > 0
+
+  // Find current change index based on the current change ID
+  const currentChangeIndex = useMemo(() => {
+    if (!currentChangeId) return 0
+    const index = proposedChanges.findIndex(
+      (change) => change.id === currentChangeId
+    )
+    return index >= 0 ? index : 0
+  }, [currentChangeId, proposedChanges])
+
   const currentChange = proposedChanges[currentChangeIndex]
+
+  // Set the first change as current when changes are available and none is selected
+  useEffect(() => {
+    if (hasChanges && !currentChangeId && proposedChanges.length > 0) {
+      setCurrentChangeId(proposedChanges[0].id)
+    } else if (!hasChanges && currentChangeId) {
+      setCurrentChangeId(null)
+    }
+  }, [hasChanges, currentChangeId, proposedChanges, setCurrentChangeId])
 
   const acceptChange = useCallback(
     (changeId: string) => {
@@ -31,17 +56,25 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
       )
       setProposedChanges(updatedChanges)
 
-      // Update current index if needed
-      if (
-        currentChangeIndex >= updatedChanges.length &&
-        updatedChanges.length > 0
-      ) {
-        setCurrentChangeIndex(updatedChanges.length - 1)
-      } else if (updatedChanges.length === 0) {
-        setCurrentChangeIndex(0)
+      // Update current change ID
+      if (updatedChanges.length > 0) {
+        // If there are still changes, set the next one as current
+        const nextIndex = Math.min(
+          currentChangeIndex,
+          updatedChanges.length - 1
+        )
+        setCurrentChangeId(updatedChanges[nextIndex].id)
+      } else {
+        // No more changes
+        setCurrentChangeId(null)
       }
     },
-    [proposedChanges, currentChangeIndex, setProposedChanges]
+    [
+      proposedChanges,
+      currentChangeIndex,
+      setProposedChanges,
+      setCurrentChangeId,
+    ]
   )
 
   const rejectChange = useCallback(
@@ -52,42 +85,52 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
       )
       setProposedChanges(updatedChanges)
 
-      // Update current index if needed
-      if (
-        currentChangeIndex >= updatedChanges.length &&
-        updatedChanges.length > 0
-      ) {
-        setCurrentChangeIndex(updatedChanges.length - 1)
-      } else if (updatedChanges.length === 0) {
-        setCurrentChangeIndex(0)
+      // Update current change ID
+      if (updatedChanges.length > 0) {
+        // If there are still changes, set the next one as current
+        const nextIndex = Math.min(
+          currentChangeIndex,
+          updatedChanges.length - 1
+        )
+        setCurrentChangeId(updatedChanges[nextIndex].id)
+      } else {
+        // No more changes
+        setCurrentChangeId(null)
       }
     },
-    [proposedChanges, currentChangeIndex, setProposedChanges]
+    [
+      proposedChanges,
+      currentChangeIndex,
+      setProposedChanges,
+      setCurrentChangeId,
+    ]
   )
 
   const acceptAllChanges = useCallback(() => {
     setProposedChanges([])
-    setCurrentChangeIndex(0)
-  }, [setProposedChanges])
+    setCurrentChangeId(null)
+  }, [setProposedChanges, setCurrentChangeId])
 
   const rejectAllChanges = useCallback(() => {
     setProposedChanges([])
-    setCurrentChangeIndex(0)
-  }, [setProposedChanges])
+    setCurrentChangeId(null)
+  }, [setProposedChanges, setCurrentChangeId])
 
   const navigateToNext = useCallback(() => {
     if (proposedChanges.length > 0) {
-      setCurrentChangeIndex((prev) => (prev + 1) % proposedChanges.length)
+      const nextIndex = (currentChangeIndex + 1) % proposedChanges.length
+      setCurrentChangeId(proposedChanges[nextIndex].id)
     }
-  }, [proposedChanges.length])
+  }, [proposedChanges, currentChangeIndex, setCurrentChangeId])
 
   const navigateToPrevious = useCallback(() => {
     if (proposedChanges.length > 0) {
-      setCurrentChangeIndex(
-        (prev) => (prev - 1 + proposedChanges.length) % proposedChanges.length
-      )
+      const prevIndex =
+        (currentChangeIndex - 1 + proposedChanges.length) %
+        proposedChanges.length
+      setCurrentChangeId(proposedChanges[prevIndex].id)
     }
-  }, [proposedChanges.length])
+  }, [proposedChanges, currentChangeIndex, setCurrentChangeId])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -131,50 +174,7 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
     navigateToPrevious,
   ])
 
-  // Reset current index when changes are updated externally
-  useEffect(() => {
-    if (currentChangeIndex >= proposedChanges.length) {
-      setCurrentChangeIndex(Math.max(0, proposedChanges.length - 1))
-    }
-  }, [proposedChanges.length, currentChangeIndex])
-
   if (!hasChanges) return null
-
-  const getChangeDescription = (change: WorkoutChange) => {
-    switch (change.type) {
-      case 'add-block':
-        return `Add ${change.block.type} block`
-      case 'remove-block':
-        return `Remove block at index ${change.blockIndex}`
-      case 'update-block':
-        return `Update ${change.block.type} block`
-      case 'add-circuit-exercise':
-        return `Add exercise to circuit`
-      case 'remove-circuit-exercise':
-        return `Remove exercise from circuit`
-      case 'update-circuit-exercise':
-        return `Update exercise in circuit`
-      default:
-        return 'Unknown change'
-    }
-  }
-
-  const getChangeTypeColor = (type: string) => {
-    switch (type) {
-      case 'add-block':
-      case 'add-circuit-exercise':
-        return 'bg-green-500/20 text-green-400 border-green-500/50'
-      case 'remove-block':
-      case 'remove-circuit-exercise':
-        return 'bg-red-500/20 text-red-400 border-red-500/50'
-      case 'update-block':
-      case 'update-circuit-exercise':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/50'
-      default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/50'
-    }
-  }
-
   return (
     <div
       className={cn(
@@ -186,7 +186,6 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
     >
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icons.spinner className="h-4 w-4 text-orange-400" />
           <span className="text-sm font-medium text-neutral-200">
             Pending Changes
           </span>
@@ -194,34 +193,7 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
             {currentChangeIndex + 1} of {proposedChanges.length}
           </Badge>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-neutral-400 hover:text-neutral-200"
-          onClick={rejectAllChanges}
-        >
-          <Icons.x className="h-4 w-4" />
-        </Button>
       </div>
-
-      {currentChange && (
-        <div className="mb-4">
-          <div className="mb-2 flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className={cn('text-xs', getChangeTypeColor(currentChange.type))}
-            >
-              {currentChange.type.replace('-', ' ')}
-            </Badge>
-            <span className="text-sm text-neutral-300">
-              {getChangeDescription(currentChange)}
-            </span>
-          </div>
-          <div className="text-xs text-neutral-400">
-            Workout {currentChange.workoutIndex + 1}
-          </div>
-        </div>
-      )}
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -265,16 +237,6 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
             <Icons.check className="mr-1 h-3 w-3" />
             Accept
             <span className="ml-1 text-xs opacity-70">⌘Y</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={acceptAllChanges}
-            className="h-8 border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
-          >
-            <Icons.checkCircle className="mr-1 h-3 w-3" />
-            Accept All
-            <span className="ml-1 text-xs opacity-70">⌘⇧⏎</span>
           </Button>
         </div>
       </div>

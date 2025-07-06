@@ -32,6 +32,7 @@ import { ProposedChangesMenu } from '../proposed-changes-menu'
 import { Badge } from '../ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import { mergeWorkoutWithProposedChanges } from './workout-merge'
+import { groupWorkoutsByWeek } from './workout-utils'
 import WorkoutGrid from './WorkoutGrid'
 
 export default function ProgramEditor() {
@@ -44,14 +45,7 @@ export default function ProgramEditor() {
   const programId = useZProgramId()
   const { setProgramType, setProgramName, setWorkouts, setProposedChanges } =
     useZEditorActions()
-  const workoutsByWeek = workouts.reduce((acc, w) => {
-    const week = w.week || 0
-    if (!acc[week]) {
-      acc[week] = []
-    }
-    acc[week].push(w)
-    return acc
-  }, [] as Workout[][])
+  const workoutsByWeek = groupWorkoutsByWeek(workouts)
 
   const proposedChanges = useZProposedChanges()
   // group proposed changes by workout index
@@ -65,7 +59,6 @@ export default function ProgramEditor() {
     },
     {} as Record<number, WorkoutChange[]>
   )
-  console.log(proposedChangesByWorkoutIndex)
   const isNewProgram = useZIsNewProgram()
 
   // Handle proposal actions (accept/reject)
@@ -326,11 +319,12 @@ export default function ProgramEditor() {
                   </div>
                   <div id="workouts-data" className="w-full grow space-y-8">
                     {weeksWorkouts.map((workout, workoutIdx) => {
+                      console.log('workout pre merge', workout)
                       const mergedWorkout = mergeWorkoutWithProposedChanges(
                         workout,
                         proposedChangesByWorkoutIndex[workoutIdx]
                       )
-                      console.log(JSON.stringify(mergedWorkout, null, 2))
+                      console.log(mergedWorkout)
                       return (
                         <div key={workout.id} className="flex gap-4">
                           <div className="grow space-y-4">
@@ -411,7 +405,6 @@ export default function ProgramEditor() {
           })}
         </div>
       </div>
-      {/* Add the floating menu for proposed changes */}
       <ProposedChangesMenu />
     </div>
   )

@@ -1,4 +1,4 @@
-import { ChangeEvent, KeyboardEvent, useRef, useState } from 'react'
+import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 import { DebugToggle } from '@/components/debug-toggle'
@@ -7,7 +7,10 @@ import ExerciseInput from '@/components/grid/ExerciseInput'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { useWorkoutHistory } from '@/hooks/use-workout-history'
-import { useZEditorActions } from '@/hooks/zustand/program-editor'
+import {
+  useZCurrentChangeId,
+  useZEditorActions,
+} from '@/hooks/zustand/program-editor'
 import {
   CircuitBlock,
   Exercise,
@@ -18,7 +21,7 @@ import { cn } from '@/lib/utils'
 import { Column } from './columns'
 
 // Utility function for getting row-specific styling
-function getRowStyles(cell: Cell) {
+function getRowStyles(cell: Cell, currentChangeId: string | null) {
   return {
     // Circuit header styles
     circuitHeader: cell.isCircuitHeader,
@@ -28,36 +31,73 @@ function getRowStyles(cell: Cell) {
     standaloneExercise: !cell.isCircuitHeader && !cell.isCircuitExercise,
     // Proposed change styles
     proposedChange: cell.isProposed,
+    // Current change styles (highlighted more prominently)
+    currentChange:
+      cell.isProposed && cell.pendingStatus?.proposalId === currentChangeId,
   }
 }
 
 // Utility function for getting cell CSS classes
-function getCellClasses(cell: Cell, baseClasses: string) {
-  const styles = getRowStyles(cell)
+function getCellClasses(
+  cell: Cell,
+  baseClasses: string,
+  currentChangeId: string | null
+) {
+  const styles = getRowStyles(cell, currentChangeId)
 
   return cn(
     baseClasses,
-    // Proposed change styling (takes precedence)
-    styles.proposedChange &&
+    // Current change styling (takes highest precedence)
+    styles.currentChange &&
+      cell.proposedChangeType === 'adding' &&
+      'bg-green-800/50 border-green-400/70 ring-1 ring-green-400/30',
+    styles.currentChange &&
+      cell.proposedChangeType === 'adding' &&
+      cell.colIndex === 0 &&
+      'shadow-[-3px_0_0_0_rgb(34_197_94_/_0.9)]',
+    // Current change removal styling
+    styles.currentChange &&
+      cell.proposedChangeType === 'removing' &&
+      'bg-red-800/50 border-red-400/70 ring-1 ring-red-400/30 opacity-90',
+    styles.currentChange &&
+      cell.proposedChangeType === 'removing' &&
+      cell.colIndex === 0 &&
+      'shadow-[-3px_0_0_0_rgb(239_68_68_/_0.9)]',
+    // Current change update styling
+    styles.currentChange &&
+      cell.proposedChangeType === 'updating' &&
+      'bg-blue-800/50 border-blue-400/70 ring-1 ring-blue-400/30',
+    styles.currentChange &&
+      cell.proposedChangeType === 'updating' &&
+      cell.colIndex === 0 &&
+      'shadow-[-3px_0_0_0_rgb(59_130_246_/_0.9)]',
+    // Regular proposed change styling (lower precedence)
+    !styles.currentChange &&
+      styles.proposedChange &&
       cell.proposedChangeType === 'adding' &&
       'bg-green-950/30 border-green-500/50',
-    styles.proposedChange &&
+    !styles.currentChange &&
+      styles.proposedChange &&
       cell.proposedChangeType === 'adding' &&
       cell.colIndex === 0 &&
       'shadow-[-2px_0_0_0_rgb(34_197_94_/_0.7)]',
     // Proposed removal styling
-    styles.proposedChange &&
+    !styles.currentChange &&
+      styles.proposedChange &&
       cell.proposedChangeType === 'removing' &&
       'bg-red-950/30 border-red-500/50 opacity-75',
-    styles.proposedChange &&
+    !styles.currentChange &&
+      styles.proposedChange &&
       cell.proposedChangeType === 'removing' &&
       cell.colIndex === 0 &&
       'shadow-[-2px_0_0_0_rgb(239_68_68_/_0.7)]',
     // Proposed update styling
-    styles.proposedChange &&
+    !styles.currentChange &&
+      styles.proposedChange &&
       cell.proposedChangeType === 'updating' &&
       'bg-blue-950/30 border-blue-500/50',
-    styles.proposedChange &&
+    !styles.currentChange &&
+      styles.proposedChange &&
       cell.proposedChangeType === 'updating' &&
       cell.colIndex === 0 &&
       'shadow-[-2px_0_0_0_rgb(59_130_246_/_0.7)]',
@@ -248,6 +288,29 @@ function GridContentRows({
   const [editingValue, setEditingValue] = useState<string>('')
   const [originalValue, setOriginalValue] = useState<string>('')
   const gridRefs = useRef<HTMLDivElement[][]>([])
+  const currentChangeId = useZCurrentChangeId()
+
+  // Scroll to current change when it changes
+  useEffect(() => {
+    if (currentChangeId) {
+      // Find the first row that matches the current change
+      const currentChangeRowIndex = grid.findIndex((row) =>
+        row.some((cell) => cell.pendingStatus?.proposalId === currentChangeId)
+      )
+
+      if (
+        currentChangeRowIndex >= 0 &&
+        gridRefs.current[currentChangeRowIndex]?.[0]
+      ) {
+        // Scroll the first cell of the matching row into view
+        gridRefs.current[currentChangeRowIndex][0].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        })
+      }
+    }
+  }, [currentChangeId, grid])
 
   // Incremental update handler
   const handleGridChange = (change: GridChange) => {
@@ -576,6 +639,7 @@ function GridContentRows({
             startEditing={startEditing}
             grid={grid}
             workout={workout}
+            currentChangeId={currentChangeId}
           />
         )
       })}
@@ -611,6 +675,7 @@ type GridRowProps = {
   startEditing: (row: number, col: number, initialValue?: string) => void
   grid: Cell[][]
   workout: Workout
+  currentChangeId: string | null
 }
 
 function GridContentRow({
@@ -633,6 +698,7 @@ function GridContentRow({
   startEditing,
   grid,
   workout,
+  currentChangeId,
 }: GridRowProps) {
   return (
     <div key={`row-${rowIndex}`} className="group flex h-9 w-full">
@@ -736,7 +802,8 @@ function GridContentRow({
                 colIndex === numCols - 1 &&
                 'rounded-br-sm',
               cell.readOnly && 'cursor-not-allowed text-neutral-500'
-            )
+            ),
+            currentChangeId
           )}
           onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}
           onDoubleClick={() => startEditing(rowIndex, colIndex, cell.value)}

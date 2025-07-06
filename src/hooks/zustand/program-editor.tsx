@@ -24,6 +24,7 @@ type ProgramState = {
   type: 'weekly' | 'splits'
   workouts: Workouts
   proposedChanges: WorkoutChange[]
+  currentChangeId: string | null
 }
 
 interface EditorState extends ProgramState {
@@ -38,6 +39,7 @@ type WorkoutActions = {
   setProgramName: (name: string) => void
   setWorkouts: (workouts: Workouts) => void
   setProposedChanges: (changes: WorkoutChange[]) => void
+  setCurrentChangeId: (changeId: string | null) => void
 }
 
 const newInitialProgram = (exercises: Exercise[]): Program => {
@@ -159,6 +161,36 @@ const newInitialProgram = (exercises: Exercise[]): Program => {
     ],
   }
 }
+export const sortProposedChanges = (changes: WorkoutChange[]) => {
+  return changes.sort((a, b) => {
+    // first sort by workout index
+    const aWorkoutIndex = a.workoutIndex
+    const bWorkoutIndex = b.workoutIndex
+    if (aWorkoutIndex !== bWorkoutIndex) {
+      return aWorkoutIndex - bWorkoutIndex
+    }
+
+    // then sort by the appropriate index based on change type
+    const getChangeIndex = (change: WorkoutChange): number => {
+      switch (change.type) {
+        case 'update-block':
+        case 'remove-block':
+        case 'add-block':
+          return change.blockIndex
+        case 'add-circuit-exercise':
+        case 'remove-circuit-exercise':
+        case 'update-circuit-exercise':
+          return change.circuitBlockIndex
+        default:
+          return 0
+      }
+    }
+
+    const aIndex = getChangeIndex(a)
+    const bIndex = getChangeIndex(b)
+    return aIndex - bIndex
+  })
+}
 
 // https://tkdodo.eu/blog/zustand-and-react-context
 const EditorProgramProvider = ({
@@ -172,94 +204,100 @@ const EditorProgramProvider = ({
 }) => {
   const program = initialProgram || newInitialProgram(exercises)
   const isNewProgram = !initialProgram
+  const sortedProposedChanges = sortProposedChanges([
+    {
+      id: uuidv4(),
+      type: 'add-circuit-exercise',
+      workoutIndex: 0,
+      circuitBlockIndex: 3,
+      exerciseIndex: 0,
+      exercise: {
+        type: 'exercise',
+        exercise: {
+          id: exercises[4].id,
+          name: exercises[4].name,
+          metadata: {
+            sets: '3',
+            reps: '12',
+            weight: '100',
+            rest: '30s',
+          },
+        },
+      },
+    },
+    {
+      id: uuidv4(),
+      type: 'add-block',
+      workoutIndex: 0,
+      blockIndex: 0,
+      block: {
+        type: 'exercise',
+        exercise: {
+          id: exercises[4].id,
+          name: exercises[4].name,
+          metadata: {
+            sets: '3',
+            reps: '12',
+            weight: '100',
+            rest: '30s',
+          },
+        },
+      },
+    },
+    {
+      id: uuidv4(),
+      type: 'update-block',
+      workoutIndex: 0,
+      blockIndex: 0,
+      block: {
+        type: 'exercise',
+        exercise: {
+          id: exercises[7].id,
+          name: exercises[7].name,
+          metadata: {
+            sets: '3',
+            reps: '12',
+            weight: '100',
+            rest: '30s',
+          },
+        },
+      },
+    },
+    {
+      id: uuidv4(),
+      type: 'remove-block',
+      workoutIndex: 0,
+      blockIndex: 2,
+    },
+    {
+      id: uuidv4(),
+      type: 'remove-circuit-exercise',
+      workoutIndex: 0,
+      circuitBlockIndex: 3,
+      exerciseIndex: 0,
+    },
+  ])
+  console.log('sortedProposedChanges', sortedProposedChanges)
   const [store] = useState(() =>
     create<EditorState>((set, get) => ({
       exercises,
       created_at: program.created_at,
       name: program.name,
-      proposedChanges: [
-        {
-          id: uuidv4(),
-          type: 'add-circuit-exercise',
-          workoutIndex: 0,
-          circuitBlockIndex: 3,
-          exerciseIndex: 0,
-          exercise: {
-            type: 'exercise',
-            exercise: {
-              id: exercises[4].id,
-              name: exercises[4].name,
-              metadata: {
-                sets: '3',
-                reps: '12',
-                weight: '100',
-                rest: '30s',
-              },
-            },
-          },
-        },
-        {
-          id: uuidv4(),
-          type: 'add-block',
-          workoutIndex: 0,
-          afterBlockIndex: 0,
-          block: {
-            type: 'exercise',
-            exercise: {
-              id: exercises[4].id,
-              name: exercises[4].name,
-              metadata: {
-                sets: '3',
-                reps: '12',
-                weight: '100',
-                rest: '30s',
-              },
-            },
-          },
-        },
-        {
-          id: uuidv4(),
-          type: 'update-block',
-          workoutIndex: 0,
-          blockIndex: 0,
-          block: {
-            type: 'exercise',
-            exercise: {
-              id: exercises[7].id,
-              name: exercises[7].name,
-              metadata: {
-                sets: '3',
-                reps: '12',
-                weight: '100',
-                rest: '30s',
-              },
-            },
-          },
-        },
-        {
-          id: uuidv4(),
-          type: 'remove-block',
-          workoutIndex: 0,
-          blockIndex: 2,
-        },
-        {
-          id: uuidv4(),
-          type: 'remove-circuit-exercise',
-          workoutIndex: 0,
-          circuitBlockIndex: 3,
-          exerciseIndex: 0,
-        },
-      ],
+      proposedChanges: sortedProposedChanges,
       id: program.id,
       isNewProgram,
       type: program.type,
       workouts: program.workouts,
+      currentChangeId: null,
       actions: {
         setWorkouts: (workouts: Workouts) => {
           set({ workouts })
         },
         setProposedChanges: (changes: WorkoutChange[]) => {
           set({ proposedChanges: changes })
+        },
+        setCurrentChangeId: (changeId: string | null) => {
+          set({ currentChangeId: changeId })
         },
 
         setProgramType: (pType: 'weekly' | 'splits') => {
@@ -309,12 +347,15 @@ const useZProgramId = () => useEditorStore((state) => state.id)
 const useZProgramName = () => useEditorStore((state) => state.name)
 const useZProposedChanges = () =>
   useEditorStore((state) => state.proposedChanges)
+const useZCurrentChangeId = () =>
+  useEditorStore((state) => state.currentChangeId)
 const useZProgramWorkouts = () => useEditorStore((state) => state.workouts)
 const useZProgramType = () => useEditorStore((state) => state.type)
 const useZEditorActions = () => useEditorStore((state) => state.actions)
 
 export {
   EditorProgramProvider,
+  useZCurrentChangeId,
   useZEditorActions,
   useZIsNewProgram,
   useZProgramCreatedAt,
