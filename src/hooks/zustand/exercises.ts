@@ -21,7 +21,6 @@ const useExerciseStore = create<TimerState>((set, get) => ({
         console.log('failed to fetch exercises client side')
       }
       const { data } = await res.json()
-      console.log({ data })
       set({ exercises: data })
     },
     search: (query = '') => {

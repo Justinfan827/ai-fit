@@ -266,9 +266,7 @@ function GridContentRows({
   onProposalAction?: (proposalId: string, action: 'accept' | 'reject') => void
 }) {
   // Create grid directly from workout
-  console.log('grid created from workout', workout)
   const grid = createGridFromWorkoutWithChanges(workout, columns)
-  console.log('grid', grid)
   const numRows = grid.length
   const numCols = columns.length
   const [activeCell, setActiveCell] = useState<Position | null>(null)
@@ -1091,7 +1089,6 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
     newBlocks[originalBlockIndex] = updatedBlock
   }
 
-  console.log('newBlocks', newBlocks)
 
   return {
     ...workout,

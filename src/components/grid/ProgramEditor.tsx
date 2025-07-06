@@ -306,7 +306,6 @@ export default function ProgramEditor() {
                   </div>
                   <div id="workouts-data" className="w-full grow space-y-8">
                     {weeksWorkouts.map((workout, workoutIdx) => {
-                      console.log('workout in program editor', workout)
                       return (
                         <div key={workout.id} className="flex gap-4">
                           <div className="grow space-y-4">

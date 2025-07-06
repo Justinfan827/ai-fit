@@ -82,7 +82,6 @@ export class TrainerClientRepo {
         providers: ['email'],
       },
     })
-    console.log({ error })
     if (error) {
       return { data: null, error }
     }

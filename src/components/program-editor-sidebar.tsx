@@ -110,7 +110,6 @@ export function ProgramEditorSidebar({
   }, [messages, status, scrollToBottom])
 
   const addClientContext = (selectedClient: ClientHomePage) => {
-    console.log('adding client context', selectedClient)
     const clientItem: ContextItem = {
       id: `client-${selectedClient.id}`,
       type: 'client',

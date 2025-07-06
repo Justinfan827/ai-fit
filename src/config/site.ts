@@ -13,9 +13,6 @@ export function getSiteURL() {
   url = url.includes('http') ? url : `https://${url}`
   // Make sure to include a trailing `/`.
   url = url.charAt(url.length - 1) === '/' ? url : `${url}/`
-  console.log('\n\n\n')
-  console.log({ url })
-  console.log('\n\n\n')
   return url
 }
 

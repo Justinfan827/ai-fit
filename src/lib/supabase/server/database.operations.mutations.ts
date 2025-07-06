@@ -223,7 +223,6 @@ export async function assignProgramToUser({
   if (assignError) {
     return { data: null, error: assignError }
   }
-  console.log('DONE CREATING')
   return { data: undefined, error }
 }
 

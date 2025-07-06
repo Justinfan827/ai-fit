@@ -6,7 +6,6 @@ export default async function apiGenerateProgram(body: {
   clientInfo: string
   totalNumDays: number
 }): Promise<APIResponse<AIProgram>> {
-  console.log({ body })
   try {
     const res = await fetch(`/api/ai/generate-program`, {
       method: 'POST',
@@ -22,7 +21,6 @@ export default async function apiGenerateProgram(body: {
     }
 
     const { data: apiData } = await res.json()
-    console.log({ apiData })
     const { data, error } = aiProgramSchema.safeParse(apiData)
     if (error) {
       return {

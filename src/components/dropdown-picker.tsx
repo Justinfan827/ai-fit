@@ -39,8 +39,6 @@ export default function DropdownPicker({
 }: Props) {
   const [open, setOpen] = useState(false)
   const activeOption = options.find((option) => option.value === activeValue)
-  console.log({ activeOption })
-  console.log({ options })
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

@@ -379,20 +379,15 @@ const EditorProgramProvider = ({
           const proposal = proposedChanges.find((p) => p.id === proposalId)
           if (!proposal) return
 
-          console.log('applying proposal', proposal)
           const updatedWorkouts = workouts.map((workout) => {
             return {
               ...workout,
               blocks: workout.blocks
                 .map((block) => {
-                  if (block.pendingStatus?.proposalId === proposalId) {
-                    console.log('found block', block, proposal)
-                  }
                   if (
                     proposal.type === 'remove-block' &&
                     block.pendingStatus?.proposalId === proposalId
                   ) {
-                    console.log('removing block', block)
                     // Remove the block entirely
                     return null
                   }
@@ -449,8 +444,6 @@ const EditorProgramProvider = ({
                 ), // Remove null blocks
             }
           })
-          console.log('updatedWorkouts', updatedWorkouts)
-
           set({ workouts: updatedWorkouts })
         },
         rejectPendingProposalById: (proposalId: string) => {
