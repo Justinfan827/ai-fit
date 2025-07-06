@@ -135,18 +135,25 @@ interface Cell {
   proposedChangeType?: 'adding' | 'removing' | 'updating'
   // Flag to track if this is an individual exercise change (not part of circuit change)
   isIndividualChange?: boolean
+  // Pending status for proposal management
+  pendingStatus?: {
+    type: 'adding' | 'removing' | 'updating'
+    proposalId: string
+  }
 }
 
 interface WorkoutGridProps {
   workout: Workout
   onWorkoutChange: (workout: Workout) => void
   columns: Column[]
+  onProposalAction?: (proposalId: string, action: 'accept' | 'reject') => void
 }
 
 export default function WorkoutGrid({
   workout,
   onWorkoutChange,
   columns,
+  onProposalAction,
 }: WorkoutGridProps) {
   const [showDebug, setShowDebug] = useState(false)
 
@@ -166,6 +173,7 @@ export default function WorkoutGrid({
         workout={workoutHistory.currentWorkout}
         onWorkoutChange={handleWorkoutChange}
         columns={columns}
+        onProposalAction={onProposalAction}
       />
       {showDebug && (
         <div className="mt-4 rounded-lg border border-neutral-800 bg-neutral-950 p-4">
@@ -224,10 +232,12 @@ function GridContentRows({
   columns,
   workout,
   onWorkoutChange,
+  onProposalAction,
 }: {
   columns: Column[]
   workout: Workout
   onWorkoutChange: (workout: Workout) => void
+  onProposalAction?: (proposalId: string, action: 'accept' | 'reject') => void
 }) {
   // Create grid directly from workout
   const grid = createGridFromWorkoutWithChanges(workout, columns)
@@ -529,20 +539,15 @@ function GridContentRows({
     action: 'accept' | 'reject'
   ) => {
     const cell = grid[rowIndex]?.[0]
-    if (!cell || !cell.isProposed || cell.proposedChangeIndex === undefined) {
+    if (!cell || !cell.isProposed || !cell.pendingStatus?.proposalId) {
       return
     }
 
-    // For now, we'll handle this differently since the structure has changed
-    // The logic for accepting/rejecting proposed changes will need to be updated
-    // based on the new pendingStatus structure
-    switch (action) {
-      case 'accept':
-        // TODO: Implement accept logic with new pendingStatus structure
-        break
-      case 'reject':
-        // TODO: Implement reject logic with new pendingStatus structure
-        break
+    const proposalId = cell.pendingStatus.proposalId
+
+    // Call the parent's proposal action handler if provided
+    if (onProposalAction) {
+      onProposalAction(proposalId, action)
     }
   }
 
@@ -563,8 +568,8 @@ function GridContentRows({
             handleAddRow={handleAddRow}
             handleOnSelectExercise={handleOnSelectExercise}
             handleInputChange={handleInputChange}
-            handleKeyDown={handleKeyDown}
             handleProposalAction={handleProposalAction}
+            handleKeyDown={handleKeyDown}
             setActiveCell={setActiveCell}
             editingValue={editingValue}
             stopEditing={stopEditing}
@@ -809,6 +814,8 @@ function createGridFromWorkoutWithChanges(
         isProposed: isBlockProposed,
         proposedChangeIndex: blockChangeIndex,
         proposedChangeType: blockPendingStatus?.type,
+        // Add the pending status reference for proposal ID access
+        pendingStatus: blockPendingStatus,
       }))
       grid.push(exerciseRow)
       currentRowIndex++
@@ -830,6 +837,8 @@ function createGridFromWorkoutWithChanges(
         isProposed: isBlockProposed,
         proposedChangeIndex: blockChangeIndex,
         proposedChangeType: blockPendingStatus?.type,
+        // Add the pending status reference for proposal ID access
+        pendingStatus: blockPendingStatus,
       }))
       grid.push(circuitHeaderRow)
       currentRowIndex++
@@ -870,6 +879,12 @@ function createGridFromWorkoutWithChanges(
               : undefined,
           // Flag to track if this is an individual exercise change (not part of circuit change)
           isIndividualChange: isExerciseProposed,
+          // Add the pending status reference for proposal ID access
+          pendingStatus: isExerciseProposed
+            ? exercisePendingStatus
+            : isBlockProposed
+              ? blockPendingStatus
+              : undefined,
         }))
         grid.push(exerciseRow)
         currentRowIndex++

@@ -179,6 +179,7 @@ const EditorProgramProvider = ({
       name: program.name,
       proposedChanges: [
         {
+          id: uuidv4(),
           type: 'add-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 3,
@@ -198,6 +199,7 @@ const EditorProgramProvider = ({
           },
         },
         {
+          id: uuidv4(),
           type: 'add-block',
           workoutIndex: 0,
           afterBlockIndex: 0,
@@ -216,6 +218,7 @@ const EditorProgramProvider = ({
           },
         },
         {
+          id: uuidv4(),
           type: 'update-block',
           workoutIndex: 0,
           blockIndex: 0,
@@ -234,11 +237,13 @@ const EditorProgramProvider = ({
           },
         },
         {
+          id: uuidv4(),
           type: 'remove-block',
           workoutIndex: 0,
           blockIndex: 2,
         },
         {
+          id: uuidv4(),
           type: 'remove-circuit-exercise',
           workoutIndex: 0,
           circuitBlockIndex: 3,

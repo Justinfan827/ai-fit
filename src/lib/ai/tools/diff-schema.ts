@@ -4,8 +4,13 @@ import {
 } from '@/lib/domain/workouts_ai_response'
 import { z } from 'zod'
 
-const updateBlockSchema = z
-  .object({
+// Base schema with ID for tracking proposals
+const baseChangeSchema = z.object({
+  id: z.string().describe('Unique identifier for this change proposal'),
+})
+
+const updateBlockSchema = baseChangeSchema
+  .extend({
     type: z.literal('update-block'),
     workoutIndex: z
       .number()
@@ -14,8 +19,9 @@ const updateBlockSchema = z
     block: blockSchema.describe('The updated block'),
   })
   .describe('Update a block in the workout program')
-const addBlockSchema = z
-  .object({
+
+const addBlockSchema = baseChangeSchema
+  .extend({
     type: z.literal('add-block'),
     workoutIndex: z
       .number()
@@ -24,8 +30,9 @@ const addBlockSchema = z
     block: blockSchema.describe('The block to add'),
   })
   .describe('Add a block to the workout program')
-const removeBlockSchema = z
-  .object({
+
+const removeBlockSchema = baseChangeSchema
+  .extend({
     type: z.literal('remove-block'),
     workoutIndex: z
       .number()
@@ -33,8 +40,9 @@ const removeBlockSchema = z
     blockIndex: z.number().describe('The index of the block to remove'),
   })
   .describe('Remove a block from the workout program')
-const addCircuitExerciseSchema = z
-  .object({
+
+const addCircuitExerciseSchema = baseChangeSchema
+  .extend({
     type: z.literal('add-circuit-exercise'),
     workoutIndex: z
       .number()
@@ -46,8 +54,9 @@ const addCircuitExerciseSchema = z
     exercise: exerciseBlockSchema.describe('The exercise to add'),
   })
   .describe('Add an exercise to a circuit block')
-const removeCircuitExerciseSchema = z
-  .object({
+
+const removeCircuitExerciseSchema = baseChangeSchema
+  .extend({
     type: z.literal('remove-circuit-exercise'),
     workoutIndex: z
       .number()
@@ -59,8 +68,8 @@ const removeCircuitExerciseSchema = z
   })
   .describe('Remove an exercise from a circuit block')
 
-const updateCircuitExerciseSchema = z
-  .object({
+const updateCircuitExerciseSchema = baseChangeSchema
+  .extend({
     type: z.literal('update-circuit-exercise'),
     workoutIndex: z
       .number()

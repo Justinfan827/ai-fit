@@ -28,6 +28,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import PlusButton from '../buttons/PlusButton'
 import LoadingButton from '../loading-button'
+import { ProposedChangesMenu } from '../proposed-changes-menu'
 import { Badge } from '../ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import { mergeWorkoutWithProposedChanges } from './workout-merge'
@@ -41,7 +42,8 @@ export default function ProgramEditor() {
   const programName = useZProgramName()
   const programCreatedAt = useZProgramCreatedAt()
   const programId = useZProgramId()
-  const { setProgramType, setProgramName, setWorkouts } = useZEditorActions()
+  const { setProgramType, setProgramName, setWorkouts, setProposedChanges } =
+    useZEditorActions()
   const workoutsByWeek = workouts.reduce((acc, w) => {
     const week = w.week || 0
     if (!acc[week]) {
@@ -65,6 +67,26 @@ export default function ProgramEditor() {
   )
   console.log(proposedChangesByWorkoutIndex)
   const isNewProgram = useZIsNewProgram()
+
+  // Handle proposal actions (accept/reject)
+  const handleProposalAction = (
+    proposalId: string,
+    action: 'accept' | 'reject'
+  ) => {
+    if (action === 'accept') {
+      // Remove the accepted proposal from the list
+      const updatedChanges = proposedChanges.filter(
+        (change) => change.id !== proposalId
+      )
+      setProposedChanges(updatedChanges)
+    } else if (action === 'reject') {
+      // Remove the rejected proposal from the list
+      const updatedChanges = proposedChanges.filter(
+        (change) => change.id !== proposalId
+      )
+      setProposedChanges(updatedChanges)
+    }
+  }
 
   // update grid when ai program gets generated
   const { generatedProgram, isPending: isAIGenPending } =
@@ -357,6 +379,7 @@ export default function ProgramEditor() {
                                 })
                                 setWorkouts(updatedWorkouts)
                               }}
+                              onProposalAction={handleProposalAction}
                             />
                           </div>
                           <div className="mt-[48px] flex flex-col items-stretch">
@@ -388,6 +411,8 @@ export default function ProgramEditor() {
           })}
         </div>
       </div>
+      {/* Add the floating menu for proposed changes */}
+      <ProposedChangesMenu />
     </div>
   )
 }

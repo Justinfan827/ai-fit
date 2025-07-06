@@ -41,7 +41,7 @@ export function mergeWorkoutWithProposedChanges(
       case 'add-block':
         const newBlock: Block = {
           ...change.block,
-          pendingStatus: { type: 'adding' },
+          pendingStatus: { type: 'adding', proposalId: change.id },
         }
         newWorkout.blocks.splice(change.afterBlockIndex, 0, newBlock)
         break
@@ -52,6 +52,7 @@ export function mergeWorkoutWithProposedChanges(
           pendingStatus: {
             type: 'updating',
             oldBlock: blockToUpdate,
+            proposalId: change.id,
           },
         }
         newWorkout.blocks[change.blockIndex] = updatedBlock
@@ -60,7 +61,7 @@ export function mergeWorkoutWithProposedChanges(
         const blockToRemove = workout.blocks[change.blockIndex]
         const removedBlock: Block = {
           ...blockToRemove,
-          pendingStatus: { type: 'removing' },
+          pendingStatus: { type: 'removing', proposalId: change.id },
         }
         newWorkout.blocks[change.blockIndex] = removedBlock
         break
@@ -72,7 +73,7 @@ export function mergeWorkoutWithProposedChanges(
         }
         const newExercise: ExerciseBlock = {
           ...change.exercise,
-          pendingStatus: { type: 'adding' },
+          pendingStatus: { type: 'adding', proposalId: change.id },
         }
         const targetCircuitBlock = newWorkout.blocks[change.circuitBlockIndex]
         if (targetCircuitBlock.type === 'circuit') {
@@ -95,7 +96,7 @@ export function mergeWorkoutWithProposedChanges(
           circuitBlockToRemove.circuit.exercises[change.exerciseIndex]
         const exerciseToRemoveWithPendingStatus: ExerciseBlock = {
           ...exerciseToRemove,
-          pendingStatus: { type: 'removing' },
+          pendingStatus: { type: 'removing', proposalId: change.id },
         }
         const targetRemoveCircuitBlock =
           newWorkout.blocks[change.circuitBlockIndex]
@@ -114,7 +115,7 @@ export function mergeWorkoutWithProposedChanges(
           circuitBlockToUpdate.circuit.exercises[change.exerciseIndex]
         const exerciseToUpdateWithPendingStatus: ExerciseBlock = {
           ...change.exercise,
-          pendingStatus: { type: 'updating', oldBlock: exerciseToUpdate },
+          pendingStatus: { type: 'updating', oldBlock: exerciseToUpdate, proposalId: change.id },
         }
         const targetUpdateCircuitBlock =
           newWorkout.blocks[change.circuitBlockIndex]

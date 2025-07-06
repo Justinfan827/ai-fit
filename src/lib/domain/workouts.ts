@@ -23,15 +23,24 @@ export const workoutExerciseSchema = z.object({
 // Define pending status schemas first
 export const pendingAddSchema = z.object({
   type: z.literal('adding'),
+  proposalId: z
+    .string()
+    .describe('Unique identifier for the proposal that created this change'),
 })
 
 export const pendingRemoveSchema = z.object({
   type: z.literal('removing'),
+  proposalId: z
+    .string()
+    .describe('Unique identifier for the proposal that created this change'),
 })
 
 export const pendingUpdateSchema = z.object({
   type: z.literal('updating'),
   oldBlock: z.any(), // Use z.any() to break circular dependency
+  proposalId: z
+    .string()
+    .describe('Unique identifier for the proposal that created this change'),
 })
 
 export const pendingChangeTypeSchema = z.union([
