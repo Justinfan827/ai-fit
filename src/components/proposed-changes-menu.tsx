@@ -20,8 +20,8 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
   const {
     setProposedChanges,
     setCurrentChangeId,
-    removePendingStatus,
-    rejectProposal,
+    applyPendingProposalById,
+    rejectPendingProposalById,
   } = useZEditorActions()
   const currentChangeId = useZCurrentChangeId()
 
@@ -50,15 +50,40 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
   const acceptChange = useCallback(
     (changeId: string) => {
       // Remove the pending status from the workout
-      removePendingStatus(changeId)
+      applyPendingProposalById(changeId)
 
-      // Remove the accepted change from the list
+      // Update current change ID
+      if (proposedChanges.length > 0) {
+        // If there are still changes, set the next one as current
+        const nextIndex = Math.min(
+          currentChangeIndex + 1,
+          proposedChanges.length - 1
+        )
+        setCurrentChangeId(proposedChanges[nextIndex].id)
+      } else {
+        // No more changes
+        setCurrentChangeId(null)
+      }
+    },
+    [
+      proposedChanges,
+      currentChangeIndex,
+      setProposedChanges,
+      setCurrentChangeId,
+      applyPendingProposalById,
+    ]
+  )
+
+  const rejectChange = useCallback(
+    (changeId: string) => {
+      // Use the rejectProposal action which handles reverting changes and removing from proposals
+      rejectPendingProposalById(changeId)
+
+      // Update current change ID
       const updatedChanges = proposedChanges.filter(
         (change) => change.id !== changeId
       )
-      setProposedChanges(updatedChanges)
 
-      // Update current change ID
       if (updatedChanges.length > 0) {
         // If there are still changes, set the next one as current
         const nextIndex = Math.min(
@@ -74,48 +99,22 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
     [
       proposedChanges,
       currentChangeIndex,
-      setProposedChanges,
+      rejectPendingProposalById,
       setCurrentChangeId,
-      removePendingStatus,
     ]
-  )
-
-  const rejectChange = useCallback(
-    (changeId: string) => {
-      // Use the rejectProposal action which handles reverting changes and removing from proposals
-      rejectProposal(changeId)
-
-      // Update current change ID
-      const updatedChanges = proposedChanges.filter(
-        (change) => change.id !== changeId
-      )
-
-      if (updatedChanges.length > 0) {
-        // If there are still changes, set the next one as current
-        const nextIndex = Math.min(
-          currentChangeIndex,
-          updatedChanges.length - 1
-        )
-        setCurrentChangeId(updatedChanges[nextIndex].id)
-      } else {
-        // No more changes
-        setCurrentChangeId(null)
-      }
-    },
-    [proposedChanges, currentChangeIndex, rejectProposal, setCurrentChangeId]
   )
 
   const acceptAllChanges = useCallback(() => {
     // Remove pending status for all changes
     proposedChanges.forEach((change) => {
-      removePendingStatus(change.id)
+      applyPendingProposalById(change.id)
     })
 
     setProposedChanges([])
     setCurrentChangeId(null)
   }, [
     proposedChanges,
-    removePendingStatus,
+    applyPendingProposalById,
     setProposedChanges,
     setCurrentChangeId,
   ])
@@ -123,11 +122,11 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
   const rejectAllChanges = useCallback(() => {
     // Use rejectProposal for each change to revert them
     proposedChanges.forEach((change) => {
-      rejectProposal(change.id)
+      rejectPendingProposalById(change.id)
     })
 
     setCurrentChangeId(null)
-  }, [proposedChanges, rejectProposal, setCurrentChangeId])
+  }, [proposedChanges, rejectPendingProposalById, setCurrentChangeId])
 
   const navigateToNext = useCallback(() => {
     if (proposedChanges.length > 0) {
