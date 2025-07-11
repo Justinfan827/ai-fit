@@ -8,8 +8,6 @@ type DebugLog = {
 }
 
 export default async function DevPage() {
-  if (process.env.NODE_ENV !== 'development') {
-  }
   const sb = await createServerClient()
   const { data, error } = await sb
     .from('debug_log')
@@ -22,12 +20,12 @@ export default async function DevPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold">Dev</h1>
+      <h2 className="font-bold text-2xl">Dev</h2>
       <p className="text-muted-foreground text-sm">
         This is a dev page. It is not meant for production use.
       </p>
 
-      <h2 className="text-xl font-bold">Debug Log</h2>
+      <h2 className="font-bold text-xl">Debug Log</h2>
       {data.map((log) => (
         <LogItem key={log.id} log={log} />
       ))}
@@ -41,8 +39,8 @@ function LogItem({ log }: { log: DebugLog }) {
       <p className="text-muted-foreground text-sm">
         {new Date(log.created_at).toLocaleString()}
       </p>
-      <JsonPreview title="Request Data" data={log.request_data} />
-      <JsonPreview title="Response Data" data={log.response_data} />
+      <JsonPreview data={log.request_data} title="Request Data" />
+      <JsonPreview data={log.response_data} title="Response Data" />
     </div>
   )
 }
@@ -52,8 +50,8 @@ function JsonPreview({ title, data }: { title: string; data: any }) {
 
   return (
     <div className="relative rounded-md bg-slate-950 p-4">
-      <p className="mb-2 text-sm font-bold text-white">{title}</p>
-      <pre className="break-all whitespace-pre-wrap">
+      <p className="mb-2 font-bold text-sm text-white">{title}</p>
+      <pre className="whitespace-pre-wrap break-all">
         <code className="text-white">{jsonString}</code>
       </pre>
     </div>

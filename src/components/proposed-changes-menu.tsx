@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback, useEffect, useMemo } from 'react'
 import { Icons } from '@/components/icons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,7 +10,6 @@ import {
   useZProposedChanges,
 } from '@/hooks/zustand/program-editor'
 import { cn } from '@/lib/utils'
-import { useCallback, useEffect, useMemo } from 'react'
 
 interface ProposedChangesMenuProps {
   className?: string
@@ -182,19 +182,19 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
   return (
     <div
       className={cn(
-        'fixed bottom-4 left-1/2 z-50 -translate-x-1/2 transform',
+        '-translate-x-1/2 fixed bottom-4 left-1/2 z-50 transform',
         'rounded-lg border border-neutral-700 bg-neutral-900 shadow-lg',
-        'max-w-[600px] min-w-[400px] p-4',
+        'min-w-[400px] max-w-[600px] p-4',
         className
       )}
     >
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-neutral-200">
+          <span className="font-medium text-neutral-200 text-sm">
             Pending Changes
           </span>
-          <Badge variant="outline" className="text-xs">
-            {currentChangeIndex + 1} of {proposedChanges.length}
+          <Badge className="text-xs" variant="outline">
+            {proposedChanges.length} changes to approve
           </Badge>
         </div>
       </div>
@@ -202,20 +202,20 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={navigateToPrevious}
-            disabled={proposedChanges.length <= 1}
             className="h-8 text-neutral-400 hover:text-neutral-200"
+            disabled={proposedChanges.length <= 1}
+            onClick={navigateToPrevious}
+            size="sm"
+            variant="ghost"
           >
             <Icons.chevronLeft className="h-4 w-4" />
           </Button>
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={navigateToNext}
-            disabled={proposedChanges.length <= 1}
             className="h-8 text-neutral-400 hover:text-neutral-200"
+            disabled={proposedChanges.length <= 1}
+            onClick={navigateToNext}
+            size="sm"
+            variant="ghost"
           >
             <Icons.chevronRight className="h-4 w-4" />
           </Button>
@@ -223,20 +223,20 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
 
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => currentChange && rejectChange(currentChange.id)}
             className="h-8 border-red-500/50 text-red-400 hover:bg-red-500/10"
+            onClick={() => currentChange && rejectChange(currentChange.id)}
+            size="sm"
+            variant="outline"
           >
             <Icons.x className="mr-1 h-3 w-3" />
             Reject
             <span className="ml-1 text-xs opacity-70">⌘N</span>
           </Button>
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => currentChange && acceptChange(currentChange.id)}
             className="h-8 border-green-500/50 text-green-400 hover:bg-green-500/10"
+            onClick={() => currentChange && acceptChange(currentChange.id)}
+            size="sm"
+            variant="outline"
           >
             <Icons.check className="mr-1 h-3 w-3" />
             Accept

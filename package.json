@@ -124,12 +124,14 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.0.6",
     "@types/lodash": "^4.17.20",
     "@vitest/ui": "^2.1.8",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.12",
     "supabase": "^1.223.10",
+    "ultracite": "5.0.32",
     "vitest": "^2.1.8"
   },
   "pnpm": {
