@@ -1,10 +1,10 @@
-import { Tp } from '@/components/typography'
-import { cn } from '@/lib/utils'
-import { ChangeEventHandler, useState } from 'react'
+import { type ChangeEventHandler, useState } from "react"
+import { Tp } from "@/components/typography"
+import { cn } from "@/lib/utils"
 
 export default function EditableTypography({
   value,
-  valueDefault = 'Untitled',
+  valueDefault = "Untitled",
   onChange,
   className,
 }: {
@@ -24,7 +24,7 @@ export default function EditableTypography({
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === 'Escape') {
+    if (e.key === "Enter" || e.key === "Escape") {
       e.preventDefault()
       e.currentTarget?.blur()
     }
@@ -32,30 +32,30 @@ export default function EditableTypography({
 
   return (
     <div
-      className="focus-visible:ring-ring flex h-8 w-fit max-w-[200px] min-w-[100px] items-center justify-start rounded-md focus-visible:ring-1 focus-visible:outline-hidden sm:max-w-[400px] sm:min-w-[100px]"
-      tabIndex={0}
-      onKeyUp={(e) => e.key === 'Enter' && setIsEditing(true)}
+      className="flex h-8 w-fit min-w-[100px] max-w-[200px] items-center justify-start rounded-md focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring sm:min-w-[100px] sm:max-w-[400px]"
       onClick={() => !isEditing && setIsEditing(true)}
+      onKeyUp={(e) => e.key === "Enter" && setIsEditing(true)}
+      tabIndex={0}
     >
       {isEditing ? (
         <input
-          type="text"
-          value={value}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
           autoFocus
           className={cn(
-            'bg-background w-[200px] text-lg leading-7 font-semibold tracking-normal focus:border-0 focus:ring-0 focus:outline-hidden sm:w-[400px]',
+            "w-[200px] bg-background font-semibold text-lg leading-7 tracking-normal focus:border-0 focus:outline-hidden focus:ring-0 sm:w-[400px]",
             className && className
           )}
+          onBlur={handleBlur}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          type="text"
+          value={value}
         />
       ) : (
         <Tp
           className={cn(
-            'truncate leading-none tracking-wide underline decoration-neutral-300 decoration-dotted underline-offset-4',
+            "truncate leading-none tracking-wide underline decoration-neutral-300 decoration-dotted underline-offset-4",
             className,
-            !value && 'text-neutral-500'
+            !value && "text-neutral-500"
           )}
           variant="h3"
         >

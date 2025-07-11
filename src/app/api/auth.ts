@@ -1,4 +1,4 @@
-import { checkServerUserAuth } from '@/lib/supabase/server/auth-utils'
+import { checkServerUserAuth } from "@/lib/supabase/server/auth-utils"
 
 export async function authUserRequest() {
   const { user, error: authError } = await checkServerUserAuth()

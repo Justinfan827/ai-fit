@@ -1,10 +1,10 @@
-'use server'
+"use server"
 
-import { Exercise, exercisesSchema } from '@/lib/domain/workouts'
-import { GenerateProgramSchema } from '@/lib/domain/workouts_ai_response'
-import { z } from 'zod'
-import { withActionAuthSchema } from './middleware/withAuth'
-import openaiGenerate from './openai-generation'
+import { z } from "zod"
+import { type Exercise, exercisesSchema } from "@/lib/domain/workouts"
+import type { GenerateProgramSchema } from "@/lib/domain/workouts_ai_response"
+import { withActionAuthSchema } from "./middleware/withAuth"
+import openaiGenerate from "./openai-generation"
 
 // This schema is used to validate input from client.
 const schema = z.object({
@@ -21,7 +21,7 @@ const schema = z.object({
   }),
 })
 
-const parameterString = (params: z.infer<typeof schema>['body']) => {
+const parameterString = (params: z.infer<typeof schema>["body"]) => {
   const sanitizedExercises = params.preferredExercises.map((exercise) => ({
     // truncate to first 5 characters to save context window space
     // id: exercise.id,
@@ -50,7 +50,7 @@ function validateProgram({
   if (!program.workouts) {
     return {
       data: null,
-      error: new Error('No workouts included in generated program'),
+      error: new Error("No workouts included in generated program"),
     }
   }
 
@@ -65,7 +65,7 @@ function validateProgram({
 
     for (let j = 0; j < workout.blocks.length; j++) {
       const block = workout.blocks[j]
-      if (block.type === 'exercise') {
+      if (block.type === "exercise") {
         const exercise = preferredExercises.find(
           (e) => e.id.slice(0, 5) === block.exercise.id
         )
@@ -79,7 +79,7 @@ function validateProgram({
         }
         block.exercise.id = exercise.id // replace with full id
         program.workouts[i].blocks[j] = block
-      } else if (block.type === 'circuit') {
+      } else if (block.type === "circuit") {
         const circuitExercises = block.circuit.exercises
         for (let k = 0; k < circuitExercises.length; k++) {
           const exercise = circuitExercises[k].exercise
@@ -119,7 +119,7 @@ export const generateClientProgramAction = withActionAuthSchema(
     const { data: aiGeneratedProgram, error } = await openaiGenerate({
       context: [
         {
-          role: 'assistant',
+          role: "assistant",
           content: prompt,
         },
       ],
@@ -129,7 +129,7 @@ export const generateClientProgramAction = withActionAuthSchema(
       throw error
     }
 
-    console.log('aiGeneratedProgram', aiGeneratedProgram)
+    console.log("aiGeneratedProgram", aiGeneratedProgram)
 
     // TODO: validate ai generated exercises are in the input exercise list
     // + verify format of sets/reps/weight/rest?
@@ -139,8 +139,8 @@ export const generateClientProgramAction = withActionAuthSchema(
       daysPerWeek: input.body.daysPerWeek,
     })
 
-    console.log('validationData', validationData)
-    console.log('validationErr', validationErr)
+    console.log("validationData", validationData)
+    console.log("validationErr", validationErr)
 
     if (validationErr) {
       throw validationErr

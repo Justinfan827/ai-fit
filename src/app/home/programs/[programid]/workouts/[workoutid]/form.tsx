@@ -1,5 +1,5 @@
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import type { useForm } from "react-hook-form"
+import { z } from "zod"
 
 export type WorkoutInstanceFormValues = z.infer<
   typeof WorkoutInstanceFormSchema

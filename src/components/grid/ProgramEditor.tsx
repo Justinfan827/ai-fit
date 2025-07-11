@@ -1,17 +1,18 @@
-'use client'
+"use client"
 
-import { useEffect, useMemo, useState } from 'react'
-import { v4 as uuidv4 } from 'uuid'
-
-import EditableTypography from '@/components/EditableTypeography'
-import { defaultBlocks, defaultColumns } from '@/components/grid/columns'
-import { ProgramSelect } from '@/components/grid/ProgramSelect'
-import { Icons } from '@/components/icons'
-import { PageHeader } from '@/components/page-header'
-import { Button } from '@/components/ui/button'
-import apiCreateProgram from '@/fetches/create-program'
-import apiEditProgram from '@/fetches/edit-program'
-import { useAIGeneratedWorkouts } from '@/hooks/use-workout'
+import { useRouter } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
+import { v4 as uuidv4 } from "uuid"
+import EditableTypography from "@/components/EditableTypeography"
+import { defaultBlocks, defaultColumns } from "@/components/grid/columns"
+import { ProgramSelect } from "@/components/grid/ProgramSelect"
+import { Icons } from "@/components/icons"
+import { PageHeader } from "@/components/page-header"
+import { Button } from "@/components/ui/button"
+import apiCreateProgram from "@/fetches/create-program"
+import apiEditProgram from "@/fetches/edit-program"
+import { useAIGeneratedWorkouts } from "@/hooks/use-workout"
 import {
   useZEditorActions,
   useZIsNewProgram,
@@ -21,17 +22,19 @@ import {
   useZProgramType,
   useZProgramWorkouts,
   useZProposedChanges,
-} from '@/hooks/zustand/program-editor'
-import { Program, programSchema, Workout } from '@/lib/domain/workouts'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import PlusButton from '../buttons/PlusButton'
-import LoadingButton from '../loading-button'
-import { ProposedChangesMenu } from '../proposed-changes-menu'
-import { Badge } from '../ui/badge'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
-import { groupWorkoutsByWeek } from './workout-utils'
-import WorkoutGrid from './WorkoutGrid'
+} from "@/hooks/zustand/program-editor"
+import {
+  type Program,
+  programSchema,
+  type Workout,
+} from "@/lib/domain/workouts"
+import PlusButton from "../buttons/PlusButton"
+import LoadingButton from "../loading-button"
+import { ProposedChangesMenu } from "../proposed-changes-menu"
+import { Badge } from "../ui/badge"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
+import WorkoutGrid from "./WorkoutGrid"
+import { groupWorkoutsByWeek } from "./workout-utils"
 
 export default function ProgramEditor() {
   const [isPending, setIsPending] = useState(false)
@@ -51,15 +54,15 @@ export default function ProgramEditor() {
   // Handle proposal actions (accept/reject)
   const handleProposalAction = (
     proposalId: string,
-    action: 'accept' | 'reject'
+    action: "accept" | "reject"
   ) => {
-    if (action === 'accept') {
+    if (action === "accept") {
       // Remove the accepted proposal from the list
       const updatedChanges = proposedChanges.filter(
         (change) => change.id !== proposalId
       )
       setProposedChanges(updatedChanges)
-    } else if (action === 'reject') {
+    } else if (action === "reject") {
       // Remove the rejected proposal from the list
       const updatedChanges = proposedChanges.filter(
         (change) => change.id !== proposalId
@@ -80,10 +83,10 @@ export default function ProgramEditor() {
           program_id: uuidv4().toString(), // populated on create
           program_order: idx,
           blocks: w.blocks.map((b) => {
-            if (b.type === 'exercise') {
+            if (b.type === "exercise") {
               // Transform aiExerciseSchema to ExerciseBlock
               return {
-                type: 'exercise' as const,
+                type: "exercise" as const,
                 exercise: {
                   id: uuidv4().toString(),
                   name: b.exercise.name,
@@ -92,15 +95,14 @@ export default function ProgramEditor() {
                     reps: b.exercise.metadata.reps,
                     weight: b.exercise.metadata.weight,
                     rest: b.exercise.metadata.rest,
-                    notes: '',
+                    notes: "",
                   },
                 },
               }
-            } else {
-              return {
-                type: 'circuit' as const,
-                circuit: b.circuit,
-              }
+            }
+            return {
+              type: "circuit" as const,
+              circuit: b.circuit,
             }
           }),
         }
@@ -134,7 +136,7 @@ export default function ProgramEditor() {
           program_id: programId,
           name: `workout ${workouts.length + 1}`,
           program_order: workouts.length,
-          week: week,
+          week,
           blocks: defaultBlocks,
         },
       ])
@@ -149,7 +151,7 @@ export default function ProgramEditor() {
         program_id: programId,
         name: `Week: ${week + 1} Workout ${workoutsInTheWeek.length + 1}`,
         program_order: workoutsInTheWeek.length,
-        week: week,
+        week,
         blocks: defaultBlocks,
       },
     ])
@@ -173,11 +175,11 @@ export default function ProgramEditor() {
     })
     setIsPending(false)
     if (error) {
-      toast('Error creating workout')
+      toast("Error creating workout")
       return
     }
     router.push(`/home/programs/${data.id}`)
-    toast('Workout created')
+    toast("Workout created")
   }
 
   const [error, setError] = useState(new Error())
@@ -205,20 +207,20 @@ export default function ProgramEditor() {
     setIsPending(true)
     const { error } = await apiEditProgram({ body: domainProgram })
     if (error) {
-      toast.error('Error', {
+      toast.error("Error", {
         description: `Oops! We couldn't save your workout.Please try again`,
       })
       setIsPending(false)
       return
     }
-    toast.success('Success', {
+    toast.success("Success", {
       description: `${programName} saved`,
     })
     setIsPending(false)
     router.refresh()
   }
 
-  const handleSelect = (v: 'weekly' | 'splits') => {
+  const handleSelect = (v: "weekly" | "splits") => {
     setProgramType(v)
   }
 
@@ -236,33 +238,33 @@ export default function ProgramEditor() {
   // Create header actions for the PageHeader
   const headerActions = (
     <div className="flex items-center justify-center space-x-2">
-      <ProgramSelect value={programType} onValueChange={handleSelect} />
+      <ProgramSelect onValueChange={handleSelect} value={programType} />
       <LoadingButton
-        isLoading={isPending}
         className="w-20"
+        isLoading={isPending}
+        onClick={() => (isNewProgram ? handleOnCreate() : handleOnSave())}
         variant="outline"
-        onClick={() => (!isNewProgram ? handleOnSave() : handleOnCreate())}
       >
-        {!isNewProgram ? 'Save' : 'Create'}
+        {isNewProgram ? "Create" : "Save"}
       </LoadingButton>
     </div>
   )
   return (
     <div className="w-full">
       <PageHeader
+        actions={headerActions}
         title={
           <EditableTypography
             className="text-2xl"
-            value={programName}
             onChange={setProgramName}
+            value={programName}
           />
         }
-        actions={headerActions}
       />
       <div className="overflow-x-auto p-4">
         {isAIGenPending && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-neutral-950/10 pb-14 backdrop-blur-xs">
-            <p className="animate-pulse font-light tracking-wide text-neutral-100">
+            <p className="animate-pulse font-light text-neutral-100 tracking-wide">
               Generating program...
             </p>
             <div className="flex flex-col items-center justify-center gap-4">
@@ -274,26 +276,26 @@ export default function ProgramEditor() {
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
             return (
               <div
-                key={`by-week-workout-${weekIdx}`}
-                id="workout-ui"
                 className="min-w-[1200px] pr-4"
+                id="workout-ui"
+                key={`by-week-workout-${weekIdx}`}
               >
                 <div className="gap-4">
                   <div className="ml-16 flex items-center justify-between gap-4 pr-[52px] pb-3">
                     <Badge
+                      className="font-light text-muted-foreground text-xs uppercase tracking-widest"
                       variant="outline"
-                      className="text-muted-foreground text-xs font-light tracking-widest uppercase"
                     >
                       Week {weekIdx + 1}
                     </Badge>
-                    <div id="action menu" className="flex items-center">
+                    <div className="flex items-center" id="action menu">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
+                            className="h-8 w-8 text-accent-foreground/50 hover:text-accent-foreground"
+                            onClick={() => handleDuplicateWeek(weekIdx)}
                             size="icon"
                             variant="ghost"
-                            className="text-accent-foreground/50 hover:text-accent-foreground h-8 w-8"
-                            onClick={() => handleDuplicateWeek(weekIdx)}
                           >
                             <Icons.copy className="h-5 w-5" />
                           </Button>
@@ -304,14 +306,13 @@ export default function ProgramEditor() {
                       </Tooltip>
                     </div>
                   </div>
-                  <div id="workouts-data" className="w-full grow space-y-8">
+                  <div className="w-full grow space-y-8" id="workouts-data">
                     {weeksWorkouts.map((workout, workoutIdx) => {
                       return (
-                        <div key={workout.id} className="flex gap-4">
+                        <div className="flex gap-4" key={workout.id}>
                           <div className="grow space-y-4">
                             <div className="ml-[72px] flex items-center justify-between">
                               <EditableTypography
-                                value={workout.name}
                                 onChange={(value) => {
                                   const newWorkouts = workouts.map((w) => {
                                     if (w.id === workout.id) {
@@ -324,17 +325,18 @@ export default function ProgramEditor() {
                                   })
                                   setWorkouts(newWorkouts)
                                 }}
+                                value={workout.name}
                               />
                               <div
-                                id="action menu"
                                 className="flex items-center justify-center pl-2"
+                                id="action menu"
                               >
                                 {workoutIdx === 0 && weekIdx === 0 ? null : (
                                   <Button
+                                    className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
+                                    onClick={() => handleDeletion(workout.id)}
                                     size="icon"
                                     variant="ghost"
-                                    className="text-accent-foreground h-6 w-6 opacity-50 transition-opacity ease-in-out hover:opacity-100"
-                                    onClick={() => handleDeletion(workout.id)}
                                   >
                                     <Icons.x className="h-4 w-4" />
                                   </Button>
@@ -342,8 +344,8 @@ export default function ProgramEditor() {
                               </div>
                             </div>
                             <WorkoutGrid
-                              workout={workout}
                               columns={defaultColumns}
+                              onProposalAction={handleProposalAction}
                               onWorkoutChange={(updatedWorkout) => {
                                 // Update the workout in the workouts array
                                 const updatedWorkouts = workouts.map((w) => {
@@ -354,18 +356,18 @@ export default function ProgramEditor() {
                                 })
                                 setWorkouts(updatedWorkouts)
                               }}
-                              onProposalAction={handleProposalAction}
+                              workout={workout}
                             />
                           </div>
                           <div className="mt-[48px] flex flex-col items-stretch">
                             <Button
+                              className="grow font-normal text-sm"
                               id="next-week-workout-btn"
-                              variant="dashed"
-                              size="icon"
-                              className="grow text-sm font-normal"
                               onClick={() =>
                                 addNewWorkoutToWeek({ week: weekIdx + 1 })
                               }
+                              size="icon"
+                              variant="dashed"
                             >
                               <Icons.plus className="h-4 w-4 rounded-full" />
                             </Button>
@@ -377,8 +379,8 @@ export default function ProgramEditor() {
                 </div>
                 <div className="flex w-full items-center justify-end pt-4">
                   <PlusButton
-                    text="Add Workout"
                     onClick={() => addNewWorkoutToWeek({ week: weekIdx })}
+                    text="Add Workout"
                   />
                 </div>
               </div>

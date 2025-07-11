@@ -1,10 +1,10 @@
 import {
-  Workout,
-  WorkoutInstance,
+  type Workout,
+  type WorkoutInstance,
   workoutInstanceSchema,
-} from '@/lib/domain/workouts'
-import { APIResponse } from '@/lib/types/apires'
-import { getError } from '@/lib/utils/util'
+} from "@/lib/domain/workouts"
+import type { APIResponse } from "@/lib/types/apires"
+import { getError } from "@/lib/utils/util"
 
 export default async function apiCreateWorkoutInstance({
   body,
@@ -12,10 +12,10 @@ export default async function apiCreateWorkoutInstance({
   body: Workout
 }): Promise<APIResponse<WorkoutInstance>> {
   try {
-    const res = await fetch(`/api/workout/instance`, {
-      method: 'POST',
+    const res = await fetch("/api/workout/instance", {
+      method: "POST",
       body: JSON.stringify(body),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
+      headers: new Headers({ "Content-Type": "application/json" }),
     })
     if (!res.ok) {
       const bodyMsg = await res.text()

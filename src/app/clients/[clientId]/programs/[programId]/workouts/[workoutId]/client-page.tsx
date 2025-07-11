@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import { Workout, WorkoutInstance } from '@/lib/domain/workouts'
+import type { Workout, WorkoutInstance } from "@/lib/domain/workouts"
 
 export default function ClientPage({
   clientId,

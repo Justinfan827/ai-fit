@@ -1,5 +1,5 @@
-import React from 'react'
-import { Tp } from './typography'
+import type React from "react"
+import { Tp } from "./typography"
 
 interface PageLayoutProps {
   children: React.ReactNode

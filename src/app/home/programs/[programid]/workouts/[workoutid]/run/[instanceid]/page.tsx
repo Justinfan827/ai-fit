@@ -1,8 +1,8 @@
 import {
   getLatestWorkoutInstance,
   getUserWorkout,
-} from '@/lib/supabase/server/database.operations.queries'
-import ClientPage from '../../client-page'
+} from "@/lib/supabase/server/database.operations.queries"
+import ClientPage from "../../client-page"
 
 export default async function SingleWorkoutPage({
   params,

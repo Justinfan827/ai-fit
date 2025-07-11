@@ -1,4 +1,16 @@
-'use client'
+"use client"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useState, useTransition } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
+import { createClientDetailAction } from "@/actions/create-client-detail"
+import { deleteClientDetailAction } from "@/actions/delete-client-detail"
+import { Icons } from "@/components/icons"
+import LoadingButton from "@/components/loading-button"
+import { PageSection, PageSectionHeader } from "@/components/page-layout"
+import { Button } from "@/components/ui/button"
+import { Card, CardFooter, CardHeader } from "@/components/ui/card"
 import {
   Form,
   FormControl,
@@ -7,31 +19,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-
-import { createClientDetailAction } from '@/actions/create-client-detail'
-import { deleteClientDetailAction } from '@/actions/delete-client-detail'
-import { Icons } from '@/components/icons'
-import LoadingButton from '@/components/loading-button'
-import { PageSection, PageSectionHeader } from '@/components/page-layout'
-import { Button } from '@/components/ui/button'
-import { Card, CardFooter, CardHeader } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { ClientDetail } from '@/lib/domain/clients'
-import { inputTrim } from '@/lib/utils/util'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useState, useTransition } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import type { ClientDetail } from "@/lib/domain/clients"
+import { inputTrim } from "@/lib/utils/util"
 
 export const AddClientDetailFormSchema = z.object({
   title: z.string().min(2, {
-    message: 'Title must be at least 2 characters.',
+    message: "Title must be at least 2 characters.",
   }),
   description: z.string().min(2, {
-    message: 'Description must be at least 2 characters.',
+    message: "Description must be at least 2 characters.",
   }),
 })
 type ClientDetailFormType = z.infer<typeof AddClientDetailFormSchema>
@@ -60,7 +59,7 @@ export function ClientDetailsPageSection({
         description: inputTrim(data.description),
       })
       if (error) {
-        toast('Error', {
+        toast("Error", {
           description: (
             <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
               <code className="text-white">
@@ -81,7 +80,7 @@ export function ClientDetailsPageSection({
         detailId,
       })
       if (error) {
-        toast('Error', {
+        toast("Error", {
           description: (
             <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
               <code className="text-white">
@@ -100,9 +99,9 @@ export function ClientDetailsPageSection({
         <PageSectionHeader>Details</PageSectionHeader>
         {!isAddingDetail && (
           <Button
-            variant="dashed"
-            size="sm"
             onClick={() => setIsAddingDetail(true)}
+            size="sm"
+            variant="dashed"
           >
             <Icons.plus className="h-3 w-3" />
             New detail
@@ -111,26 +110,26 @@ export function ClientDetailsPageSection({
       </div>
       {isAddingDetail && (
         <ClientDetailForm
-          isPending={isPending}
           formName="add-client-detail-form"
+          isPending={isPending}
           onCancel={() => setIsAddingDetail(false)}
           onSubmit={handleOnSubmit}
         />
       )}
 
       {details.map((detail) => (
-        <Card key={detail.id} className="relative">
+        <Card className="relative" key={detail.id}>
           <Button
-            className="text-muted-foreground absolute top-2 right-2"
-            variant="ghost"
-            size="icon"
+            className="absolute top-2 right-2 text-muted-foreground"
             onClick={() => handleRemoveDetail(detail.id)}
+            size="icon"
+            variant="ghost"
           >
             <Icons.x className="h-5 w-5" />
           </Button>
           <CardHeader>
             <p className="font-normal tracking-tight">{detail.title}</p>
-            <p className="text-muted-foreground text-sm leading-snug font-normal whitespace-pre-wrap">
+            <p className="whitespace-pre-wrap font-normal text-muted-foreground text-sm leading-snug">
               {detail.description}
             </p>
           </CardHeader>
@@ -146,8 +145,8 @@ function ClientDetailForm({
   isPending,
 }: ClientDetailFormProps) {
   const initialState = {
-    title: '',
-    description: '',
+    title: "",
+    description: "",
   }
   const form = useForm<ClientDetailFormType>({
     resolver: zodResolver(AddClientDetailFormSchema),
@@ -157,7 +156,7 @@ function ClientDetailForm({
     <Card>
       <Form {...form}>
         {/* <FormContainer form={form} /> */}
-        <form id={formName} onSubmit={form.handleSubmit(onSubmit)} className="">
+        <form className="" id={formName} onSubmit={form.handleSubmit(onSubmit)}>
           <CardHeader className="px-6 pt-6">
             <FormField
               control={form.control}
@@ -178,7 +177,7 @@ function ClientDetailForm({
                   <FormDescription className="sr-only">
                     Enter the title of the detail.
                   </FormDescription>
-                  <div className="col-span-5"></div>
+                  <div className="col-span-5" />
                 </FormItem>
               )}
             />
@@ -195,16 +194,16 @@ function ClientDetailForm({
                   <div className="col-span-4 space-y-2">
                     <FormControl>
                       <Textarea
-                        className="text-sm leading-snug font-normal"
+                        className="font-normal text-sm leading-snug"
                         {...field}
-                      ></Textarea>
+                      />
                     </FormControl>
                     <FormMessage />
                   </div>
                   <FormDescription className="sr-only">
                     Enter the title of the detail.
                   </FormDescription>
-                  <div className="col-span-5"></div>
+                  <div className="col-span-5" />
                 </FormItem>
               )}
             />
@@ -213,7 +212,7 @@ function ClientDetailForm({
             <LoadingButton isLoading={isPending} variant="default">
               Save
             </LoadingButton>
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button onClick={onCancel} type="button" variant="outline">
               Cancel
             </Button>
           </CardFooter>

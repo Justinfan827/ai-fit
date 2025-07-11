@@ -1,10 +1,10 @@
-import { programSchema } from '@/lib/domain/workouts'
+import { NextResponse } from "next/server"
+import { programSchema } from "@/lib/domain/workouts"
 import {
   createProgram,
   updateProgram,
-} from '@/lib/supabase/server/database.operations.mutations'
-import { NextResponse } from 'next/server'
-import { withAuthBodySchema } from '../middleware/withAuth'
+} from "@/lib/supabase/server/database.operations.mutations"
+import { withAuthBodySchema } from "../middleware/withAuth"
 
 // POST - Create a new program
 export const POST = withAuthBodySchema(

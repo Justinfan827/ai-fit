@@ -1,24 +1,30 @@
-import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
-import { v4 as uuidv4 } from 'uuid'
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
+import { v4 as uuidv4 } from "uuid"
 
-import { DebugToggle } from '@/components/debug-toggle'
-import AddRowDropdown from '@/components/grid/AddRowDropdown'
-import ExerciseInput from '@/components/grid/ExerciseInput'
-import { Icons } from '@/components/icons'
-import { Button } from '@/components/ui/button'
+import { DebugToggle } from "@/components/debug-toggle"
+import AddRowDropdown from "@/components/grid/AddRowDropdown"
+import ExerciseInput from "@/components/grid/ExerciseInput"
+import { Icons } from "@/components/icons"
+import { Button } from "@/components/ui/button"
 import {
   useWorkoutHistoryKeyboardShortcuts,
   useZCurrentChangeId,
   useZEditorActions,
-} from '@/hooks/zustand/program-editor'
-import {
+} from "@/hooks/zustand/program-editor"
+import type {
   CircuitBlock,
   Exercise,
   ExerciseBlock,
   Workout,
-} from '@/lib/domain/workouts'
-import { cn } from '@/lib/utils'
-import { Column } from './columns'
+} from "@/lib/domain/workouts"
+import { cn } from "@/lib/utils"
+import type { Column } from "./columns"
 
 // Utility function for getting row-specific styling
 function getRowStyles(cell: Cell, currentChangeId: string | null) {
@@ -28,7 +34,7 @@ function getRowStyles(cell: Cell, currentChangeId: string | null) {
     // Circuit exercise styles
     circuitExercise: cell.isCircuitExercise,
     // Standalone exercise styles
-    standaloneExercise: !cell.isCircuitHeader && !cell.isCircuitExercise,
+    standaloneExercise: !(cell.isCircuitHeader || cell.isCircuitExercise),
     // Proposed change styles
     proposedChange: cell.isProposed,
     // Current change styles (highlighted more prominently)
@@ -49,74 +55,74 @@ function getCellClasses(
     baseClasses,
     // Current change styling (takes highest precedence)
     styles.currentChange &&
-      cell.proposedChangeType === 'adding' &&
-      'bg-green-800/50 border-green-400/70 ring-1 ring-green-400/30',
+      cell.proposedChangeType === "adding" &&
+      "border-green-400/70 bg-green-800/50 ring-1 ring-green-400/30",
     styles.currentChange &&
-      cell.proposedChangeType === 'adding' &&
+      cell.proposedChangeType === "adding" &&
       cell.colIndex === 0 &&
-      'shadow-[-3px_0_0_0_rgb(34_197_94_/_0.9)]',
+      "shadow-[-3px_0_0_0_rgb(34_197_94_/_0.9)]",
     // Current change removal styling
     styles.currentChange &&
-      cell.proposedChangeType === 'removing' &&
-      'bg-red-800/50 border-red-400/70 ring-1 ring-red-400/30 opacity-90',
+      cell.proposedChangeType === "removing" &&
+      "border-red-400/70 bg-red-800/50 opacity-90 ring-1 ring-red-400/30",
     styles.currentChange &&
-      cell.proposedChangeType === 'removing' &&
+      cell.proposedChangeType === "removing" &&
       cell.colIndex === 0 &&
-      'shadow-[-3px_0_0_0_rgb(239_68_68_/_0.9)]',
+      "shadow-[-3px_0_0_0_rgb(239_68_68_/_0.9)]",
     // Current change update styling
     styles.currentChange &&
-      cell.proposedChangeType === 'updating' &&
-      'bg-blue-800/50 border-blue-400/70 ring-1 ring-blue-400/30',
+      cell.proposedChangeType === "updating" &&
+      "border-blue-400/70 bg-blue-800/50 ring-1 ring-blue-400/30",
     styles.currentChange &&
-      cell.proposedChangeType === 'updating' &&
+      cell.proposedChangeType === "updating" &&
       cell.colIndex === 0 &&
-      'shadow-[-3px_0_0_0_rgb(59_130_246_/_0.9)]',
+      "shadow-[-3px_0_0_0_rgb(59_130_246_/_0.9)]",
     // Regular proposed change styling (lower precedence)
     !styles.currentChange &&
       styles.proposedChange &&
-      cell.proposedChangeType === 'adding' &&
-      'bg-green-950/30 border-green-500/50',
+      cell.proposedChangeType === "adding" &&
+      "border-green-500/50 bg-green-950/30",
     !styles.currentChange &&
       styles.proposedChange &&
-      cell.proposedChangeType === 'adding' &&
+      cell.proposedChangeType === "adding" &&
       cell.colIndex === 0 &&
-      'shadow-[-2px_0_0_0_rgb(34_197_94_/_0.7)]',
+      "shadow-[-2px_0_0_0_rgb(34_197_94_/_0.7)]",
     // Proposed removal styling
     !styles.currentChange &&
       styles.proposedChange &&
-      cell.proposedChangeType === 'removing' &&
-      'bg-red-950/30 border-red-500/50 opacity-75',
+      cell.proposedChangeType === "removing" &&
+      "border-red-500/50 bg-red-950/30 opacity-75",
     !styles.currentChange &&
       styles.proposedChange &&
-      cell.proposedChangeType === 'removing' &&
+      cell.proposedChangeType === "removing" &&
       cell.colIndex === 0 &&
-      'shadow-[-2px_0_0_0_rgb(239_68_68_/_0.7)]',
+      "shadow-[-2px_0_0_0_rgb(239_68_68_/_0.7)]",
     // Proposed update styling
     !styles.currentChange &&
       styles.proposedChange &&
-      cell.proposedChangeType === 'updating' &&
-      'bg-blue-950/30 border-blue-500/50',
+      cell.proposedChangeType === "updating" &&
+      "border-blue-500/50 bg-blue-950/30",
     !styles.currentChange &&
       styles.proposedChange &&
-      cell.proposedChangeType === 'updating' &&
+      cell.proposedChangeType === "updating" &&
       cell.colIndex === 0 &&
-      'shadow-[-2px_0_0_0_rgb(59_130_246_/_0.7)]',
+      "shadow-[-2px_0_0_0_rgb(59_130_246_/_0.7)]",
 
     // Circuit header styling
     !styles.proposedChange &&
       styles.circuitHeader &&
-      'bg-neutral-900 font-medium text-orange-400',
+      "bg-neutral-900 font-medium text-orange-400",
     !styles.proposedChange &&
       styles.circuitHeader &&
       cell.colIndex === 0 &&
-      'shadow-[-2px_0_0_0_rgb(251_146_60_/_0.5)]',
+      "shadow-[-2px_0_0_0_rgb(251_146_60_/_0.5)]",
     // Circuit exercise styling - subtle background with left border accent
     !styles.proposedChange &&
       styles.circuitExercise &&
       cell.colIndex === 0 &&
-      'bg-neutral-925 shadow-[-2px_0_0_0_rgb(251_146_60_/_0.5)]',
+      "bg-neutral-925 shadow-[-2px_0_0_0_rgb(251_146_60_/_0.5)]",
     // Standalone exercise styling (default)
-    !styles.proposedChange && styles.standaloneExercise && 'bg-neutral-950'
+    !styles.proposedChange && styles.standaloneExercise && "bg-neutral-950"
   )
 }
 
@@ -126,14 +132,14 @@ interface Position {
 }
 
 interface CellChange {
-  type: 'cell'
+  type: "cell"
   cell: Cell
   oldValue: string
   newValue: string
 }
 
 interface ExerciseSelection {
-  type: 'exercise-selection'
+  type: "exercise-selection"
   cell: Cell
   exercise: {
     id: string
@@ -149,22 +155,22 @@ type GridChange = CellChange | ExerciseSelection
 
 // Type guard functions
 function isExerciseSelection(change: GridChange): change is ExerciseSelection {
-  return 'type' in change && change.type === 'exercise-selection'
+  return "type" in change && change.type === "exercise-selection"
 }
 
 function isCellChange(change: GridChange): change is CellChange {
-  return 'type' in change && change.type === 'cell'
+  return "type" in change && change.type === "cell"
 }
 
 interface Cell {
-  type: 'input' | 'select' | 'display'
+  type: "input" | "select" | "display"
   value: string
   colType: string
   width: number
   rowIndex: number
   colIndex: number
   isCircuitHeader?: boolean
-  blockType?: 'exercise' | 'circuit'
+  blockType?: "exercise" | "circuit"
   originalBlockIndex?: number
   readOnly?: boolean
   isCircuitExercise?: boolean
@@ -172,12 +178,12 @@ interface Cell {
   // Proposed change properties
   isProposed?: boolean
   proposedChangeIndex?: number
-  proposedChangeType?: 'adding' | 'removing' | 'updating'
+  proposedChangeType?: "adding" | "removing" | "updating"
   // Flag to track if this is an individual exercise change (not part of circuit change)
   isIndividualChange?: boolean
   // Pending status for proposal management
   pendingStatus?: {
-    type: 'adding' | 'removing' | 'updating'
+    type: "adding" | "removing" | "updating"
     proposalId: string
   }
 }
@@ -186,7 +192,7 @@ interface WorkoutGridProps {
   workout: Workout
   onWorkoutChange: (workout: Workout) => void
   columns: Column[]
-  onProposalAction?: (proposalId: string, action: 'accept' | 'reject') => void
+  onProposalAction?: (proposalId: string, action: "accept" | "reject") => void
 }
 
 export default function WorkoutGrid({
@@ -211,17 +217,17 @@ export default function WorkoutGrid({
     <div className="text-sm">
       <GridHeaderRow columns={columns} />
       <GridContentRows
-        workout={workout}
-        onWorkoutChange={handleWorkoutChange}
         columns={columns}
         onProposalAction={onProposalAction}
+        onWorkoutChange={handleWorkoutChange}
+        workout={workout}
       />
       {showDebug && (
         <div className="mt-4 rounded-lg border border-neutral-800 bg-neutral-950 p-4">
-          <h3 className="mb-2 text-sm font-medium text-neutral-400">
+          <h3 className="mb-2 font-medium text-neutral-400 text-sm">
             Debug: Current Workout
           </h3>
-          <pre className="overflow-auto text-xs text-neutral-300">
+          <pre className="overflow-auto text-neutral-300 text-xs">
             {JSON.stringify(workout, null, 2)}
           </pre>
         </div>
@@ -233,15 +239,15 @@ export default function WorkoutGrid({
 
 function GridHeaderRow({ columns }: { columns: Column[] }) {
   return (
-    <div id="headers" className="flex w-full">
-      <div id="dummy-action-menu" className="ml-[48px] flex px-2" />
+    <div className="flex w-full" id="headers">
+      <div className="ml-[48px] flex px-2" id="dummy-action-menu" />
       {columns.map((col, idx) => {
         return (
           <div
             className={cn(
-              'shrink-0 grow border-t border-r border-neutral-800 bg-neutral-950 p-2 text-sm font-light tracking-wider text-neutral-400 uppercase',
-              idx === 0 && 'rounded-tl-sm border-l',
-              idx === columns.length - 1 && 'rounded-tr-sm'
+              "shrink-0 grow border-neutral-800 border-t border-r bg-neutral-950 p-2 font-light text-neutral-400 text-sm uppercase tracking-wider",
+              idx === 0 && "rounded-tl-sm border-l",
+              idx === columns.length - 1 && "rounded-tr-sm"
             )}
             key={col.field}
             style={{ flexBasis: col.width }}
@@ -263,7 +269,7 @@ function GridContentRows({
   columns: Column[]
   workout: Workout
   onWorkoutChange: (workout: Workout) => void
-  onProposalAction?: (proposalId: string, action: 'accept' | 'reject') => void
+  onProposalAction?: (proposalId: string, action: "accept" | "reject") => void
 }) {
   // Create grid directly from workout
   const grid = createGridFromWorkoutWithChanges(workout, columns)
@@ -271,8 +277,8 @@ function GridContentRows({
   const numCols = columns.length
   const [activeCell, setActiveCell] = useState<Position | null>(null)
   const [openDropdownRow, setOpenDropdownRow] = useState<number | null>(null)
-  const [editingValue, setEditingValue] = useState<string>('')
-  const [originalValue, setOriginalValue] = useState<string>('')
+  const [editingValue, setEditingValue] = useState<string>("")
+  const [originalValue, setOriginalValue] = useState<string>("")
   const gridRefs = useRef<HTMLDivElement[][]>([])
   const currentChangeId = useZCurrentChangeId()
 
@@ -290,9 +296,9 @@ function GridContentRows({
       ) {
         // Scroll the first cell of the matching row into view
         gridRefs.current[currentChangeRowIndex][0].scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest',
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest",
         })
       }
     }
@@ -309,7 +315,7 @@ function GridContentRows({
     if (activeCell && editingValue !== originalValue) {
       const cell = grid[row][col]
       const change: CellChange = {
-        type: 'cell',
+        type: "cell",
         cell,
         oldValue: originalValue,
         newValue: editingValue,
@@ -321,7 +327,7 @@ function GridContentRows({
   // Start editing a cell
   const startEditing = (row: number, col: number, initialValue?: string) => {
     const cell = grid[row][col]
-    const currentValue = cell.value || ''
+    const currentValue = cell.value || ""
     setActiveCell({ row, col })
     setOriginalValue(currentValue)
     setEditingValue(initialValue !== undefined ? initialValue : currentValue)
@@ -331,19 +337,19 @@ function GridContentRows({
   const stopEditing = (row: number, col: number) => {
     saveChanges(row, col)
     setActiveCell(null)
-    setEditingValue('')
-    setOriginalValue('')
+    setEditingValue("")
+    setOriginalValue("")
   }
 
   const handleKeyDown = (e: KeyboardEvent, row: number, col: number) => {
     if (activeCell) {
-      if (e.key === 'Tab' && e.shiftKey) {
+      if (e.key === "Tab" && e.shiftKey) {
         // idk if we need this
         //e.preventDefault()
         //const newCol = Math.max(0, col - 1)
         //setActiveCell(null)
         //gridRefs.current[row][newCol]?.focus()
-      } else if (e.key === 'Enter') {
+      } else if (e.key === "Enter") {
         e.preventDefault()
         stopEditing(row, col)
         const nextRow = Math.min(numRows - 1, row + 1)
@@ -361,11 +367,11 @@ function GridContentRows({
         setTimeout(() => {
           gridRefs.current[nextRow]?.[col]?.focus()
         }, 0)
-      } else if (e.key === 'Escape') {
+      } else if (e.key === "Escape") {
         e.preventDefault()
         setActiveCell(null)
-        setEditingValue('')
-        setOriginalValue('')
+        setEditingValue("")
+        setOriginalValue("")
         gridRefs.current[row][col]?.focus()
       }
       return
@@ -373,10 +379,10 @@ function GridContentRows({
 
     // Handle navigation when no cell is active
     const isArrowKey = [
-      'ArrowUp',
-      'ArrowDown',
-      'ArrowLeft',
-      'ArrowRight',
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
     ].includes(e.key)
 
     if (isArrowKey) {
@@ -385,22 +391,22 @@ function GridContentRows({
       let newCol = col
 
       switch (e.key) {
-        case 'ArrowUp':
+        case "ArrowUp":
           newRow = Math.max(0, row - 1)
           break
-        case 'ArrowDown':
+        case "ArrowDown":
           newRow = Math.min(numRows - 1, row + 1)
           break
-        case 'ArrowLeft':
+        case "ArrowLeft":
           newCol = Math.max(0, col - 1)
           break
-        case 'ArrowRight':
+        case "ArrowRight":
           newCol = Math.min(numCols - 1, col + 1)
           break
       }
 
       gridRefs.current[newRow][newCol]?.focus()
-    } else if (e.key === 'Enter') {
+    } else if (e.key === "Enter") {
       startEditing(row, col)
     } else if (
       e.key.length === 1 &&
@@ -429,12 +435,12 @@ function GridContentRows({
     const cell = grid[row][col]
     const currentBlock = workout.blocks[cell.originalBlockIndex!]
     const oldExercise =
-      currentBlock?.type === 'exercise'
+      currentBlock?.type === "exercise"
         ? { id: currentBlock.exercise.id, name: currentBlock.exercise.name }
-        : { id: '', name: '' }
+        : { id: "", name: "" }
 
     const change: ExerciseSelection = {
-      type: 'exercise-selection',
+      type: "exercise-selection",
       cell,
       exercise: {
         id: exercise.id,
@@ -451,9 +457,9 @@ function GridContentRows({
   const handleAddRow = (
     rowIndex: number,
     colIndex: number,
-    type: 'exercise' | 'circuit' | 'exercise-in-circuit'
+    type: "exercise" | "circuit" | "exercise-in-circuit"
   ) => {
-    if (type === 'exercise-in-circuit') {
+    if (type === "exercise-in-circuit") {
       // Handle adding exercise within a circuit
       const currentCell = grid[rowIndex]?.[0]
       if (!currentCell || currentCell.originalBlockIndex === undefined) return
@@ -462,20 +468,20 @@ function GridContentRows({
       const circuitBlockIndex = currentCell.originalBlockIndex
       const circuitBlock = newBlocks[circuitBlockIndex]
 
-      if (!circuitBlock || circuitBlock.type !== 'circuit') return
+      if (!circuitBlock || circuitBlock.type !== "circuit") return
 
       // Create new exercise to add to circuit
       const newExercise: ExerciseBlock = {
-        type: 'exercise',
+        type: "exercise",
         exercise: {
           id: uuidv4(),
-          name: '',
+          name: "",
           metadata: {
             sets: circuitBlock.circuit.metadata.sets,
-            reps: '',
-            weight: '',
+            reps: "",
+            weight: "",
             rest: circuitBlock.circuit.metadata.rest,
-            notes: '',
+            notes: "",
           },
         },
       }
@@ -501,20 +507,20 @@ function GridContentRows({
       const updatedWorkout = { ...workout, blocks: newBlocks }
       onWorkoutChange(updatedWorkout)
       setActiveCell({ row: rowIndex + 1, col: colIndex })
-    } else if (type === 'exercise') {
+    } else if (type === "exercise") {
       // Handle adding regular exercise or circuit block
       const newBlocks = [...workout.blocks]
       const newBlock: ExerciseBlock = {
-        type: 'exercise',
+        type: "exercise",
         exercise: {
           id: uuidv4(),
-          name: '',
+          name: "",
           metadata: {
-            sets: '',
-            reps: '',
-            weight: '',
-            rest: '',
-            notes: '',
+            sets: "",
+            reps: "",
+            weight: "",
+            rest: "",
+            notes: "",
           },
         },
       }
@@ -533,32 +539,32 @@ function GridContentRows({
       const updatedWorkout = { ...workout, blocks: newBlocks }
       onWorkoutChange(updatedWorkout)
       setActiveCell({ row: rowIndex + 1, col: colIndex })
-    } else if (type === 'circuit') {
+    } else if (type === "circuit") {
       // Handle adding circuit block
       const newBlocks = [...workout.blocks]
       const newBlock: CircuitBlock = {
-        type: 'circuit',
+        type: "circuit",
         circuit: {
           isDefault: false,
-          description: '',
-          name: '',
+          description: "",
+          name: "",
           metadata: {
-            sets: '',
-            rest: '',
-            notes: '',
+            sets: "",
+            rest: "",
+            notes: "",
           },
           exercises: [
             {
-              type: 'exercise',
+              type: "exercise",
               exercise: {
                 id: uuidv4(),
-                name: '',
+                name: "",
                 metadata: {
-                  sets: '',
-                  reps: '',
-                  weight: '',
-                  rest: '',
-                  notes: '',
+                  sets: "",
+                  reps: "",
+                  weight: "",
+                  rest: "",
+                  notes: "",
                 },
               },
             },
@@ -585,10 +591,10 @@ function GridContentRows({
   const { setProposedChanges } = useZEditorActions()
   const handleProposalAction = (
     rowIndex: number,
-    action: 'accept' | 'reject'
+    action: "accept" | "reject"
   ) => {
     const cell = grid[rowIndex]?.[0]
-    if (!cell || !cell.isProposed || !cell.pendingStatus?.proposalId) {
+    if (!(cell && cell.isProposed && cell.pendingStatus?.proposalId)) {
       return
     }
 
@@ -605,27 +611,27 @@ function GridContentRows({
       {grid.map((row: Cell[], rowIndex: number) => {
         return (
           <GridContentRow
-            key={`row-${rowIndex}`}
-            gridRefs={gridRefs}
-            row={row}
-            numRows={numRows}
-            numCols={numCols}
             activeCell={activeCell}
-            rowIndex={rowIndex}
-            setOpenDropdownRow={setOpenDropdownRow}
-            openDropdownRow={openDropdownRow}
-            handleAddRow={handleAddRow}
-            handleOnSelectExercise={handleOnSelectExercise}
-            handleInputChange={handleInputChange}
-            handleProposalAction={handleProposalAction}
-            handleKeyDown={handleKeyDown}
-            setActiveCell={setActiveCell}
-            editingValue={editingValue}
-            stopEditing={stopEditing}
-            startEditing={startEditing}
-            grid={grid}
-            workout={workout}
             currentChangeId={currentChangeId}
+            editingValue={editingValue}
+            grid={grid}
+            gridRefs={gridRefs}
+            handleAddRow={handleAddRow}
+            handleInputChange={handleInputChange}
+            handleKeyDown={handleKeyDown}
+            handleOnSelectExercise={handleOnSelectExercise}
+            handleProposalAction={handleProposalAction}
+            key={`row-${rowIndex}`}
+            numCols={numCols}
+            numRows={numRows}
+            openDropdownRow={openDropdownRow}
+            row={row}
+            rowIndex={rowIndex}
+            setActiveCell={setActiveCell}
+            setOpenDropdownRow={setOpenDropdownRow}
+            startEditing={startEditing}
+            stopEditing={stopEditing}
+            workout={workout}
           />
         )
       })}
@@ -643,7 +649,7 @@ type GridRowProps = {
   handleAddRow: (
     rowIndex: number,
     colIndex: number,
-    type: 'exercise' | 'circuit' | 'exercise-in-circuit'
+    type: "exercise" | "circuit" | "exercise-in-circuit"
   ) => void
   handleOnSelectExercise: (exercise: Exercise, row: number, col: number) => void
   handleInputChange: (
@@ -651,7 +657,7 @@ type GridRowProps = {
     row: number,
     col: number
   ) => void
-  handleProposalAction: (rowIndex: number, action: 'accept' | 'reject') => void
+  handleProposalAction: (rowIndex: number, action: "accept" | "reject") => void
   handleKeyDown: (e: KeyboardEvent, row: number, col: number) => void
   setActiveCell: (cell: Position | null) => void
   setOpenDropdownRow: (row: number | null) => void
@@ -687,12 +693,12 @@ function GridContentRow({
   currentChangeId,
 }: GridRowProps) {
   return (
-    <div key={`row-${rowIndex}`} className="group flex h-9 w-full">
+    <div className="group flex h-9 w-full" key={`row-${rowIndex}`}>
       <div
-        id="action menu"
         className={`flex items-center px-2 ${
-          openDropdownRow === rowIndex ? 'opacity-100' : ''
+          openDropdownRow === rowIndex ? "opacity-100" : ""
         }`}
+        id="action menu"
       >
         {row[0]?.isProposed &&
         // Show accept/reject buttons on:
@@ -700,35 +706,35 @@ function GridContentRow({
         // - Standalone exercises (for remove-block or add-block)
         // - Circuit exercises when individually being added/removed (not part of circuit removal)
         (row[0]?.isCircuitHeader ||
-          (!row[0]?.isCircuitExercise && !row[0]?.isCircuitHeader) ||
+          !(row[0]?.isCircuitExercise || row[0]?.isCircuitHeader) ||
           (row[0]?.isCircuitExercise && row[0]?.isIndividualChange)) ? (
           // Proposed change action buttons
           <>
             <Button
-              size="icon"
-              variant="ghost"
-              className={`h-6 w-6 cursor-pointer transition-opacity ease-in-out group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100 ${
-                row[0]?.proposedChangeType === 'adding'
-                  ? 'text-green-400 hover:text-green-300'
-                  : row[0]?.proposedChangeType === 'removing'
-                    ? 'text-red-400 hover:text-red-300'
-                    : 'text-blue-400 hover:text-blue-300'
+              className={`h-6 w-6 cursor-pointer transition-opacity ease-in-out focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 ${
+                row[0]?.proposedChangeType === "adding"
+                  ? "text-green-400 hover:text-green-300"
+                  : row[0]?.proposedChangeType === "removing"
+                    ? "text-red-400 hover:text-red-300"
+                    : "text-blue-400 hover:text-blue-300"
               }`}
               onClick={() => {
-                handleProposalAction(rowIndex, 'accept')
+                handleProposalAction(rowIndex, "accept")
               }}
-              title={`Accept proposed ${row[0]?.proposedChangeType?.replace('-', ' ')}`}
+              size="icon"
+              title={`Accept proposed ${row[0]?.proposedChangeType?.replace("-", " ")}`}
+              variant="ghost"
             >
               <Icons.check className="h-4 w-4" />
             </Button>
             <Button
-              size="icon"
-              variant="ghost"
-              className="h-6 w-6 cursor-pointer text-red-400 transition-opacity ease-in-out group-focus-within:opacity-100 group-hover:opacity-100 hover:text-red-300 focus:opacity-100"
+              className="h-6 w-6 cursor-pointer text-red-400 transition-opacity ease-in-out hover:text-red-300 focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
               onClick={() => {
-                handleProposalAction(rowIndex, 'reject')
+                handleProposalAction(rowIndex, "reject")
               }}
-              title={`Reject proposed ${row[0]?.proposedChangeType?.replace('-', ' ')}`}
+              size="icon"
+              title={`Reject proposed ${row[0]?.proposedChangeType?.replace("-", " ")}`}
+              variant="ghost"
             >
               <Icons.x className="h-4 w-4" />
             </Button>
@@ -744,22 +750,22 @@ function GridContentRow({
           <>
             <div className="">
               <AddRowDropdown
+                isInCircuit={
+                  row[0]?.isCircuitHeader || row[0]?.isCircuitExercise
+                }
                 onAddRow={(type) => handleAddRow(rowIndex, 0, type)}
                 onOpenChange={(open) =>
                   setOpenDropdownRow(open ? rowIndex : null)
-                }
-                isInCircuit={
-                  row[0]?.isCircuitHeader || row[0]?.isCircuitExercise
                 }
               />
             </div>
             <div className="">
               <Button
+                className={`h-6 w-6 cursor-pointer text-accent-foreground transition-opacity ease-in-out focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 ${
+                  openDropdownRow === rowIndex ? "opacity-100" : "opacity-0"
+                }`}
                 size="icon"
                 variant="ghost"
-                className={`text-accent-foreground h-6 w-6 cursor-pointer transition-opacity ease-in-out group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100 ${
-                  openDropdownRow === rowIndex ? 'opacity-100' : 'opacity-0'
-                }`}
               >
                 <Icons.gripVertical className="h-4 w-4" />
               </Button>
@@ -769,59 +775,59 @@ function GridContentRow({
       </div>
       {row.map((cell, colIndex) => (
         <div
+          className={getCellClasses(
+            cell,
+            cn(
+              "relative shrink-0 flex-grow overflow-hidden truncate border-neutral-800 border-r border-b p-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-orange-500 focus-within:ring-inset",
+              rowIndex === 0 && "border-t",
+              colIndex === 0 && "border-l",
+              rowIndex === numRows - 1 && colIndex === 0 && "rounded-bl-sm",
+              rowIndex === numRows - 1 &&
+                colIndex === numCols - 1 &&
+                "rounded-br-sm",
+              cell.readOnly && "cursor-not-allowed text-neutral-500"
+            ),
+            currentChangeId
+          )}
           key={`${rowIndex}-${colIndex}`}
+          onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}
+          onDoubleClick={() => startEditing(rowIndex, colIndex, cell.value)}
+          onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
           ref={(el) => {
             if (el) {
               gridRefs.current[rowIndex] = gridRefs.current[rowIndex] || []
               gridRefs.current[rowIndex][colIndex] = el
             }
           }}
-          tabIndex={0}
-          className={getCellClasses(
-            cell,
-            cn(
-              `relative shrink-0 flex-grow truncate overflow-hidden border-r border-b border-neutral-800 p-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:outline-none focus-within:ring-inset`,
-              rowIndex === 0 && 'border-t',
-              colIndex === 0 && 'border-l',
-              rowIndex === numRows - 1 && colIndex === 0 && 'rounded-bl-sm',
-              rowIndex === numRows - 1 &&
-                colIndex === numCols - 1 &&
-                'rounded-br-sm',
-              cell.readOnly && 'cursor-not-allowed text-neutral-500'
-            ),
-            currentChangeId
-          )}
-          onClick={() => gridRefs.current[rowIndex][colIndex]?.focus()}
-          onDoubleClick={() => startEditing(rowIndex, colIndex, cell.value)}
-          onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
           style={{
             flexBasis: cell.width,
           }}
+          tabIndex={0}
         >
           {activeCell?.row === rowIndex &&
           activeCell?.col === colIndex &&
           !cell.readOnly ? (
             colIndex === 0 && !cell.isCircuitHeader ? (
               <ExerciseInput
-                value={cell.value || ''}
-                onSelectExercise={(exercise) => {
-                  handleOnSelectExercise(exercise, rowIndex, colIndex)
-                }}
                 onBlur={() => {
                   setActiveCell(null)
                   gridRefs.current[rowIndex][colIndex]?.focus()
                 }}
+                onSelectExercise={(exercise) => {
+                  handleOnSelectExercise(exercise, rowIndex, colIndex)
+                }}
+                value={cell.value || ""}
               />
             ) : (
               <input
+                autoFocus
                 className="m-0 h-full w-full truncate py-2 text-sm focus-within:outline-none focus:outline-none"
-                value={editingValue}
-                onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
                 onBlur={() => {
                   stopEditing(rowIndex, colIndex)
                   gridRefs.current[rowIndex][colIndex]?.focus()
                 }}
-                autoFocus
+                onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
+                value={editingValue}
               />
             )
           ) : (
@@ -848,19 +854,19 @@ function createGridFromWorkoutWithChanges(
     const isBlockProposed = blockPendingStatus !== undefined
     const blockChangeIndex = isBlockProposed ? 0 : undefined
 
-    if (block.type === 'exercise') {
+    if (block.type === "exercise") {
       // Regular exercise row
       const exerciseRow = columns.map((col, colIndex) => ({
         type:
-          col.field === 'exercise_name'
-            ? ('select' as const)
-            : ('input' as const),
+          col.field === "exercise_name"
+            ? ("select" as const)
+            : ("input" as const),
         value: getValueFromBlock(block, col.field),
         colType: col.field,
         width: col.width || 100,
         rowIndex: currentRowIndex,
         colIndex,
-        blockType: 'exercise' as const,
+        blockType: "exercise" as const,
         originalBlockIndex: blockIndex,
         isCircuitExercise: false,
         // Set proposed change properties based on pendingStatus
@@ -872,19 +878,19 @@ function createGridFromWorkoutWithChanges(
       }))
       grid.push(exerciseRow)
       currentRowIndex++
-    } else if (block.type === 'circuit') {
+    } else if (block.type === "circuit") {
       // Circuit header row (dummy row)
       const circuitHeaderRow = columns.map((col, colIndex) => ({
-        type: 'input' as const,
+        type: "input" as const,
         value: getValueFromCircuitBlock(block, col.field),
         colType: col.field,
         width: col.width || 100,
         rowIndex: currentRowIndex,
         colIndex,
         isCircuitHeader: true,
-        blockType: 'circuit' as const,
+        blockType: "circuit" as const,
         originalBlockIndex: blockIndex,
-        readOnly: col.field === 'reps' || col.field === 'weight',
+        readOnly: col.field === "reps" || col.field === "weight",
         isCircuitExercise: false,
         // Set proposed change properties based on pendingStatus
         isProposed: isBlockProposed,
@@ -905,16 +911,16 @@ function createGridFromWorkoutWithChanges(
 
         const exerciseRow = columns.map((col, colIndex) => ({
           type:
-            col.field === 'exercise_name'
-              ? ('select' as const)
-              : ('input' as const),
+            col.field === "exercise_name"
+              ? ("select" as const)
+              : ("input" as const),
           value: getValueFromBlock(exerciseBlock, col.field),
           colType: col.field,
           width: col.width || 100,
           rowIndex: currentRowIndex,
           colIndex,
-          readOnly: col.field === 'sets' || col.field === 'rest',
-          blockType: 'exercise' as const,
+          readOnly: col.field === "sets" || col.field === "rest",
+          blockType: "exercise" as const,
           originalBlockIndex: blockIndex,
           isCircuitExercise: true,
           exerciseIndexInCircuit: exerciseIndex, // Store the index
@@ -951,40 +957,40 @@ function createGridFromWorkoutWithChanges(
 // Extract value from exercise block based on field
 function getValueFromBlock(block: ExerciseBlock, field: string): string {
   switch (field) {
-    case 'exercise_name':
+    case "exercise_name":
       return block.exercise.name
-    case 'sets':
+    case "sets":
       return block.exercise.metadata.sets
-    case 'reps':
+    case "reps":
       return block.exercise.metadata.reps
-    case 'weight':
+    case "weight":
       return block.exercise.metadata.weight
-    case 'rest':
+    case "rest":
       return block.exercise.metadata.rest
-    case 'notes':
-      return block.exercise.metadata.notes || ''
+    case "notes":
+      return block.exercise.metadata.notes || ""
     default:
-      return ''
+      return ""
   }
 }
 
 // Extract value from circuit block based on field (for circuit header row)
 function getValueFromCircuitBlock(block: CircuitBlock, field: string): string {
   switch (field) {
-    case 'exercise_name':
+    case "exercise_name":
       return block.circuit.name
-    case 'sets':
+    case "sets":
       return block.circuit.metadata.sets
-    case 'reps':
-      return '' // Circuits don't have reps, only exercises within circuits do
-    case 'weight':
-      return '' // Circuits don't have weight, only exercises within circuits do
-    case 'rest':
+    case "reps":
+      return "" // Circuits don't have reps, only exercises within circuits do
+    case "weight":
+      return "" // Circuits don't have weight, only exercises within circuits do
+    case "rest":
       return block.circuit.metadata.rest
-    case 'notes':
-      return block.circuit.metadata.notes || ''
+    case "notes":
+      return block.circuit.metadata.notes || ""
     default:
-      return ''
+      return ""
   }
 }
 
@@ -1000,7 +1006,7 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
 
   if (!blockToUpdate) return workout
 
-  if (blockToUpdate.type === 'exercise') {
+  if (blockToUpdate.type === "exercise") {
     // Direct exercise block update
     const updatedBlock = { ...blockToUpdate }
 
@@ -1011,7 +1017,7 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
         name: change.exercise.name,
       }
     } else if (isCellChange(change)) {
-      if (cell.colType === 'exercise_name') {
+      if (cell.colType === "exercise_name") {
         updatedBlock.exercise = {
           ...updatedBlock.exercise,
           name: change.newValue,
@@ -1028,21 +1034,21 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
     }
 
     newBlocks[originalBlockIndex] = updatedBlock
-  } else if (blockToUpdate.type === 'circuit') {
+  } else if (blockToUpdate.type === "circuit") {
     const updatedBlock = { ...blockToUpdate }
     updatedBlock.circuit = { ...updatedBlock.circuit }
 
     if (cell.isCircuitHeader) {
       // Update circuit metadata
       if (isCellChange(change)) {
-        if (cell.colType === 'exercise_name') {
+        if (cell.colType === "exercise_name") {
           updatedBlock.circuit.name = change.newValue
-        } else if (['rest', 'notes'].includes(cell.colType)) {
+        } else if (["rest", "notes"].includes(cell.colType)) {
           updatedBlock.circuit.metadata = {
             ...updatedBlock.circuit.metadata,
             [cell.colType]: change.newValue,
           }
-        } else if (cell.colType === 'sets') {
+        } else if (cell.colType === "sets") {
           updatedBlock.circuit.metadata.sets = change.newValue
           updatedBlock.circuit.exercises.forEach((exercise) => {
             exercise.exercise.metadata.sets = change.newValue
@@ -1065,7 +1071,7 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
             name: change.exercise.name,
           }
         } else if (isCellChange(change)) {
-          if (cell.colType === 'exercise_name') {
+          if (cell.colType === "exercise_name") {
             exerciseToUpdate.exercise = {
               ...exerciseToUpdate.exercise,
               name: change.newValue,
@@ -1088,7 +1094,6 @@ function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
 
     newBlocks[originalBlockIndex] = updatedBlock
   }
-
 
   return {
     ...workout,

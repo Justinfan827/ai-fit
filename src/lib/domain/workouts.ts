@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod"
 
 // exercises that are stored in the DB
 export const exerciseSchema = z.object({
@@ -22,25 +22,25 @@ export const workoutExerciseSchema = z.object({
 
 // Define pending status schemas first
 export const pendingAddSchema = z.object({
-  type: z.literal('adding'),
+  type: z.literal("adding"),
   proposalId: z
     .string()
-    .describe('Unique identifier for the proposal that created this change'),
+    .describe("Unique identifier for the proposal that created this change"),
 })
 
 export const pendingRemoveSchema = z.object({
-  type: z.literal('removing'),
+  type: z.literal("removing"),
   proposalId: z
     .string()
-    .describe('Unique identifier for the proposal that created this change'),
+    .describe("Unique identifier for the proposal that created this change"),
 })
 
 export const pendingUpdateSchema = z.object({
-  type: z.literal('updating'),
+  type: z.literal("updating"),
   oldBlock: z.any(), // Use z.any() to break circular dependency
   proposalId: z
     .string()
-    .describe('Unique identifier for the proposal that created this change'),
+    .describe("Unique identifier for the proposal that created this change"),
 })
 
 export const pendingChangeTypeSchema = z.union([
@@ -51,7 +51,7 @@ export const pendingChangeTypeSchema = z.union([
 
 // Define exercise block schema that can have pending status
 export const exerciseBlockSchema = z.object({
-  type: z.literal('exercise'),
+  type: z.literal("exercise"),
   exercise: z.object({
     id: z.string().uuid(),
     name: z.string(),
@@ -68,7 +68,7 @@ export const exerciseBlockSchema = z.object({
 
 // Define circuit block schema
 export const circuitBlockSchema = z.object({
-  type: z.literal('circuit'),
+  type: z.literal("circuit"),
   circuit: z.object({
     isDefault: z.boolean(),
     name: z.string(),
@@ -120,7 +120,7 @@ export const programSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime({ offset: true }),
   name: z.string(),
-  type: z.enum(['weekly', 'splits']),
+  type: z.enum(["weekly", "splits"]),
   workouts: workoutsSchema,
 })
 
@@ -147,7 +147,7 @@ export const exerciseInstanceSchema = z.object({
 
 export const workoutInstanceBlockSchema = z.object({
   id: z.string().uuid(),
-  type: z.enum(['exercise']),
+  type: z.enum(["exercise"]),
   exercise: exerciseInstanceSchema,
 })
 

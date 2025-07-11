@@ -1,10 +1,10 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { v4 as uuidv4 } from 'uuid'
-import { create, StoreApi, UseBoundStore, useStore } from 'zustand'
-
-import { mergeWorkoutWithProposedChanges } from '@/components/grid/workout-merge'
-import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
-import {
+import Fuse from "fuse.js"
+import { createContext, useContext, useEffect, useState } from "react"
+import { v4 as uuidv4 } from "uuid"
+import { create, type StoreApi, type UseBoundStore, useStore } from "zustand"
+import { mergeWorkoutWithProposedChanges } from "@/components/grid/workout-merge"
+import type { WorkoutChange } from "@/lib/ai/tools/diff-schema"
+import type {
   Block,
   Blocks,
   CircuitBlock,
@@ -12,8 +12,7 @@ import {
   Program,
   Workout,
   Workouts,
-} from '@/lib/domain/workouts'
-import Fuse from 'fuse.js'
+} from "@/lib/domain/workouts"
 
 const EditorStoreContext = createContext<UseBoundStore<
   StoreApi<EditorState>
@@ -28,7 +27,7 @@ type ProgramState = {
   id: string
   created_at: string
   name: string
-  type: 'weekly' | 'splits'
+  type: "weekly" | "splits"
   workouts: Workouts
   proposedChanges: WorkoutChange[]
   currentChangeId: string | null
@@ -43,7 +42,7 @@ interface EditorState extends ProgramState {
 
 type WorkoutActions = {
   search: (query: string) => Exercise[]
-  setProgramType: (pType: 'weekly' | 'splits') => void
+  setProgramType: (pType: "weekly" | "splits") => void
   setProgramName: (name: string) => void
   setWorkouts: (workouts: Workouts) => void
   setProposedChanges: (changes: WorkoutChange[]) => void
@@ -66,55 +65,55 @@ const newInitialProgram = (exercises: Exercise[]): Program => {
     .slice(0, 2)
     .map((exercise): Block => {
       return {
-        type: 'exercise',
+        type: "exercise",
         exercise: {
           id: exercise.id,
           name: exercise.name,
           metadata: {
-            sets: '3',
-            reps: '12',
-            weight: '100',
-            rest: '30s',
+            sets: "3",
+            reps: "12",
+            weight: "100",
+            rest: "30s",
           },
         },
       }
     })
 
   const circuitBlock: CircuitBlock = {
-    type: 'circuit',
+    type: "circuit",
     circuit: {
       isDefault: false,
-      name: 'Circuit 1',
-      description: 'Circuit 1 description',
+      name: "Circuit 1",
+      description: "Circuit 1 description",
       metadata: {
-        sets: '3',
-        rest: '30s',
-        notes: 'Circuit 1 notes',
+        sets: "3",
+        rest: "30s",
+        notes: "Circuit 1 notes",
       },
       exercises: [
         {
-          type: 'exercise',
+          type: "exercise",
           exercise: {
             id: exercises[2].id,
             name: exercises[2].name,
             metadata: {
-              sets: '3',
-              reps: '12',
-              weight: '100',
-              rest: '30s',
+              sets: "3",
+              reps: "12",
+              weight: "100",
+              rest: "30s",
             },
           },
         },
         {
-          type: 'exercise',
+          type: "exercise",
           exercise: {
             id: exercises[3].id,
             name: exercises[3].name,
             metadata: {
-              sets: '3',
-              reps: '12',
-              weight: '100',
-              rest: '30s',
+              sets: "3",
+              reps: "12",
+              weight: "100",
+              rest: "30s",
             },
           },
         },
@@ -123,40 +122,40 @@ const newInitialProgram = (exercises: Exercise[]): Program => {
   }
 
   const circuitBlock2: CircuitBlock = {
-    type: 'circuit',
+    type: "circuit",
     circuit: {
       isDefault: false,
-      name: 'Circuit 2',
-      description: 'Circuit 2 description',
+      name: "Circuit 2",
+      description: "Circuit 2 description",
       metadata: {
-        sets: '3',
-        rest: '30s',
-        notes: 'Circuit 2 notes',
+        sets: "3",
+        rest: "30s",
+        notes: "Circuit 2 notes",
       },
       exercises: [
         {
-          type: 'exercise',
+          type: "exercise",
           exercise: {
             id: exercises[6].id,
             name: exercises[6].name,
             metadata: {
-              sets: '3',
-              reps: '12',
-              weight: '100',
-              rest: '30s',
+              sets: "3",
+              reps: "12",
+              weight: "100",
+              rest: "30s",
             },
           },
         },
         {
-          type: 'exercise',
+          type: "exercise",
           exercise: {
             id: exercises[7].id,
             name: exercises[7].name,
             metadata: {
-              sets: '3',
-              reps: '12',
-              weight: '100',
-              rest: '30s',
+              sets: "3",
+              reps: "12",
+              weight: "100",
+              rest: "30s",
             },
           },
         },
@@ -167,12 +166,12 @@ const newInitialProgram = (exercises: Exercise[]): Program => {
   return {
     id: uuidv4().toString(),
     created_at: new Date().toISOString(),
-    name: 'New Program',
-    type: 'weekly',
+    name: "New Program",
+    type: "weekly",
     workouts: [
       {
         id: uuidv4().toString(),
-        name: 'workout 1',
+        name: "workout 1",
         program_id: uuidv4().toString(), // populated on create
         program_order: 0,
         blocks: [...exerciseBlocks, circuitBlock, circuitBlock2],
@@ -192,13 +191,13 @@ export const sortProposedChanges = (changes: WorkoutChange[]) => {
     // then sort by the appropriate index based on change type
     const getChangeIndex = (change: WorkoutChange): number => {
       switch (change.type) {
-        case 'update-block':
-        case 'remove-block':
-        case 'add-block':
+        case "update-block":
+        case "remove-block":
+        case "add-block":
           return change.blockIndex
-        case 'add-circuit-exercise':
-        case 'remove-circuit-exercise':
-        case 'update-circuit-exercise':
+        case "add-circuit-exercise":
+        case "remove-circuit-exercise":
+        case "update-circuit-exercise":
           return change.circuitBlockIndex
         default:
           return 0
@@ -226,71 +225,71 @@ const EditorProgramProvider = ({
   const sortedProposedChanges = sortProposedChanges([
     {
       id: uuidv4(),
-      type: 'add-circuit-exercise',
+      type: "add-circuit-exercise",
       workoutIndex: 0,
       circuitBlockIndex: 3,
       exerciseIndex: 0,
       exercise: {
-        type: 'exercise',
+        type: "exercise",
         exercise: {
           id: exercises[4].id,
           name: exercises[4].name,
           metadata: {
-            sets: '3',
-            reps: '12',
-            weight: '100',
-            rest: '30s',
+            sets: "3",
+            reps: "12",
+            weight: "100",
+            rest: "30s",
           },
         },
       },
     },
     {
       id: uuidv4(),
-      type: 'add-block',
+      type: "add-block",
       workoutIndex: 0,
       blockIndex: 0,
       block: {
-        type: 'exercise',
+        type: "exercise",
         exercise: {
           id: exercises[4].id,
           name: exercises[4].name,
           metadata: {
-            sets: '3',
-            reps: '12',
-            weight: '100',
-            rest: '30s',
+            sets: "3",
+            reps: "12",
+            weight: "100",
+            rest: "30s",
           },
         },
       },
     },
     {
       id: uuidv4(),
-      type: 'update-block',
+      type: "update-block",
       workoutIndex: 0,
       blockIndex: 0,
       block: {
-        type: 'exercise',
+        type: "exercise",
         exercise: {
           id: exercises[7].id,
           name: exercises[7].name,
           metadata: {
-            sets: '3',
-            reps: '12',
-            weight: '100',
-            rest: '30s',
+            sets: "3",
+            reps: "12",
+            weight: "100",
+            rest: "30s",
           },
         },
       },
     },
     {
       id: uuidv4(),
-      type: 'remove-block',
+      type: "remove-block",
       workoutIndex: 0,
       blockIndex: 2,
     },
     {
       id: uuidv4(),
-      type: 'remove-circuit-exercise',
+      type: "remove-circuit-exercise",
       workoutIndex: 0,
       circuitBlockIndex: 3,
       exerciseIndex: 0,
@@ -350,19 +349,19 @@ const EditorProgramProvider = ({
           set({ currentChangeId: changeId })
         },
 
-        setProgramType: (pType: 'weekly' | 'splits') => {
+        setProgramType: (pType: "weekly" | "splits") => {
           set({ type: pType })
         },
         setProgramName: (name: string) => {
           set({ name })
         },
-        search: (query = '') => {
+        search: (query = "") => {
           const { exercises } = get()
           const fuse = new Fuse(exercises, {
             includeScore: true,
             keys: [
               {
-                name: 'name',
+                name: "name",
                 weight: 1,
               },
             ],
@@ -385,7 +384,7 @@ const EditorProgramProvider = ({
               blocks: workout.blocks
                 .map((block) => {
                   if (
-                    proposal.type === 'remove-block' &&
+                    proposal.type === "remove-block" &&
                     block.pendingStatus?.proposalId === proposalId
                   ) {
                     // Remove the block entirely
@@ -400,7 +399,7 @@ const EditorProgramProvider = ({
                   }
 
                   // For circuit blocks, also check exercises within the circuit
-                  if (block.type === 'circuit') {
+                  if (block.type === "circuit") {
                     return {
                       ...block,
                       circuit: {
@@ -409,7 +408,7 @@ const EditorProgramProvider = ({
                           .map((exercise) => {
                             // Handle circuit exercise removals
                             if (
-                              proposal.type === 'remove-circuit-exercise' &&
+                              proposal.type === "remove-circuit-exercise" &&
                               exercise.pendingStatus?.proposalId === proposalId
                             ) {
                               // Remove the exercise entirely
@@ -463,7 +462,7 @@ const EditorProgramProvider = ({
                 .map((block, blockIndex) => {
                   // Handle block-level changes
                   if (
-                    proposal.type === 'add-block' &&
+                    proposal.type === "add-block" &&
                     blockIndex === proposal.blockIndex
                   ) {
                     // Remove the added block if it has the matching proposal ID
@@ -473,7 +472,7 @@ const EditorProgramProvider = ({
                   }
 
                   if (
-                    proposal.type === 'remove-block' &&
+                    proposal.type === "remove-block" &&
                     blockIndex === proposal.blockIndex
                   ) {
                     // Restore the removed block by removing pending status
@@ -484,13 +483,13 @@ const EditorProgramProvider = ({
                   }
 
                   if (
-                    proposal.type === 'update-block' &&
+                    proposal.type === "update-block" &&
                     blockIndex === proposal.blockIndex
                   ) {
                     // Restore the original block
                     if (
                       block.pendingStatus?.proposalId === proposalId &&
-                      block.pendingStatus.type === 'updating'
+                      block.pendingStatus.type === "updating"
                     ) {
                       return block.pendingStatus.oldBlock
                     }
@@ -498,10 +497,10 @@ const EditorProgramProvider = ({
 
                   // Handle circuit exercise changes
                   if (
-                    block.type === 'circuit' &&
-                    (proposal.type === 'add-circuit-exercise' ||
-                      proposal.type === 'remove-circuit-exercise' ||
-                      proposal.type === 'update-circuit-exercise') &&
+                    block.type === "circuit" &&
+                    (proposal.type === "add-circuit-exercise" ||
+                      proposal.type === "remove-circuit-exercise" ||
+                      proposal.type === "update-circuit-exercise") &&
                     blockIndex === proposal.circuitBlockIndex
                   ) {
                     return {
@@ -511,7 +510,7 @@ const EditorProgramProvider = ({
                         exercises: block.circuit.exercises
                           .map((exercise, exerciseIndex) => {
                             if (exerciseIndex === proposal.exerciseIndex) {
-                              if (proposal.type === 'add-circuit-exercise') {
+                              if (proposal.type === "add-circuit-exercise") {
                                 // Remove the added exercise if it has the matching proposal ID
                                 if (
                                   exercise.pendingStatus?.proposalId ===
@@ -521,7 +520,7 @@ const EditorProgramProvider = ({
                                 }
                               }
 
-                              if (proposal.type === 'remove-circuit-exercise') {
+                              if (proposal.type === "remove-circuit-exercise") {
                                 // Restore the removed exercise by removing pending status
                                 if (
                                   exercise.pendingStatus?.proposalId ===
@@ -535,12 +534,12 @@ const EditorProgramProvider = ({
                                 }
                               }
 
-                              if (proposal.type === 'update-circuit-exercise') {
+                              if (proposal.type === "update-circuit-exercise") {
                                 // Restore the original exercise
                                 if (
                                   exercise.pendingStatus?.proposalId ===
                                     proposalId &&
-                                  exercise.pendingStatus.type === 'updating'
+                                  exercise.pendingStatus.type === "updating"
                                 ) {
                                   return exercise.pendingStatus.oldBlock
                                 }
@@ -580,7 +579,7 @@ const EditorProgramProvider = ({
           const currentHistory = workoutHistories[workoutId]
 
           // If we're not at the end of history, remove future states
-          let newHistory = currentHistory
+          const newHistory = currentHistory
             ? currentHistory.history.slice(0, currentHistory.currentIndex + 1)
             : []
 
@@ -622,7 +621,7 @@ const EditorProgramProvider = ({
               workoutHistories: {
                 ...workoutHistories,
                 [workoutId]: {
-                  history: history,
+                  history,
                   currentIndex: newCurrentIndex,
                 },
               },
@@ -648,7 +647,7 @@ const EditorProgramProvider = ({
               workoutHistories: {
                 ...workoutHistories,
                 [workoutId]: {
-                  history: history,
+                  history,
                   currentIndex: newCurrentIndex,
                 },
               },
@@ -698,7 +697,7 @@ const EditorProgramProvider = ({
 const useEditorStore = <T,>(selector: (state: EditorState) => T): T => {
   const store = useContext(EditorStoreContext)
   if (!store) {
-    throw new Error('Missing EditorStoreContext')
+    throw new Error("Missing EditorStoreContext")
   }
   return useStore(store, selector)
 }
@@ -722,22 +721,20 @@ export const useWorkoutHistoryKeyboardShortcuts = (workoutId: string) => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
         e.preventDefault()
         if (e.shiftKey) {
           if (canRedoWorkout(workoutId)) {
             redoWorkout(workoutId)
           }
-        } else {
-          if (canUndoWorkout(workoutId)) {
-            undoWorkout(workoutId)
-          }
+        } else if (canUndoWorkout(workoutId)) {
+          undoWorkout(workoutId)
         }
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
   }, [workoutId, undoWorkout, redoWorkout, canUndoWorkout, canRedoWorkout])
 }
 

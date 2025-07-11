@@ -1,10 +1,10 @@
-'use client'
+"use client"
 
-import { SupabaseClient, User } from '@supabase/supabase-js'
-import { useRouter } from 'next/navigation'
-import { createContext, useContext, useEffect, useState } from 'react'
-import { createBrowserClient } from './create-browser-client'
-import { Database } from './database.types'
+import type { SupabaseClient, User } from "@supabase/supabase-js"
+import { useRouter } from "next/navigation"
+import { createContext, useContext, useEffect, useState } from "react"
+import { createBrowserClient } from "./create-browser-client"
+import type { Database } from "./database.types"
 
 type MaybeUser = User | null
 
@@ -54,7 +54,7 @@ export default function SupabaseProvider({
 export const useSupabase = () => {
   const context = useContext(Context)
   if (context === undefined) {
-    throw new Error('useSupabase must be used inside SupabaseProvider')
+    throw new Error("useSupabase must be used inside SupabaseProvider")
   }
   return context
 }
@@ -62,10 +62,10 @@ export const useSupabase = () => {
 export const useSupabaseAuthed = () => {
   const context = useContext(Context)
   if (context === undefined) {
-    throw new Error('useSupabase must be used inside SupabaseProvider')
+    throw new Error("useSupabase must be used inside SupabaseProvider")
   }
   if (!context.user) {
-    throw new Error('User not authenticated')
+    throw new Error("User not authenticated")
   }
   return context as DefSupabaseContext
 }

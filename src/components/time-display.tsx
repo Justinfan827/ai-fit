@@ -1,16 +1,16 @@
-'use client'
+"use client"
 
+import dayjs from "dayjs"
+import advancedFormat from "dayjs/plugin/advancedFormat"
+import timezone from "dayjs/plugin/timezone"
+import utc from "dayjs/plugin/utc"
+import { useEffect, useState } from "react"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
-import dayjs from 'dayjs'
-import advancedFormat from 'dayjs/plugin/advancedFormat'
-import timezone from 'dayjs/plugin/timezone'
-import utc from 'dayjs/plugin/utc'
-import { useEffect, useState } from 'react'
+} from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
 
 dayjs.extend(utc)
 dayjs.extend(advancedFormat)
@@ -61,7 +61,7 @@ function TimeDisplay({ ...props }: TimeDisplayProps) {
 
   return (
     <span
-      className={cn(isInitialTime ? 'invisible' : 'visible', props.className)}
+      className={cn(isInitialTime ? "invisible" : "visible", props.className)}
     >
       {time}
     </span>
@@ -119,18 +119,18 @@ function TimeDisplayTooltip({ ...props }: TimeDisplayTooltipProps) {
       <TooltipTrigger
         asChild
         className={cn(
-          'my-auto',
-          isInitialTime ? 'invisible' : 'visible',
+          "my-auto",
+          isInitialTime ? "invisible" : "visible",
           props.className
         )}
       >
         <button>{buttonTime}</button>
       </TooltipTrigger>
       <TooltipContent
+        align="start"
+        className="space-y-[2px] border-input bg-secondary px-2 py-1 text-primary"
         side="top"
         sideOffset={0}
-        align="start"
-        className="border-input bg-secondary text-primary space-y-[2px] px-2 py-1"
       >
         {tooltipTime}
       </TooltipContent>
@@ -140,35 +140,35 @@ function TimeDisplayTooltip({ ...props }: TimeDisplayTooltipProps) {
 
 // Looks like: `July 17, 2024 02:08:19 PM (PDT)`
 // Should not be used with ToolTip Display
-export const TIMESTAMP_FORMAT = 'MMMM DD, YYYY hh:mm:ss A (z)'
+export const TIMESTAMP_FORMAT = "MMMM DD, YYYY hh:mm:ss A (z)"
 
 // Looks like: `Jul 17, 2024`
 // Tooltip:    `2:08 PM (PDT)`
-export const DATE_FORMAT = 'MMM D, YYYY'
-export const DATE_TOOLTIP_FORMAT = 'h:mm A (z)'
+export const DATE_FORMAT = "MMM D, YYYY"
+export const DATE_TOOLTIP_FORMAT = "h:mm A (z)"
 
 // Looks like: `Jul 17`
-export const DATE_NO_YEAR_FORMAT = 'MMM D'
+export const DATE_NO_YEAR_FORMAT = "MMM D"
 
 // Looks like: `July 17, 2024`
 // Tooltip:    `2:08 PM (PDT)`
-export const DATE_LONG_FORMAT = 'MMMM D, YYYY'
-export const DATE_LONG_TOOLTIP_FORMAT = 'h:mm A (z)'
-export const DATE_LONG_FULL_FORMAT = 'MMMM D, YYYY, h:mm A (z)'
+export const DATE_LONG_FORMAT = "MMMM D, YYYY"
+export const DATE_LONG_TOOLTIP_FORMAT = "h:mm A (z)"
+export const DATE_LONG_FULL_FORMAT = "MMMM D, YYYY, h:mm A (z)"
 
 // Looks like: `07/17/2024`
 // Tooltip:    `2:08 PM (PDT)`
-export const DATE_NUMERIC_FORMAT = 'MM/DD/YYYY'
-export const DATE_NUMERIC_TOOLTIP_FORMAT = 'h:mm A (z)'
+export const DATE_NUMERIC_FORMAT = "MM/DD/YYYY"
+export const DATE_NUMERIC_TOOLTIP_FORMAT = "h:mm A (z)"
 
 // Looks like: `Jul 17`
 // Tooltip:    `2:08 PM (PDT)`
-export const MONTH_DAY_FORMAT = 'MMM D'
-export const MONTH_DAY_TOOLTIP_FORMAT = 'h:mm A (z)'
+export const MONTH_DAY_FORMAT = "MMM D"
+export const MONTH_DAY_TOOLTIP_FORMAT = "h:mm A (z)"
 
 // Do not use this const. This is only for places where the timestamp itself has no
 // timezone information on it (app-backend timestamps)
-export const DO_NOT_USE_TIMESTAMP_NO_TZ = 'MMMM DD, YYYY hh:mm:ss A'
+export const DO_NOT_USE_TIMESTAMP_NO_TZ = "MMMM DD, YYYY hh:mm:ss A"
 
 export default TimeDisplay
 export { TimeDisplayTooltip }

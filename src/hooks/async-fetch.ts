@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react"
 
 export function useAsyncFetch({ queryFunc }: { queryFunc: any }) {
   const [isPending, setIsPending] = useState(false)

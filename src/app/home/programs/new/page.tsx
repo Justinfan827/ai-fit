@@ -1,12 +1,12 @@
-import Header from '@/components/header'
-import { PageLayout } from '@/components/page-layout'
+import Header from "@/components/header"
+import { PageLayout } from "@/components/page-layout"
 import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { getExercises } from '@/lib/supabase/server/database.operations.queries'
+} from "@/components/ui/breadcrumb"
+import { getExercises } from "@/lib/supabase/server/database.operations.queries"
 
 export default async function Page() {
   const [exercises] = await Promise.all([getExercises()])

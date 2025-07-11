@@ -1,21 +1,21 @@
-import { cn } from '@/lib/utils'
-import { VariantProps, cva } from 'class-variance-authority'
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
 
-const titleVariants = cva('text-sm', {
+const titleVariants = cva("text-sm", {
   variants: {
     variant: {
-      display: 'text-8xl tracking-wide font-bold',
-      displaySubtitle: 'tracking-wide text-xl',
-      h1: 'font-semibold tracking-tight text-4xl',
-      h2: 'text-xl font-semibold tracking-normal',
-      h3: 'text-lg font-semibold tracking-normal leading-7',
-      h4: 'text-md font-semibold tracking-normal leading-normal',
-      p: 'text-sm',
-      mutedP: 'text-sm text-muted-foreground',
+      display: "font-bold text-8xl tracking-wide",
+      displaySubtitle: "text-xl tracking-wide",
+      h1: "font-semibold text-4xl tracking-tight",
+      h2: "font-semibold text-xl tracking-normal",
+      h3: "font-semibold text-lg leading-7 tracking-normal",
+      h4: "font-semibold text-md leading-normal tracking-normal",
+      p: "text-sm",
+      mutedP: "text-muted-foreground text-sm",
     },
   },
   defaultVariants: {
-    variant: 'p',
+    variant: "p",
   },
 })
 
@@ -25,22 +25,22 @@ export interface TitleProps
 
 const Tp = ({ className, variant, ...props }: TitleProps) => {
   const tagMap: Record<NonNullable<typeof variant>, string> = {
-    h1: 'h1',
-    h2: 'h2',
-    h3: 'h3',
-    h4: 'h4',
-    p: 'p',
-    mutedP: 'p',
-    displaySubtitle: 'h1',
-    display: 'h1',
+    h1: "h1",
+    h2: "h2",
+    h3: "h3",
+    h4: "h4",
+    p: "p",
+    mutedP: "p",
+    displaySubtitle: "h1",
+    display: "h1",
   }
-  const Tag: any = tagMap[variant || 'p'] || 'p'
+  const Tag: any = tagMap[variant || "p"] || "p"
 
   return (
     <Tag className={cn(titleVariants({ variant, className }))} {...props} />
   )
 }
 
-Tp.displayName = 'Typography'
+Tp.displayName = "Typography"
 
 export { Tp, titleVariants }

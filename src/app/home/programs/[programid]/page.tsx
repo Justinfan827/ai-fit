@@ -1,4 +1,4 @@
-import { Logo } from '@/components/icons'
+import { Logo } from "@/components/icons"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,13 +6,13 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import {
   getExercises,
   getProgramById,
-} from '@/lib/supabase/server/database.operations.queries'
+} from "@/lib/supabase/server/database.operations.queries"
 
 export default async function Page({
   params,
@@ -36,7 +36,7 @@ export default async function Page({
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
           <div className="flex items-center">
             <Logo />
-            <Separator orientation="vertical" className="mx-4 h-6" />
+            <Separator className="mx-4 h-6" orientation="vertical" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">

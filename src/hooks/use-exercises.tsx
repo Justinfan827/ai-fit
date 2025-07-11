@@ -1,9 +1,9 @@
-'use client'
+"use client"
 
-import useDebouncedValue from '@/hooks/use-debounce'
-import { Exercise } from '@/lib/domain/workouts'
-import { getError } from '@/lib/utils/util'
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react"
+import useDebouncedValue from "@/hooks/use-debounce"
+import type { Exercise } from "@/lib/domain/workouts"
+import { getError } from "@/lib/utils/util"
 
 /*
  * TODO: cache exercise search results
@@ -24,7 +24,7 @@ function useExercises({ searchTerm }: { searchTerm: string }) {
       try {
         const res = await fetch(`/api/exercises/search?query=${query}`)
         if (!res.ok) {
-          throw new Error('Failed to fetch exercises: ' + res.status)
+          throw new Error("Failed to fetch exercises: " + res.status)
         }
         const { data } = await res.json()
         // ignore flag as per react docs

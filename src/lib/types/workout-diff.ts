@@ -1,18 +1,18 @@
-import { z } from 'zod'
+import { z } from "zod"
 
 // Base change types that represent modifications to the workout grid
 export const cellChangeSchema = z.object({
-  type: z.literal('cell'),
+  type: z.literal("cell"),
   workoutId: z.string(),
   blockIndex: z.number(),
   exerciseIndex: z.number().optional(), // undefined for exercise blocks, defined for circuit blocks
-  field: z.enum(['sets', 'reps', 'weight', 'rest', 'notes']),
+  field: z.enum(["sets", "reps", "weight", "rest", "notes"]),
   oldValue: z.string().optional(),
   newValue: z.string(),
 })
 
 export const exerciseSelectionSchema = z.object({
-  type: z.literal('exercise'),
+  type: z.literal("exercise"),
   workoutId: z.string(),
   blockIndex: z.number(),
   exerciseIndex: z.number().optional(), // undefined for exercise blocks, defined for circuit blocks
@@ -21,14 +21,14 @@ export const exerciseSelectionSchema = z.object({
 })
 
 export const blockAddSchema = z.object({
-  type: z.literal('block_add'),
+  type: z.literal("block_add"),
   workoutId: z.string(),
   blockIndex: z.number(),
   blockData: z.any(), // The actual block data - you'll need to import the proper Block type
 })
 
 export const blockRemoveSchema = z.object({
-  type: z.literal('block_remove'),
+  type: z.literal("block_remove"),
   workoutId: z.string(),
   blockIndex: z.number(),
 })

@@ -1,6 +1,6 @@
-import { WorkoutChange } from '@/lib/ai/tools/diff-schema'
-import { Block, ExerciseBlock, Workout } from '@/lib/domain/workouts'
-import { cloneDeep } from 'lodash'
+import { cloneDeep } from "lodash"
+import type { WorkoutChange } from "@/lib/ai/tools/diff-schema"
+import type { Block, ExerciseBlock, Workout } from "@/lib/domain/workouts"
 
 /*
 This function is used to merge the proposed changes into the workout.
@@ -26,23 +26,23 @@ export function mergeWorkoutWithProposedChanges(
 
   // Group changes by type
   const groupedChanges = {
-    'remove-block': proposedChanges.filter((c) => c.type === 'remove-block'),
-    'remove-circuit-exercise': proposedChanges.filter(
-      (c) => c.type === 'remove-circuit-exercise'
+    "remove-block": proposedChanges.filter((c) => c.type === "remove-block"),
+    "remove-circuit-exercise": proposedChanges.filter(
+      (c) => c.type === "remove-circuit-exercise"
     ),
-    'update-block': proposedChanges.filter((c) => c.type === 'update-block'),
-    'update-circuit-exercise': proposedChanges.filter(
-      (c) => c.type === 'update-circuit-exercise'
+    "update-block": proposedChanges.filter((c) => c.type === "update-block"),
+    "update-circuit-exercise": proposedChanges.filter(
+      (c) => c.type === "update-circuit-exercise"
     ),
-    'add-circuit-exercise': proposedChanges.filter(
-      (c) => c.type === 'add-circuit-exercise'
+    "add-circuit-exercise": proposedChanges.filter(
+      (c) => c.type === "add-circuit-exercise"
     ),
-    'add-block': proposedChanges.filter((c) => c.type === 'add-block'),
+    "add-block": proposedChanges.filter((c) => c.type === "add-block"),
   }
 
   // Sort each group as needed
   // For add-circuit-exercise: sort by circuitBlockIndex descending, then exerciseIndex descending
-  groupedChanges['add-circuit-exercise'].sort((a, b) => {
+  groupedChanges["add-circuit-exercise"].sort((a, b) => {
     const circuitBlockDiff = b.circuitBlockIndex - a.circuitBlockIndex
     if (circuitBlockDiff !== 0) {
       return circuitBlockDiff
@@ -51,59 +51,62 @@ export function mergeWorkoutWithProposedChanges(
   })
 
   // For add-block: sort by blockIndex descending
-  groupedChanges['add-block'].sort((a, b) => b.blockIndex - a.blockIndex)
+  groupedChanges["add-block"].sort((a, b) => b.blockIndex - a.blockIndex)
 
   // Flatten back to single array in processing order
   const sortedChanges = [
-    ...groupedChanges['remove-block'],
-    ...groupedChanges['remove-circuit-exercise'],
-    ...groupedChanges['update-block'],
-    ...groupedChanges['update-circuit-exercise'],
-    ...groupedChanges['add-circuit-exercise'],
-    ...groupedChanges['add-block'],
+    ...groupedChanges["remove-block"],
+    ...groupedChanges["remove-circuit-exercise"],
+    ...groupedChanges["update-block"],
+    ...groupedChanges["update-circuit-exercise"],
+    ...groupedChanges["add-circuit-exercise"],
+    ...groupedChanges["add-block"],
   ]
 
   sortedChanges.forEach((change) => {
     switch (change.type) {
-      case 'add-block':
+      case "add-block": {
         const newBlock: Block = {
           ...change.block,
-          pendingStatus: { type: 'adding', proposalId: change.id },
+          pendingStatus: { type: "adding", proposalId: change.id },
         }
         newWorkout.blocks.splice(change.blockIndex, 0, newBlock)
         break
-      case 'update-block':
+      }
+      case "update-block": {
         const blockToUpdate = workout.blocks[change.blockIndex]
         const updatedBlock: Block = {
           ...change.block,
           pendingStatus: {
-            type: 'updating',
+            type: "updating",
             oldBlock: blockToUpdate,
             proposalId: change.id,
           },
         }
         newWorkout.blocks[change.blockIndex] = updatedBlock
         break
-      case 'remove-block':
+      }
+      case "remove-block": {
         const blockToRemove = workout.blocks[change.blockIndex]
         const removedBlock: Block = {
           ...blockToRemove,
-          pendingStatus: { type: 'removing', proposalId: change.id },
+          pendingStatus: { type: "removing", proposalId: change.id },
         }
         newWorkout.blocks[change.blockIndex] = removedBlock
         break
-      case 'add-circuit-exercise':
+      }
+      case "add-circuit-exercise": {
         const circuitBlock = workout.blocks[change.circuitBlockIndex]
-        if (circuitBlock.type !== 'circuit') {
-          console.log('Attempted to add an exercise to a non-circuit block')
+        if (circuitBlock.type !== "circuit") {
+          console.log("Attempted to add an exercise to a non-circuit block")
           break
         }
         const newExercise: ExerciseBlock = {
           ...change.exercise,
-          pendingStatus: { type: 'adding', proposalId: change.id },
+          pendingStatus: { type: "adding", proposalId: change.id },
         }
         const targetCircuitBlock = newWorkout.blocks[change.circuitBlockIndex]
-        if (targetCircuitBlock.type === 'circuit') {
+        if (targetCircuitBlock.type === "circuit") {
           targetCircuitBlock.circuit.exercises.splice(
             change.exerciseIndex,
             0,
@@ -111,11 +114,12 @@ export function mergeWorkoutWithProposedChanges(
           )
         }
         break
-      case 'remove-circuit-exercise':
+      }
+      case "remove-circuit-exercise": {
         const circuitBlockToRemove = workout.blocks[change.circuitBlockIndex]
-        if (circuitBlockToRemove.type !== 'circuit') {
+        if (circuitBlockToRemove.type !== "circuit") {
           console.log(
-            'Attempted to remove an exercise from a non-circuit block'
+            "Attempted to remove an exercise from a non-circuit block"
           )
           break
         }
@@ -123,19 +127,20 @@ export function mergeWorkoutWithProposedChanges(
           circuitBlockToRemove.circuit.exercises[change.exerciseIndex]
         const exerciseToRemoveWithPendingStatus: ExerciseBlock = {
           ...exerciseToRemove,
-          pendingStatus: { type: 'removing', proposalId: change.id },
+          pendingStatus: { type: "removing", proposalId: change.id },
         }
         const targetRemoveCircuitBlock =
           newWorkout.blocks[change.circuitBlockIndex]
-        if (targetRemoveCircuitBlock.type === 'circuit') {
+        if (targetRemoveCircuitBlock.type === "circuit") {
           targetRemoveCircuitBlock.circuit.exercises[change.exerciseIndex] =
             exerciseToRemoveWithPendingStatus
         }
         break
-      case 'update-circuit-exercise':
+      }
+      case "update-circuit-exercise": {
         const circuitBlockToUpdate = workout.blocks[change.circuitBlockIndex]
-        if (circuitBlockToUpdate.type !== 'circuit') {
-          console.log('Attempted to update an exercise in a non-circuit block')
+        if (circuitBlockToUpdate.type !== "circuit") {
+          console.log("Attempted to update an exercise in a non-circuit block")
           break
         }
         const exerciseToUpdate =
@@ -143,18 +148,19 @@ export function mergeWorkoutWithProposedChanges(
         const exerciseToUpdateWithPendingStatus: ExerciseBlock = {
           ...change.exercise,
           pendingStatus: {
-            type: 'updating',
+            type: "updating",
             oldBlock: exerciseToUpdate,
             proposalId: change.id,
           },
         }
         const targetUpdateCircuitBlock =
           newWorkout.blocks[change.circuitBlockIndex]
-        if (targetUpdateCircuitBlock.type === 'circuit') {
+        if (targetUpdateCircuitBlock.type === "circuit") {
           targetUpdateCircuitBlock.circuit.exercises[change.exerciseIndex] =
             exerciseToUpdateWithPendingStatus
         }
         break
+      }
     }
   })
   return newWorkout

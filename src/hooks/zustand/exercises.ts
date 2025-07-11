@@ -1,6 +1,6 @@
-import { Exercise } from '@/lib/domain/workouts'
-import Fuse from 'fuse.js'
-import { create } from 'zustand'
+import Fuse from "fuse.js"
+import { create } from "zustand"
+import type { Exercise } from "@/lib/domain/workouts"
 
 type TimerState = {
   exercises: Exercise[]
@@ -16,20 +16,20 @@ const useExerciseStore = create<TimerState>((set, get) => ({
   exercises: [],
   actions: {
     getExercises: async () => {
-      const res = await fetch(`/api/exercises`)
+      const res = await fetch("/api/exercises")
       if (!res.ok) {
-        console.log('failed to fetch exercises client side')
+        console.log("failed to fetch exercises client side")
       }
       const { data } = await res.json()
       set({ exercises: data })
     },
-    search: (query = '') => {
+    search: (query = "") => {
       const { exercises } = get()
       const options = {
         includeScore: true,
         keys: [
           {
-            name: 'name',
+            name: "name",
             weight: 1,
           },
         ],

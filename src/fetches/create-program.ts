@@ -1,6 +1,6 @@
-import { Program, programSchema } from '@/lib/domain/workouts'
-import { APIResponse } from '@/lib/types/apires'
-import { getError } from '@/lib/utils/util'
+import { type Program, programSchema } from "@/lib/domain/workouts"
+import type { APIResponse } from "@/lib/types/apires"
+import { getError } from "@/lib/utils/util"
 
 export default async function apiCreateProgram({
   body,
@@ -8,10 +8,10 @@ export default async function apiCreateProgram({
   body: Program
 }): Promise<APIResponse<Program>> {
   try {
-    const res = await fetch(`/api/program`, {
-      method: 'POST',
+    const res = await fetch("/api/program", {
+      method: "POST",
       body: JSON.stringify(body),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
+      headers: new Headers({ "Content-Type": "application/json" }),
     })
     if (!res.ok) {
       const bodyMsg = await res.text()

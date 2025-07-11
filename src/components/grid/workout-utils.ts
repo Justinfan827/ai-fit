@@ -1,4 +1,4 @@
-import { Workout } from '@/lib/domain/workouts'
+import type { Workout } from "@/lib/domain/workouts"
 
 /*
  * Groups workouts by week.

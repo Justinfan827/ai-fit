@@ -1,7 +1,7 @@
-'use server'
+"use server"
 
-import { z } from 'zod'
-import { withActionAuthSchema } from './middleware/withAuth'
+import { z } from "zod"
+import { withActionAuthSchema } from "./middleware/withAuth"
 
 const clientInfo = z.object({
   weightKg: z.number(),
@@ -18,8 +18,8 @@ const programParameters = z.object({
 })
 const schema = z.object({
   clientId: z.string(),
-  clientInfo: clientInfo,
-  programParameters: programParameters,
+  clientInfo,
+  programParameters,
 })
 
 // https://platform.openai.com/docs/models/gpt-4o-mini
@@ -30,7 +30,7 @@ export const createClientProgramAction = withActionAuthSchema(
   },
   async ({ input, user }) => {
     return {
-      data: 'asdf',
+      data: "asdf",
       error: null,
     }
   }

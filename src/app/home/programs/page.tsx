@@ -1,5 +1,7 @@
-import { Logo } from '@/components/icons'
-import { Tp } from '@/components/typography'
+import dayjs from "dayjs"
+import Link from "next/link"
+import { Logo } from "@/components/icons"
+import { Tp } from "@/components/typography"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,13 +9,11 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { getUserPrograms } from '@/lib/supabase/server/database.operations.queries'
-import { cn } from '@/lib/utils'
-import dayjs from 'dayjs'
-import Link from 'next/link'
+} from "@/components/ui/breadcrumb"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { getUserPrograms } from "@/lib/supabase/server/database.operations.queries"
+import { cn } from "@/lib/utils"
 
 export default async function WorkoutsPage() {
   const { data, error } = await getUserPrograms()
@@ -25,7 +25,7 @@ export default async function WorkoutsPage() {
       <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
         <div className="flex items-center">
           <Logo />
-          <Separator orientation="vertical" className="mx-4 h-6" />
+          <Separator className="mx-4 h-6" orientation="vertical" />
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
@@ -52,19 +52,19 @@ export default async function WorkoutsPage() {
         </div>
       </div>
       <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div id="list-container" className="mt-8">
+        <div className="mt-8" id="list-container">
           {data.map((program, idx) => (
             <div
-              key={program.id}
               className={cn(
-                'flex flex-col border-x border-b border-neutral-800 px-4 py-6',
-                idx === 0 && 'rounded-t-sm border-t',
-                idx === data.length - 1 && 'rounded-b-sm border-b'
+                "flex flex-col border-neutral-800 border-x border-b px-4 py-6",
+                idx === 0 && "rounded-t-sm border-t",
+                idx === data.length - 1 && "rounded-b-sm border-b"
               )}
+              key={program.id}
             >
               <Link href={`/home/programs/${program.id}`}>{program.name}</Link>
-              <p className="text-muted-foreground font-mono text-xs">
-                created at {dayjs(program.created_at).format('MM/DD/YY')}
+              <p className="font-mono text-muted-foreground text-xs">
+                created at {dayjs(program.created_at).format("MM/DD/YY")}
               </p>
             </div>
           ))}

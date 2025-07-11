@@ -1,11 +1,11 @@
-import 'server-only'
+import "server-only"
 
-import { User } from '@supabase/supabase-js'
-import { redirect } from 'next/navigation'
+import type { User } from "@supabase/supabase-js"
+import { redirect } from "next/navigation"
 
-import { APIError } from '@/app/api/errors'
-import { createServerClient } from '../create-server-client'
-import { isClient } from '../utils'
+import { APIError } from "@/app/api/errors"
+import { createServerClient } from "../create-server-client"
+import { isClient } from "../utils"
 
 type AuthCheck = AuthCheckFailed | AuthCheckSuccess
 
@@ -41,8 +41,8 @@ export const checkServerUserAuth = async (): Promise<AuthCheck> => {
     return {
       user: null,
       error: new APIError({
-        code: 'unauthorized',
-        message: 'No user found',
+        code: "unauthorized",
+        message: "No user found",
       }),
     }
   }
@@ -59,7 +59,7 @@ export const serverRedirectToHomeIfAuthorized = async () => {
     redirect(`/clients/${user?.id}`)
   }
   if (user) {
-    redirect('/home')
+    redirect("/home")
   }
 }
 

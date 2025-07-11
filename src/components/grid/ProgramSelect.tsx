@@ -4,16 +4,16 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
-} from '@/components/ui/select'
+} from "@/components/ui/select"
 
 const options = [
   {
-    value: 'weekly',
-    label: 'Multi-Week',
+    value: "weekly",
+    label: "Multi-Week",
   },
   {
-    value: 'splits',
-    label: 'Split',
+    value: "splits",
+    label: "Split",
   },
 ]
 
@@ -22,12 +22,12 @@ export function ProgramSelect({
   value,
 }: {
   value: string
-  onValueChange: (v: 'weekly' | 'splits') => void
+  onValueChange: (v: "weekly" | "splits") => void
 }) {
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select onValueChange={onValueChange} value={value}>
       <SelectTrigger className="w-[160px]">
-        <span className="text-muted-foreground">Type: </span>{' '}
+        <span className="text-muted-foreground">Type: </span>{" "}
         {options.find((o) => o.value === value)?.label}
       </SelectTrigger>
       <SelectContent>

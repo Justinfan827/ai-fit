@@ -1,5 +1,5 @@
-import { Tp } from '@/components/typography'
-import React from 'react'
+import type React from "react"
+import { Tp } from "@/components/typography"
 
 interface PageHeaderProps {
   title: React.ReactNode
@@ -16,7 +16,7 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
             {title}
           </Tp>
           {subtitle && (
-            <p className="leading-none text-neutral-500">{subtitle}</p>
+            <p className="text-neutral-500 leading-none">{subtitle}</p>
           )}
         </div>
         {actions && <div className="space-x-4">{actions}</div>}

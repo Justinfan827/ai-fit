@@ -1,22 +1,22 @@
-import { EmptyStateCard } from '@/components/empty-state'
-import Header from '@/components/header'
-import { Icons } from '@/components/icons'
-import { PageHeader } from '@/components/page-header'
-import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
-import { Tp } from '@/components/typography'
+import Link from "next/link"
+import { EmptyStateCard } from "@/components/empty-state"
+import Header from "@/components/header"
+import { Icons } from "@/components/icons"
+import { PageHeader } from "@/components/page-header"
+import { PageContent, PageLayout, PageSection } from "@/components/page-layout"
+import { Tp } from "@/components/typography"
 import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
-import { getAllCurrentUserUnassignedPrograms } from '@/lib/supabase/server/database.operations.queries'
-import newTrainerRepo from '@/lib/supabase/server/users/trainer-repo'
-import { cn } from '@/lib/utils'
-import Link from 'next/link'
-import { AssignProgramSidesheet } from './assign-program-sidesheet'
-import { ClientDetailsPageSection } from './details'
+} from "@/components/ui/breadcrumb"
+import { Button } from "@/components/ui/button"
+import { getAllCurrentUserUnassignedPrograms } from "@/lib/supabase/server/database.operations.queries"
+import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
+import { cn } from "@/lib/utils"
+import { AssignProgramSidesheet } from "./assign-program-sidesheet"
+import { ClientDetailsPageSection } from "./details"
 
 export default async function ClientPage({
   params,
@@ -52,8 +52,6 @@ export default async function ClientPage({
       </Header>
       <div id="home content">
         <PageHeader
-          title={`${clientData.firstName} ${clientData.lastName}`}
-          subtitle={clientData.email}
           actions={
             <div className="flex gap-4">
               <AssignProgramSidesheet clientId={clientId} programs={programs} />
@@ -65,6 +63,8 @@ export default async function ClientPage({
               </Button>
             </div>
           }
+          subtitle={clientData.email}
+          title={`${clientData.firstName} ${clientData.lastName}`}
         />
         <PageContent>
           <ClientDetailsPageSection
@@ -75,23 +75,23 @@ export default async function ClientPage({
             <Tp variant="h4">Assigned Programs</Tp>
             {clientData.programs.length === 0 ? (
               <EmptyStateCard
-                title="Assign a program"
-                subtitle="Assign a program to this client to help them reach their goals."
                 buttonText="Assign Program"
                 className="w-full"
+                subtitle="Assign a program to this client to help them reach their goals."
+                title="Assign a program"
               />
             ) : (
               <div className="flex flex-col">
                 {clientData.programs.map((program, idx) => (
                   <Link
+                    className={cn(
+                      "flex border-neutral-700 border-x px-4 py-4",
+                      idx === 0 && "rounded-t-sm border-neutral-700 border-t",
+                      idx === clientData.programs.length - 1 && "rounded-b-sm",
+                      "border-neutral-700 border-b"
+                    )}
                     href={`/home/programs/${program.id}`}
                     key={program.id}
-                    className={cn(
-                      'flex border-x border-neutral-700 px-4 py-4',
-                      idx === 0 && 'rounded-t-sm border-t border-neutral-700',
-                      idx === clientData.programs.length - 1 && 'rounded-b-sm',
-                      'border-b border-neutral-700'
-                    )}
                   >
                     {program.name}
                   </Link>

@@ -10,8 +10,8 @@ We automatically generate those types from the OpenAPI spec.
 
 */
 
-import { NextResponse } from 'next/server'
-import { APIError, ErrorResponse } from './errors'
+import type { NextResponse } from "next/server"
+import type { APIError, ErrorResponse } from "./errors"
 
 export interface APISuccessResponse<T> {
   data: T
@@ -25,7 +25,7 @@ export interface APIErrorResponse {
 
 export interface APIErrorResponseV2 {
   data: null
-  error: ErrorResponse['error']
+  error: ErrorResponse["error"]
 }
 
 export type APIResponse<T> = APIErrorResponse | APISuccessResponse<T>

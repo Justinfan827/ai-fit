@@ -1,6 +1,6 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 
 import {
   Form,
@@ -10,18 +10,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 
 export const CreateClientFormScham = z.object({
   firstName: z.string().min(2, {
-    message: 'First name must be at least 2 characters.',
+    message: "First name must be at least 2 characters.",
   }),
   lastName: z.string().min(2, {
-    message: 'Last name must be at least 2 characters.',
+    message: "Last name must be at least 2 characters.",
   }),
   email: z.string().email({
-    message: 'Please enter a valid email address.',
+    message: "Please enter a valid email address.",
   }),
 })
 
@@ -34,9 +34,9 @@ type NewClientFormProps = {
 
 export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
   const initialState = {
-    firstName: '',
-    lastName: '',
-    email: '',
+    firstName: "",
+    lastName: "",
+    email: "",
   }
   const form = useForm<z.infer<typeof CreateClientFormScham>>({
     resolver: zodResolver(CreateClientFormScham),
@@ -47,9 +47,9 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
     <Form {...form}>
       {/* <FormDebugContainer form={form} /> */}
       <form
+        className="space-y-6"
         id={formName}
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6"
       >
         {/* First Name Field */}
         <FormField

@@ -1,8 +1,8 @@
-import { workoutsSchema } from '@/lib/domain/workouts'
-import { z } from 'zod'
+import { z } from "zod"
+import { workoutsSchema } from "@/lib/domain/workouts"
 
 const messageSchema = z.object({
-  role: z.enum(['user', 'assistant']),
+  role: z.enum(["user", "assistant"]),
   content: z.string(),
 })
 
@@ -34,7 +34,7 @@ const exerciseContextSchema = z.object({
 })
 
 const contextItemSchema = z.object({
-  type: z.enum(['client', 'exercises']),
+  type: z.enum(["client", "exercises"]),
   data: z.union([
     clientContextSchema,
     z.object({
@@ -52,7 +52,7 @@ const requestSchema = z.object({
 
 // Intent classification schema
 const intentSchema = z.object({
-  type: z.enum(['general', 'workout_modification']),
+  type: z.enum(["general", "workout_modification"]),
   reasoning: z.string(),
   modificationDetails: z
     .object({

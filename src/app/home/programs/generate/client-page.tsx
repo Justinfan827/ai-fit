@@ -1,12 +1,12 @@
-'use client'
+"use client"
 
-import ProgramEditor from '@/components/grid/ProgramEditor'
-import { ProgramEditorSidebar } from '@/components/program-editor-sidebar'
-import { SidebarProvider } from '@/components/ui/sidebar'
-import AIGeneratedWorkoutsProvider from '@/hooks/use-workout'
-import { EditorProgramProvider } from '@/hooks/zustand/program-editor'
-import { ClientHomePage } from '@/lib/domain/clients'
-import { Exercise } from '@/lib/domain/workouts'
+import ProgramEditor from "@/components/grid/ProgramEditor"
+import { ProgramEditorSidebar } from "@/components/program-editor-sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
+import AIGeneratedWorkoutsProvider from "@/hooks/use-workout"
+import { EditorProgramProvider } from "@/hooks/zustand/program-editor"
+import type { ClientHomePage } from "@/lib/domain/clients"
+import type { Exercise } from "@/lib/domain/workouts"
 
 export default function ClientPage({
   trainerId,
@@ -26,7 +26,7 @@ export default function ClientPage({
         <SidebarProvider
           style={
             {
-              '--sidebar-width': '30rem',
+              "--sidebar-width": "30rem",
             } as React.CSSProperties
           }
         >
@@ -34,10 +34,10 @@ export default function ClientPage({
             <ProgramEditor />
           </div>
           <ProgramEditorSidebar
-            exercises={trainerExercises}
-            trainerId={trainerId}
             availableClients={availableClients}
+            exercises={trainerExercises}
             side="right"
+            trainerId={trainerId}
           />
         </SidebarProvider>
       </AIGeneratedWorkoutsProvider>

@@ -1,6 +1,6 @@
-import { myProvider } from '@/lib/ai/providers'
-import { workoutChangeSchema } from '@/lib/ai/tools/diff-schema'
-import { streamObject } from 'ai'
+import { streamObject } from "ai"
+import { myProvider } from "@/lib/ai/providers"
+import { workoutChangeSchema } from "@/lib/ai/tools/diff-schema"
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30
@@ -178,34 +178,34 @@ Here is an example of the different types of changes that can be made to the wor
 `
 
 export async function POST(req: Request) {
-  const prompt = `generate a workout diff for the following changes`
-  console.log('--------------------------------')
-  console.log('Prompt:')
-  console.log('--------------------------------')
+  const prompt = "generate a workout diff for the following changes"
+  console.log("--------------------------------")
+  console.log("Prompt:")
+  console.log("--------------------------------")
   console.log(prompt)
-  console.log('--------------------------------')
-  console.log('Diff generation system prompt:')
-  console.log('--------------------------------')
+  console.log("--------------------------------")
+  console.log("Diff generation system prompt:")
+  console.log("--------------------------------")
   console.log(diffGenerationSystemPrompt)
-  console.log('--------------------------------')
+  console.log("--------------------------------")
 
   const { elementStream } = streamObject({
-    model: myProvider.languageModel('chat-model'),
+    model: myProvider.languageModel("chat-model"),
     schema: workoutChangeSchema,
-    output: 'array',
+    output: "array",
     system: diffGenerationSystemPrompt,
-    prompt: prompt,
+    prompt,
   })
-  console.log('Diff generation streaming.')
+  console.log("Diff generation streaming.")
 
-  console.log('--------------------------------')
-  console.log('Result:')
-  console.log('--------------------------------')
+  console.log("--------------------------------")
+  console.log("Result:")
+  console.log("--------------------------------")
   for await (const element of elementStream) {
     console.log(JSON.stringify(element, null, 2))
-    console.log('--------------------------------')
+    console.log("--------------------------------")
   }
-  console.log('--------------------------------')
+  console.log("--------------------------------")
 
-  return new Response('done')
+  return new Response("done")
 }

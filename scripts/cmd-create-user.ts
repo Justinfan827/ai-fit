@@ -1,6 +1,6 @@
-import { Database } from '@/lib/supabase/database.types'
-import { createClient } from '@supabase/supabase-js'
-import { infoLog } from './utils'
+import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/lib/supabase/database.types"
+import { infoLog } from "./utils"
 
 export default async function runUserCreation({
   email,
@@ -27,9 +27,9 @@ export default async function runUserCreation({
 
   // get user
   const { data: user, error: userErr } = await sb
-    .from('users')
-    .select('*')
-    .eq('email', email)
+    .from("users")
+    .select("*")
+    .eq("email", email)
     .maybeSingle()
   if (userErr) {
     throw userErr
@@ -37,15 +37,15 @@ export default async function runUserCreation({
 
   const authUserUUID = await (async () => {
     if (!user) {
-      infoLog(`User not found. Creating ${isTrainer ? 'trainer' : ''} user...`)
+      infoLog(`User not found. Creating ${isTrainer ? "trainer" : ""} user...`)
       const { data: userData, error: createUserErr } =
         await adminAuthClient.createUser({
           email,
           password: email,
           email_confirm: true,
           app_metadata: {
-            provider: 'email',
-            providers: ['email'],
+            provider: "email",
+            providers: ["email"],
           },
         })
       if (createUserErr) {
@@ -53,34 +53,34 @@ export default async function runUserCreation({
       }
       return userData.user.id
     }
-    infoLog('User found... not creating user.')
+    infoLog("User found... not creating user.")
     return user.id
   })()
 
-  const role = isTrainer ? 'TRAINER' : 'CLIENT'
+  const role = isTrainer ? "TRAINER" : "CLIENT"
 
   infoLog(`Setting role for user: ${authUserUUID} to ${role}`)
-  const { data, error: rpcErr } = await sb.rpc('set_claim', {
+  const { data, error: rpcErr } = await sb.rpc("set_claim", {
     uid: authUserUUID,
-    claim: 'USER_ROLE',
-    value: isTrainer ? 'TRAINER' : 'CLIENT',
+    claim: "USER_ROLE",
+    value: isTrainer ? "TRAINER" : "CLIENT",
   })
   if (rpcErr) {
     throw new Error(rpcErr.message)
   }
-  if (data === 'error: access denied') {
+  if (data === "error: access denied") {
     throw new Error(data)
   }
 
   {
     const { error: setTrainerErr } = await sb
-      .from('users')
+      .from("users")
       .update({
         trainer_id: setTrainerId ? setTrainerId : null,
-        first_name: isTrainer ? 'Trainer' : 'Client',
-        last_name: 'Fan',
+        first_name: isTrainer ? "Trainer" : "Client",
+        last_name: "Fan",
       })
-      .eq('id', authUserUUID)
+      .eq("id", authUserUUID)
     if (setTrainerErr) {
       throw new Error(`${setTrainerErr}`)
     }

@@ -1,15 +1,14 @@
-'use client'
+"use client"
 
-import Link from 'next/link'
-
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
   navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu'
-import { usePathname } from 'next/navigation'
+} from "@/components/ui/navigation-menu"
 
 export function ProgramNavigationMenu({ programId }: { programId: string }) {
   const pathname = usePathname()
@@ -19,8 +18,8 @@ export function ProgramNavigationMenu({ programId }: { programId: string }) {
         <NavigationMenuItem>
           <Link href={`/home/programs/${programId}`} legacyBehavior passHref>
             <NavigationMenuLink
-              className={navigationMenuTriggerStyle()}
               active={pathname === `/home/programs/${programId}`}
+              className={navigationMenuTriggerStyle()}
             >
               Editor
             </NavigationMenuLink>
@@ -33,8 +32,8 @@ export function ProgramNavigationMenu({ programId }: { programId: string }) {
             passHref
           >
             <NavigationMenuLink
-              className={navigationMenuTriggerStyle()}
               active={pathname === `/home/programs/${programId}/workouts`}
+              className={navigationMenuTriggerStyle()}
             >
               Workouts
             </NavigationMenuLink>

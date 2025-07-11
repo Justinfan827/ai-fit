@@ -1,13 +1,13 @@
-import 'server-only'
+import "server-only"
 
-import { Program, Workout, WorkoutInstance } from '@/lib/domain/workouts'
-import { Maybe } from '@/lib/types/types'
-import { createServerClient } from '../create-server-client'
-import { Database } from '../database.types'
+import type { Program, Workout, WorkoutInstance } from "@/lib/domain/workouts"
+import type { Maybe } from "@/lib/types/types"
+import { createServerClient } from "../create-server-client"
+import type { Database } from "../database.types"
 
 export async function saveWorkoutInstance(instance: WorkoutInstance) {
   const client = await createServerClient()
-  return await client.from('workout_instances').insert({
+  return await client.from("workout_instances").insert({
     id: instance.id,
     user_id: instance.userId,
     start_at: instance.startAt,
@@ -21,7 +21,7 @@ export async function saveWorkoutInstance(instance: WorkoutInstance) {
 // sendDebugLog is used to send ai debug logs to the database
 export async function sendDebugLog(request?: any, response?: any) {
   const sb = await createServerClient()
-  const { error } = await sb.from('debug_log').insert({
+  const { error } = await sb.from("debug_log").insert({
     request_data: request || null,
     response_data: response || null,
   })
@@ -33,20 +33,20 @@ export async function createProgram(
 ): Promise<Maybe<Program>> {
   const client = await createServerClient()
   const { data, error } = await client
-    .from('programs')
+    .from("programs")
     .insert({
       name: body.name,
       type: body.type,
       user_id: userId,
       is_template: true,
     })
-    .select('*')
+    .select("*")
     .single()
   if (error) {
-    return { data: null, error: new Error('Failed to create program') }
+    return { data: null, error: new Error("Failed to create program") }
   }
 
-  const insertWorkouts: Database['public']['Tables']['workouts']['Insert'][] =
+  const insertWorkouts: Database["public"]["Tables"]["workouts"]["Insert"][] =
     body.workouts.map((workout, idx) => ({
       name: workout.name,
       program_order: idx,
@@ -54,15 +54,15 @@ export async function createProgram(
       user_id: userId,
       blocks: workout.blocks,
     }))
-  const { error: wErr } = await client.from('workouts').insert(insertWorkouts)
+  const { error: wErr } = await client.from("workouts").insert(insertWorkouts)
   if (wErr) {
-    return { data: null, error: new Error('Failed to create workouts') }
+    return { data: null, error: new Error("Failed to create workouts") }
   }
   return {
     data: {
       created_at: data.created_at,
       id: data.id,
-      type: data.type as 'weekly' | 'splits',
+      type: data.type as "weekly" | "splits",
       name: body.name,
       workouts: body.workouts,
     },
@@ -76,32 +76,32 @@ export async function updateProgram(
 ): Promise<Maybe<Program>> {
   const client = await createServerClient()
   const { data: dbProgramData, error } = await client
-    .from('programs')
+    .from("programs")
     .update({
       name: program.name,
     })
-    .eq('id', program.id)
-    .eq('user_id', userId)
-    .select('*')
+    .eq("id", program.id)
+    .eq("user_id", userId)
+    .select("*")
     .single()
   if (error) {
-    return { data: null, error: new Error('Failed to update program') }
+    return { data: null, error: new Error("Failed to update program") }
   }
 
   // TODO: incrementally update workouts
   const { error: dErr } = await client
-    .from('workouts')
+    .from("workouts")
     .delete()
-    .eq('program_id', program.id)
+    .eq("program_id", program.id)
 
   if (dErr) {
-    return { data: null, error: new Error('Failed to delete workouts') }
+    return { data: null, error: new Error("Failed to delete workouts") }
   }
 
   const res = await Promise.all(
     program.workouts.map(async (workout, idx) => {
       const { error: wErr } = await client
-        .from('workouts')
+        .from("workouts")
         .upsert(
           {
             id: workout.id,
@@ -112,12 +112,12 @@ export async function updateProgram(
             blocks: workout.blocks,
           },
           {
-            onConflict: 'id',
+            onConflict: "id",
             ignoreDuplicates: false,
           }
         )
-        .eq('id', workout.id)
-        .select('*')
+        .eq("id", workout.id)
+        .select("*")
         .single()
       if (wErr) {
         return { error: wErr }
@@ -134,7 +134,7 @@ export async function updateProgram(
   return {
     data: {
       id: dbProgramData.id,
-      type: dbProgramData.type as 'weekly' | 'splits',
+      type: dbProgramData.type as "weekly" | "splits",
       created_at: dbProgramData.created_at,
       name: program.name,
       workouts: program.workouts,
@@ -161,11 +161,11 @@ export async function assignProgramToUser({
 }): Promise<Maybe<undefined>> {
   const client = await createServerClient()
   const { data, error } = await client
-    .from('programs')
-    .select('*')
-    .eq('id', programId)
-    .eq('is_template', true)
-    .eq('user_id', trainerId) // Ensure the program is owned by the trainer
+    .from("programs")
+    .select("*")
+    .eq("id", programId)
+    .eq("is_template", true)
+    .eq("user_id", trainerId) // Ensure the program is owned by the trainer
     .single()
 
   if (error) {
@@ -173,14 +173,14 @@ export async function assignProgramToUser({
   }
 
   const { data: newProgram, error: newProgramError } = await client
-    .from('programs')
+    .from("programs")
     .insert({
       name: data.name,
       type: data.type,
       user_id: clientId,
       is_template: false,
     })
-    .select('*')
+    .select("*")
     .single()
 
   if (newProgramError) {
@@ -190,14 +190,14 @@ export async function assignProgramToUser({
   // Duplicate workouts
 
   const { data: workouts, error: workoutError } = await client
-    .from('workouts')
-    .select('*')
-    .eq('program_id', programId)
+    .from("workouts")
+    .select("*")
+    .eq("program_id", programId)
 
   if (workoutError) {
     return { data: null, error: workoutError }
   }
-  const { error: insertWorkoutError } = await client.from('workouts').insert(
+  const { error: insertWorkoutError } = await client.from("workouts").insert(
     workouts.map((workout) => ({
       program_id: newProgram.id,
       user_id: newProgram.user_id,
@@ -213,7 +213,7 @@ export async function assignProgramToUser({
   // Create relationship between client,  program, and trainer
 
   const { error: assignError } = await client
-    .from('trainer_assigned_programs')
+    .from("trainer_assigned_programs")
     .insert({
       client_id: clientId,
       program_id: newProgram.id,
@@ -229,7 +229,7 @@ export async function assignProgramToUser({
 export async function updateWorkoutInstance(
   _workoutInstance: WorkoutInstance
 ): Promise<Maybe<undefined>> {
-  return { data: null, error: new Error('Not implemented') }
+  return { data: null, error: new Error("Not implemented") }
   // const client = await createServerClient()
   // const { error } = await client
   //   .from('workout_instances')
@@ -248,7 +248,7 @@ export async function createWorkoutInstance(
   _userId: string,
   _workout: Workout
 ): Promise<Maybe<WorkoutInstance>> {
-  return { data: null, error: new Error('Not implemented') }
+  return { data: null, error: new Error("Not implemented") }
   // const exerciseSets: WorkoutInstanceBlock[] = workout.blocks.map(
   //   (exercise) => {
   //     const numSets = Number(exercise.sets)

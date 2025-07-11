@@ -1,5 +1,5 @@
-import { ProgramWorkoutList } from '@/components/program-workout-list'
-import { ProgramNavigationMenu } from '../program-nav-menu'
+import { ProgramWorkoutList } from "@/components/program-workout-list"
+import { ProgramNavigationMenu } from "../program-nav-menu"
 
 export default async function WorkoutPage({
   params,
@@ -8,7 +8,7 @@ export default async function WorkoutPage({
   params: Promise<{ programid: string }>
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const shouldShowNavMenu = (await searchParams)?.['nav'] === 'true'
+  const shouldShowNavMenu = (await searchParams)?.["nav"] === "true"
   const programId = (await params).programid
   return (
     <>

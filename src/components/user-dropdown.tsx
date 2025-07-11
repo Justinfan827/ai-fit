@@ -1,6 +1,6 @@
-import SignOutButton from '@/components/sign-out-button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import SignOutButton from "@/components/sign-out-button"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,30 +8,30 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { getCurrentUser } from '@/lib/supabase/server/database.operations.queries'
-import { capitalizeFirstLetter } from '@/lib/utils'
+} from "@/components/ui/dropdown-menu"
+import { getCurrentUser } from "@/lib/supabase/server/database.operations.queries"
+import { capitalizeFirstLetter } from "@/lib/utils"
 
 export async function Usermenu() {
   const { data, error } = await getCurrentUser()
   if (error) {
     return null
   }
-  const firstName = data.metadata.firstName || ''
-  const lastName = data.metadata.lastName || ''
+  const firstName = data.metadata.firstName || ""
+  const lastName = data.metadata.lastName || ""
   const firstLetter = (
     firstName.charAt(0) ||
     data.sbUser.email?.charAt(0) ||
-    'A'
+    "A"
   ).toUpperCase()
-  const lastLetter = (lastName.charAt(0) || '').toUpperCase()
+  const lastLetter = (lastName.charAt(0) || "").toUpperCase()
   return (
     // If modal is not set to false, on some browsers the scrollbar
     // will disappear on pages when the dropdown is opened
     // https://github.com/radix-ui/primitives/discussions/1100
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+        <Button className="relative h-8 w-8 rounded-full" variant="ghost">
           <Avatar className="h-9 w-9">
             {/* TODO: image of user */}
             {/* <AvatarImage src="" alt="" /> */}
@@ -41,12 +41,12 @@ export async function Usermenu() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent align="end" className="w-56" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             {firstName && lastName && (
-              <p className="text-sm leading-none font-medium">
-                {capitalizeFirstLetter(firstName)}{' '}
+              <p className="font-medium text-sm leading-none">
+                {capitalizeFirstLetter(firstName)}{" "}
                 {capitalizeFirstLetter(lastName)}
               </p>
             )}

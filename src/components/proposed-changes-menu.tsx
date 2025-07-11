@@ -1,15 +1,15 @@
-'use client'
+"use client"
 
-import { useCallback, useEffect, useMemo } from 'react'
-import { Icons } from '@/components/icons'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { useCallback, useEffect, useMemo } from "react"
+import { Icons } from "@/components/icons"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   useZCurrentChangeId,
   useZEditorActions,
   useZProposedChanges,
-} from '@/hooks/zustand/program-editor'
-import { cn } from '@/lib/utils'
+} from "@/hooks/zustand/program-editor"
+import { cn } from "@/lib/utils"
 
 interface ProposedChangesMenuProps {
   className?: string
@@ -150,12 +150,12 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
       if (!hasChanges) return
 
       // Cmd+Y to accept current change
-      if (e.metaKey && e.key === 'y' && currentChange) {
+      if (e.metaKey && e.key === "y" && currentChange) {
         e.preventDefault()
         acceptChange(currentChange.id)
       }
       // Cmd+N to reject current change
-      else if (e.metaKey && e.key === 'n' && currentChange) {
+      else if (e.metaKey && e.key === "n" && currentChange) {
         e.preventDefault()
         rejectChange(currentChange.id)
       }
@@ -166,8 +166,8 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
       // }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
   }, [
     hasChanges,
     currentChange,
@@ -182,9 +182,9 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
   return (
     <div
       className={cn(
-        '-translate-x-1/2 fixed bottom-4 left-1/2 z-50 transform',
-        'rounded-lg border border-neutral-700 bg-neutral-900 shadow-lg',
-        'min-w-[400px] max-w-[600px] p-4',
+        "-translate-x-1/2 fixed bottom-4 left-1/2 z-50 transform",
+        "rounded-lg border border-neutral-700 bg-neutral-900 shadow-lg",
+        "min-w-[400px] max-w-[600px] p-4",
         className
       )}
     >

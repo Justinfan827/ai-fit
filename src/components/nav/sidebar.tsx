@@ -1,6 +1,6 @@
-'use client'
-import { Home, User } from 'lucide-react'
-
+"use client"
+import { Home, User } from "lucide-react"
+import { usePathname } from "next/navigation"
 import {
   Sidebar,
   SidebarContent,
@@ -9,8 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar'
-import { usePathname } from 'next/navigation'
+} from "@/components/ui/sidebar"
 
 // Menu items.
 const items = [
@@ -20,21 +19,21 @@ const items = [
   //   icon: Search,
   // },
   {
-    title: 'Home',
-    url: '/home',
-    matchRegex: '^/home$',
+    title: "Home",
+    url: "/home",
+    matchRegex: "^/home$",
     icon: Home,
   },
   {
-    title: 'Clients',
-    url: '/home/clients',
-    matchRegex: '^/home/clients',
+    title: "Clients",
+    url: "/home/clients",
+    matchRegex: "^/home/clients",
     icon: User,
   },
   {
-    title: 'Programs',
-    url: '/home/programs',
-    matchRegex: '^/home/programs',
+    title: "Programs",
+    url: "/home/programs",
+    matchRegex: "^/home/programs",
     icon: User,
   },
 ]

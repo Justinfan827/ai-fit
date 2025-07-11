@@ -1,4 +1,5 @@
-import { Button } from '@/components/ui/button'
+import * as React from "react"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -7,11 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import * as React from 'react'
+} from "@/components/ui/dialog"
 
-import { Exercise } from '@/lib/domain/workouts'
-import { ExerciseTable } from './ExerciseTable'
+import type { Exercise } from "@/lib/domain/workouts"
+import { ExerciseTable } from "./ExerciseTable"
 
 export function ExerciseSelectionDialog({
   exercises,
@@ -72,8 +72,8 @@ export function ExerciseSelectionDialog({
               muscleGroup: e.muscleGroup,
               isCustom: e.ownerId !== null,
             }))}
-            selectedRows={selectedExerciseIds}
             onSelectionChange={handleSelectionChange}
+            selectedRows={selectedExerciseIds}
           />
         </div>
         <DialogFooter>

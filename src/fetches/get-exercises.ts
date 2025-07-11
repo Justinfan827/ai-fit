@@ -1,12 +1,12 @@
-import { exerciseSchema } from '@/lib/domain/workouts'
-import { getError } from '@/lib/utils/util'
+import { exerciseSchema } from "@/lib/domain/workouts"
+import { getError } from "@/lib/utils/util"
 
 export default async function apiGetExercises(body: { searchString: string }) {
   try {
-    const res = await fetch(`/api/search-exercises`, {
-      method: 'POST',
+    const res = await fetch("/api/search-exercises", {
+      method: "POST",
       body: JSON.stringify(body),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
+      headers: new Headers({ "Content-Type": "application/json" }),
     })
     if (!res.ok) {
       const bodyMsg = await res.text()

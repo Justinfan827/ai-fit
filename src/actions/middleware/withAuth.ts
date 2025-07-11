@@ -1,9 +1,9 @@
-import { authUserRequest } from '@/app/api/auth'
-import { asError } from '@/app/api/error-response'
-import { APIError, ErrBase } from '@/app/api/errors'
-import { Maybe } from '@/lib/types/types'
-import { User } from '@supabase/supabase-js'
-import { z } from 'zod'
+import type { User } from "@supabase/supabase-js"
+import type { z } from "zod"
+import { authUserRequest } from "@/app/api/auth"
+import { asError } from "@/app/api/error-response"
+import { APIError, type ErrBase } from "@/app/api/errors"
+import type { Maybe } from "@/lib/types/types"
 
 interface BaseArgs {
   user: User
@@ -31,8 +31,8 @@ async function withAuthUtils<TInput, TResult>(options: {
     if (inputSchema) {
       if (input === undefined || input === null) {
         throw new APIError({
-          code: 'bad_request',
-          message: 'input is required',
+          code: "bad_request",
+          message: "input is required",
         })
       }
       const parsedInput = inputSchema.safeParse(input)
@@ -42,7 +42,7 @@ async function withAuthUtils<TInput, TResult>(options: {
       handlerArgs.input = parsedInput.data
     }
 
-    console.log('Running handler with args', handlerArgs)
+    console.log("Running handler with args", handlerArgs)
     const result = await handler(handlerArgs)
     return {
       data: result,
@@ -57,13 +57,11 @@ async function withAuthUtils<TInput, TResult>(options: {
 }
 
 // Handler type definitions
-interface WithAuthHandler<TResult> {
-  (args: BaseArgs): Promise<TResult>
-}
+type WithAuthHandler<TResult> = (args: BaseArgs) => Promise<TResult>
 
-interface WithAuthInputHandler<TInput, TResult> {
-  (args: ArgsWithInput<TInput>): Promise<TResult>
-}
+type WithAuthInputHandler<TInput, TResult> = (
+  args: ArgsWithInput<TInput>
+) => Promise<TResult>
 
 // Basic auth wrapper - just provides user
 const withAuth = <TResult>(handler: WithAuthHandler<TResult>) => {

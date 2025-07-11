@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/create-server-client'
+import { createServerClient } from "@/lib/supabase/create-server-client"
 
 type DebugLog = {
   id: number
@@ -10,9 +10,9 @@ type DebugLog = {
 export default async function DevPage() {
   const sb = await createServerClient()
   const { data, error } = await sb
-    .from('debug_log')
-    .select('*')
-    .order('created_at', { ascending: false })
+    .from("debug_log")
+    .select("*")
+    .order("created_at", { ascending: false })
 
   if (error) {
     return <div>Error: {error.message}</div>
@@ -46,7 +46,7 @@ function LogItem({ log }: { log: DebugLog }) {
 }
 
 function JsonPreview({ title, data }: { title: string; data: any }) {
-  const jsonString = JSON.stringify(data, null, 2) || '{}'
+  const jsonString = JSON.stringify(data, null, 2) || "{}"
 
   return (
     <div className="relative rounded-md bg-slate-950 p-4">

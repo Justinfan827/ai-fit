@@ -1,6 +1,6 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 
 import {
   Form,
@@ -10,11 +10,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Exercise, exercisesSchema } from '@/lib/domain/workouts'
-import { ExerciseSelectionDialog } from './ExerciseSelectionDialog'
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { type Exercise, exercisesSchema } from "@/lib/domain/workouts"
+import { ExerciseSelectionDialog } from "./ExerciseSelectionDialog"
 
 const ProgramParametersFormSchema = z
   .object({
@@ -48,19 +48,19 @@ const ProgramParametersFormSchema = z
     //   return
     // }
 
-    if (data.lengthOfWorkout === '') {
+    if (data.lengthOfWorkout === "") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Please enter the length of the workout`,
+        message: "Please enter the length of the workout",
       })
       return
     }
-    const lengthOfWorkout = parseInt(data.lengthOfWorkout)
+    const lengthOfWorkout = Number.parseInt(data.lengthOfWorkout)
     if (isNaN(lengthOfWorkout)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Please enter a valid number for the length of the workout`,
-        path: ['lengthOfWorkout'],
+        message: "Please enter a valid number for the length of the workout",
+        path: ["lengthOfWorkout"],
       })
       return
     }
@@ -69,50 +69,53 @@ const ProgramParametersFormSchema = z
     if (lengthOfWorkout < 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Please enter a positive number for the length of the workout`,
-        path: ['lengthOfWorkout'],
+        message: "Please enter a positive number for the length of the workout",
+        path: ["lengthOfWorkout"],
       })
       return
     }
     if (lengthOfWorkout > 120) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Please enter a number less than 120 minutes for the length of the workout`,
-        path: ['lengthOfWorkout'],
+        message:
+          "Please enter a number less than 120 minutes for the length of the workout",
+        path: ["lengthOfWorkout"],
       })
       return
     }
 
-    if (data.daysPerWeek === '') {
+    if (data.daysPerWeek === "") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Please enter the number of days per week`,
-        path: ['daysPerWeek'],
+        message: "Please enter the number of days per week",
+        path: ["daysPerWeek"],
       })
       return
     }
-    const daysPerWeek = parseInt(data.daysPerWeek)
+    const daysPerWeek = Number.parseInt(data.daysPerWeek)
     if (isNaN(daysPerWeek)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Please enter a valid number for the number of days per week`,
-        path: ['daysPerWeek'],
+        message: "Please enter a valid number for the number of days per week",
+        path: ["daysPerWeek"],
       })
       return
     }
     if (daysPerWeek < 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Please enter a positive number for the number of days per week`,
-        path: ['daysPerWeek'],
+        message:
+          "Please enter a positive number for the number of days per week",
+        path: ["daysPerWeek"],
       })
       return
     }
     if (daysPerWeek > 7) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Please enter a number less than 7 for the number of days per week`,
-        path: ['daysPerWeek'],
+        message:
+          "Please enter a number less than 7 for the number of days per week",
+        path: ["daysPerWeek"],
       })
       return
     }
@@ -134,10 +137,10 @@ export function ProgramParametersForm({
   const form = useForm<ProgramParametersFormType>({
     resolver: zodResolver(ProgramParametersFormSchema),
     defaultValues: {
-      lengthOfWorkout: '30',
-      daysPerWeek: '3',
+      lengthOfWorkout: "30",
+      daysPerWeek: "3",
       // lengthOfProgram: '12',
-      otherNotes: '',
+      otherNotes: "",
       preferredExercises: serverExercises,
     },
   })
@@ -145,9 +148,9 @@ export function ProgramParametersForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4"
         id={formName}
+        onSubmit={form.handleSubmit(onSubmit)}
       >
         <FormField
           control={form.control}
@@ -156,7 +159,7 @@ export function ProgramParametersForm({
             <FormItem>
               <FormLabel>Workout length</FormLabel>
               <FormControl>
-                <Input min="0" type="number" placeholder="" {...field} />
+                <Input min="0" placeholder="" type="number" {...field} />
               </FormControl>
               <FormDescription>
                 How long should workouts be (in minutes)?
@@ -173,10 +176,10 @@ export function ProgramParametersForm({
               <FormLabel>Days per week</FormLabel>
               <FormControl>
                 <Input
-                  type="number"
-                  min="0"
                   max="7"
+                  min="0"
                   placeholder=""
+                  type="number"
                   {...field}
                 />
               </FormControl>
@@ -221,7 +224,7 @@ export function ProgramParametersForm({
                   <ExerciseSelectionDialog
                     exercises={field.value}
                     setExercises={(exercises) => {
-                      form.setValue('preferredExercises', exercises)
+                      form.setValue("preferredExercises", exercises)
                     }}
                   />
                 </div>
@@ -240,7 +243,7 @@ export function ProgramParametersForm({
             <FormItem>
               <FormLabel>Additional Program Details</FormLabel>
               <FormControl>
-                <Textarea placeholder="" className="" {...field} />
+                <Textarea className="" placeholder="" {...field} />
               </FormControl>
               <FormDescription>
                 Be as detailed as you want! More information helps us help you

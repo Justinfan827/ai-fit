@@ -10,8 +10,8 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
   ChevronsUpDown,
+  ChevronUp,
   CircleHelp,
   Clock,
   Copy,
@@ -48,7 +48,7 @@ import {
   Wrench,
   X,
   XCircle,
-} from 'lucide-react'
+} from "lucide-react"
 
 export const Icons = {
   send: Send,
@@ -109,16 +109,16 @@ export function Logo({ className }: React.SVGAttributes<HTMLOrSVGElement>) {
   return (
     <svg
       className="h-[32px] w-[32px]"
-      viewBox="0 0 53 53"
       fill="none"
+      viewBox="0 0 53 53"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <rect width="53" height="53" fill="white" />
-      <rect x="34" y="14" width="10" height="25" fill="black" />
-      <rect x="9" y="14" width="10" height="25" fill="black" />
-      <rect x="14" y="21.5" width="25" height="10" fill="black" />
-      <rect x="14" y="21.5" width="5" height="10" fill="white" />
-      <rect x="34" y="21.5" width="5" height="10" fill="white" />
+      <rect fill="white" height="53" width="53" />
+      <rect fill="black" height="25" width="10" x="34" y="14" />
+      <rect fill="black" height="25" width="10" x="9" y="14" />
+      <rect fill="black" height="10" width="25" x="14" y="21.5" />
+      <rect fill="white" height="10" width="5" x="14" y="21.5" />
+      <rect fill="white" height="10" width="5" x="34" y="21.5" />
     </svg>
   )
 }

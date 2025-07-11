@@ -1,25 +1,25 @@
-'use client'
+"use client"
 
-import { Button } from '@/components/ui/button'
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useRouter } from "next/navigation"
+import { useTransition } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import * as z from "zod"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { createBrowserClient } from '@/lib/supabase/create-browser-client'
-import { isClient } from '@/lib/supabase/utils'
-import { isLive } from '@/lib/utils'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from 'next/navigation'
-import { useTransition } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import * as z from 'zod'
-import { Icons } from './icons'
-import { PasswordInput } from './password-input'
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { createBrowserClient } from "@/lib/supabase/create-browser-client"
+import { isClient } from "@/lib/supabase/utils"
+import { isLive } from "@/lib/utils"
+import { Icons } from "./icons"
+import { PasswordInput } from "./password-input"
 import {
   Form,
   FormControl,
@@ -27,17 +27,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from './ui/form'
+} from "./ui/form"
 
 type Inputs = z.infer<typeof authSchema>
 export const authSchema = z.object({
   email: z.string().email({
-    message: 'Please enter a valid email address',
+    message: "Please enter a valid email address",
   }),
   password: z
     .string()
     .min(6, {
-      message: 'Password must be at least 8 characters long',
+      message: "Password must be at least 8 characters long",
     })
     .max(100),
 })
@@ -48,8 +48,8 @@ export function LoginForm() {
   const form = useForm<Inputs>({
     resolver: zodResolver(authSchema),
     defaultValues: {
-      email: isLive() ? '' : 'user+1@test.com',
-      password: isLive() ? '' : 'password123',
+      email: isLive() ? "" : "user+1@test.com",
+      password: isLive() ? "" : "password123",
     },
   })
 
@@ -90,11 +90,11 @@ export function LoginForm() {
         if (isClient(uData.user)) {
           router.push(`/clients/${uData.user.id}`)
         } else {
-          router.push(`/home`)
+          router.push("/home")
         }
       } catch (error) {
         if (error instanceof Error) {
-          toast('Email sign in failed')
+          toast("Email sign in failed")
         }
         return
       }
@@ -143,8 +143,8 @@ export function LoginForm() {
             <Button disabled={isPending}>
               {isPending && (
                 <Icons.spinner
-                  className="mr-2 h-4 w-4 animate-spin"
                   aria-hidden="true"
+                  className="mr-2 h-4 w-4 animate-spin"
                 />
               )}
               Sign in

@@ -1,7 +1,7 @@
-import { withAuthBodySchema } from '@/app/api/middleware/withAuth'
-import { assignProgramToUser } from '@/lib/supabase/server/database.operations.mutations'
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
+import { NextResponse } from "next/server"
+import { z } from "zod"
+import { withAuthBodySchema } from "@/app/api/middleware/withAuth"
+import { assignProgramToUser } from "@/lib/supabase/server/database.operations.mutations"
 
 // Define the schema for request body validation
 const assignProgramSchema = z.object({

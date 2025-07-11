@@ -3,12 +3,12 @@
  * the ai will generate
  */
 
-import { z } from 'zod'
+import { z } from "zod"
 
 const exerciseBlockSchema = z.object({
-  type: z.literal('exercise'),
+  type: z.literal("exercise"),
   exercise: z.object({
-    id: z.string().describe('uuid string for this exercise'),
+    id: z.string().describe("uuid string for this exercise"),
     name: z.string(),
     metadata: z.object({
       sets: z.string(),
@@ -20,7 +20,7 @@ const exerciseBlockSchema = z.object({
 })
 
 const circuitBlockSchema = z.object({
-  type: z.literal('circuit'),
+  type: z.literal("circuit"),
   circuit: z.object({
     isDefault: z.boolean(),
     name: z.string(),
@@ -37,14 +37,14 @@ const circuitBlockSchema = z.object({
 const blockSchema = exerciseBlockSchema.or(circuitBlockSchema)
 
 const workoutSchema = z.object({
-  name: z.string().describe('Name of the workout'),
-  blocks: z.array(blockSchema).describe('Individual blocks of the workout'),
+  name: z.string().describe("Name of the workout"),
+  blocks: z.array(blockSchema).describe("Individual blocks of the workout"),
 })
 
 // This zod schema has certain restrictions! This
 // https://platform.openai.com/docs/guides/structured-outputs?api-mode=responses
 const generateProgramSchema = z.object({
-  workouts: z.array(workoutSchema).describe('Array of workouts'),
+  workouts: z.array(workoutSchema).describe("Array of workouts"),
 })
 
 type GenerateProgramSchema = z.infer<typeof generateProgramSchema>

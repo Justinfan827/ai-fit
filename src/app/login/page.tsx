@@ -1,6 +1,6 @@
-import { UnauthHeader } from '@/components/header'
-import { LoginForm } from '@/components/login-form'
-import { serverRedirectToHomeIfAuthorized } from '@/lib/supabase/server/auth-utils'
+import { UnauthHeader } from "@/components/header"
+import { LoginForm } from "@/components/login-form"
+import { serverRedirectToHomeIfAuthorized } from "@/lib/supabase/server/auth-utils"
 
 export default async function Page() {
   await serverRedirectToHomeIfAuthorized()

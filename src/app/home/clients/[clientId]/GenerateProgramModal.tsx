@@ -1,11 +1,12 @@
-'use client'
+"use client"
 
-import { createClientProgramAction } from '@/actions/create-client-program-action'
-import { ProgramParametersFormType } from '@/components/forms/ProgramParametersForm'
-import { Icons } from '@/components/icons'
-import LoadingButton from '@/components/loading-button'
-import { Button } from '@/components/ui/button'
-import { Card, CardHeader } from '@/components/ui/card'
+import { useTransition } from "react"
+import { createClientProgramAction } from "@/actions/create-client-program-action"
+import type { ProgramParametersFormType } from "@/components/forms/ProgramParametersForm"
+import { Icons } from "@/components/icons"
+import LoadingButton from "@/components/loading-button"
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -14,11 +15,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { ClientHomePage } from '@/lib/domain/clients'
-import { useTransition } from 'react'
+} from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import type { ClientHomePage } from "@/lib/domain/clients"
 
 export default function GenerateProgramModal({
   client,
@@ -26,14 +26,14 @@ export default function GenerateProgramModal({
   client: ClientHomePage
 }) {
   const basicInfo = [
-    { name: 'Age', value: client.age },
-    { name: 'Weight', value: client.weightKg },
-    { name: 'Height', value: client.heightCm },
+    { name: "Age", value: client.age },
+    { name: "Weight", value: client.weightKg },
+    { name: "Height", value: client.heightCm },
     {
-      name: 'Lifetime lifting experience',
+      name: "Lifetime lifting experience",
       value: client.liftingExperienceMonths,
     },
-    { name: 'Gender', value: client.gender },
+    { name: "Gender", value: client.gender },
   ]
 
   const [isPending, startTransition] = useTransition()
@@ -49,8 +49,8 @@ export default function GenerateProgramModal({
           gender: client.gender,
         },
         programParameters: {
-          lengthOfWorkout: parseInt(data.lengthOfWorkout),
-          daysPerWeek: parseInt(data.daysPerWeek),
+          lengthOfWorkout: Number.parseInt(data.lengthOfWorkout),
+          daysPerWeek: Number.parseInt(data.daysPerWeek),
           // lengthOfProgram: parseInt(data.lengthOfProgram),
           otherNotes: data.otherNotes,
         } as any,
@@ -85,10 +85,10 @@ export default function GenerateProgramModal({
               <Separator className="" />
               {basicInfo.map(({ name, value }) => (
                 <div
-                  key={name}
                   className="grid w-[400px] grid-cols-3 gap-4 space-y-2"
+                  key={name}
                 >
-                  <p className="text-muted-foreground col-span-2 text-sm leading-none">
+                  <p className="col-span-2 text-muted-foreground text-sm leading-none">
                     {name}
                   </p>
                   <p className="col-span-1 leading-none">{value}</p>
@@ -100,12 +100,12 @@ export default function GenerateProgramModal({
               <Separator className="" />
               <div className="pt-1">
                 {client.details.map((detail) => (
-                  <Card key={detail.id} className="relative">
+                  <Card className="relative" key={detail.id}>
                     <CardHeader>
                       <p className="font-normal tracking-tight">
                         {detail.title}
                       </p>
-                      <p className="text-muted-foreground text-sm leading-snug font-normal whitespace-pre-wrap">
+                      <p className="whitespace-pre-wrap font-normal text-muted-foreground text-sm leading-snug">
                         {detail.description}
                       </p>
                     </CardHeader>
@@ -125,10 +125,10 @@ export default function GenerateProgramModal({
         </ScrollArea>
         <DialogFooter>
           <LoadingButton
+            className="w-[100px] whitespace-nowrap"
+            form="programParametersForm"
             isLoading={isPending}
             type="submit"
-            form="programParametersForm"
-            className="w-[100px] whitespace-nowrap"
           >
             Generate
             <Icons.sparkles className="h-5 w-5" />

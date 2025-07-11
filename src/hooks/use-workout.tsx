@@ -1,7 +1,7 @@
-'use client'
+"use client"
 
-import { GenerateProgramSchema } from '@/lib/domain/workouts_ai_response'
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState } from "react"
+import type { GenerateProgramSchema } from "@/lib/domain/workouts_ai_response"
 
 interface AIGeneratedWorkoutsContext {
   generatedProgram: GenerateProgramSchema | undefined
@@ -47,7 +47,7 @@ export const useAIGeneratedWorkouts = () => {
   const context = useContext(Context)
   if (context === undefined) {
     throw new Error(
-      'useAIGeneratedWorkouts() must be used inside AIGeneratedWorkoutsProvider'
+      "useAIGeneratedWorkouts() must be used inside AIGeneratedWorkoutsProvider"
     )
   }
   return context

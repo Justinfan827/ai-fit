@@ -1,4 +1,4 @@
-import { Program } from './workouts'
+import type { Program } from "./workouts"
 
 export interface Client {
   id: string

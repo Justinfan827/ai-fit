@@ -1,5 +1,5 @@
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
+import dayjs from "dayjs"
+import utc from "dayjs/plugin/utc"
 
 dayjs.extend(utc)
 
@@ -22,10 +22,10 @@ type ErrorWithMessage = {
 
 function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
   return (
-    typeof error === 'object' &&
+    typeof error === "object" &&
     error !== null &&
-    'message' in error &&
-    typeof (error as Record<string, unknown>).message === 'string'
+    "message" in error &&
+    typeof (error as Record<string, unknown>).message === "string"
   )
 }
 
@@ -57,7 +57,7 @@ export function capitalizeFirstLetter(s: string) {
 }
 
 export function formatNumber(num: number) {
-  return num.toLocaleString('en-US')
+  return num.toLocaleString("en-US")
 }
 
 export function parseISO8601Date(dateString: string) {
@@ -78,35 +78,35 @@ export function getSiteURL() {
     // Unfortunately I don't know of a good way to determine whether
     // we're in a Vercel preview deployment or not.
     // process?.env?.NEXT_PUBLIC_VERCEL_URL ?? // Automatically set by Vercel.
-    'http://localhost:3000/'
+    "http://localhost:3000/"
   // Make sure to include `https://` when not localhost.
-  url = url.includes('http') ? url : `https://${url}`
+  url = url.includes("http") ? url : `https://${url}`
   // Make sure to include a trailing `/`.
-  url = url.charAt(url.length - 1) === '/' ? url : `${url}/`
+  url = url.charAt(url.length - 1) === "/" ? url : `${url}/`
   return url
 }
 
 export function parseBool(str: string): boolean | undefined {
   const strLower = str.trim().toLowerCase()
   switch (strLower) {
-    case 'true':
-    case 't':
-    case '1':
-    case 'yes':
-    case 'y':
-    case 'enabled':
-    case 'on':
+    case "true":
+    case "t":
+    case "1":
+    case "yes":
+    case "y":
+    case "enabled":
+    case "on":
       return true
-    case 'false':
-    case 'f':
-    case '0':
-    case 'no':
-    case 'n':
-    case 'disabled':
-    case 'off':
+    case "false":
+    case "f":
+    case "0":
+    case "no":
+    case "n":
+    case "disabled":
+    case "off":
       return false
     default:
-      return undefined
+      return
   }
 }
 
@@ -114,5 +114,5 @@ export function parseBool(str: string): boolean | undefined {
  * Trims all leading and trailing whitespace from a string.
  */
 export function inputTrim(input: string): string {
-  return input.replace(/^\s+|\s+$/g, '')
+  return input.replace(/^\s+|\s+$/g, "")
 }

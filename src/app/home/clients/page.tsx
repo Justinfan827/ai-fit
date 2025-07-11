@@ -1,20 +1,20 @@
-import ClientButtonNewClient from '@/components/ClientButtonNewClient'
-import { EmptyStateCard } from '@/components/empty-state'
-import Header from '@/components/header'
-import { PageHeader } from '@/components/page-header'
-import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
+import Link from "next/link"
+import ClientButtonNewClient from "@/components/ClientButtonNewClient"
+import { EmptyStateCard } from "@/components/empty-state"
+import Header from "@/components/header"
+import { PageHeader } from "@/components/page-header"
+import { PageContent, PageLayout, PageSection } from "@/components/page-layout"
 import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
+} from "@/components/ui/breadcrumb"
 import {
   getCurrentUser,
   getCurrentUserClients,
-} from '@/lib/supabase/server/database.operations.queries'
-import { cn } from '@/lib/utils'
-import Link from 'next/link'
+} from "@/lib/supabase/server/database.operations.queries"
+import { cn } from "@/lib/utils"
 
 export default async function ClientsPage() {
   // Get current user and clients data
@@ -48,32 +48,32 @@ export default async function ClientsPage() {
       </Header>
       <div id="clients content">
         <PageHeader
-          title="My Clients"
-          subtitle="Manage your clients and their programs"
           actions={headerActions}
+          subtitle="Manage your clients and their programs"
+          title="My Clients"
         />
         <PageContent>
           <PageSection>
             {clientsData.length === 0 ? (
               <EmptyStateCard
-                title="Add a client"
-                subtitle="Add a new client to get started with ai powered programming."
-                buttonText="New Client"
                 buttonHref="/home/clients/new"
+                buttonText="New Client"
                 className="w-full"
+                subtitle="Add a new client to get started with ai powered programming."
+                title="Add a client"
               />
             ) : (
               <div className="flex flex-col">
                 {clientsData.map((client, idx) => (
                   <Link
+                    className={cn(
+                      "flex border-neutral-700 border-x px-4 py-4",
+                      idx === 0 && "rounded-t-sm border-neutral-700 border-t",
+                      idx === clientsData.length - 1 && "rounded-b-sm",
+                      "border-neutral-700 border-b"
+                    )}
                     href={`/home/clients/${client.id}`}
                     key={client.id}
-                    className={cn(
-                      'flex border-x border-neutral-700 px-4 py-4',
-                      idx === 0 && 'rounded-t-sm border-t border-neutral-700',
-                      idx === clientsData.length - 1 && 'rounded-b-sm',
-                      'border-b border-neutral-700'
-                    )}
                   >
                     {client.firstName} {client.lastName}
                   </Link>

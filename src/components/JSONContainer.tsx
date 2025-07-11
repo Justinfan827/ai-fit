@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils"
 
 // display arbitrary JSON data in a scrollable container
 export default function JSONContainer({
@@ -9,7 +9,7 @@ export default function JSONContainer({
   className?: string
 }) {
   return (
-    <div className={cn('h-[800px] w-[800px] overflow-auto', className)}>
+    <div className={cn("h-[800px] w-[800px] overflow-auto", className)}>
       <pre>{JSON.stringify(json, null, 2)}</pre>
     </div>
   )

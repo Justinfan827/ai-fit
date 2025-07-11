@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import type { useForm } from "react-hook-form"
 
 type FormDebugContainerProps = {
   form: ReturnType<typeof useForm<any>>

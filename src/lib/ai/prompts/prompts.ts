@@ -1,5 +1,5 @@
-import { Workout, Workouts } from '@/lib/domain/workouts'
-import { z } from 'zod'
+import { z } from "zod"
+import type { Workout, Workouts } from "@/lib/domain/workouts"
 
 export const systemPromptv1 = `
 You are a fitness expert and applied biomechanics specialist who assists fitness coaches and trainers 
@@ -73,7 +73,7 @@ const exerciseContextSchemaInternal = z.object({
 })
 
 const contextItemSchemaInternal = z.object({
-  type: z.enum(['client', 'exercises']),
+  type: z.enum(["client", "exercises"]),
   data: z.union([
     clientContextSchemaInternal,
     z.object({
@@ -90,18 +90,17 @@ export type ContextItem = z.infer<typeof contextItemSchemaInternal>
  */
 export function formatExerciseContext(contextItems: ContextItem[]): string {
   const exerciseContext = contextItems
-    .filter((item) => item.type === 'exercises')
-    .map((item) => {
+    .filter((item) => item.type === "exercises")
+    .flatMap((item) => {
       const exerciseData = item.data as {
         exercises: z.infer<typeof exerciseContextSchemaInternal>[]
         title?: string
       }
       return exerciseData.exercises
     })
-    .flat()
 
   if (exerciseContext.length === 0) {
-    return ''
+    return ""
   }
 
   return `
@@ -109,9 +108,9 @@ export function formatExerciseContext(contextItems: ContextItem[]): string {
 ${exerciseContext
   .map(
     (ex) =>
-      `- ${ex.name} (ID: ${ex.id})${ex.category ? ` - Category: ${ex.category}` : ''}${ex.equipment ? ` - Equipment: ${ex.equipment}` : ''}${ex.muscleGroups && ex.muscleGroups.length > 0 ? ` - Muscle Groups: ${ex.muscleGroups.join(', ')}` : ''}`
+      `- ${ex.name} (ID: ${ex.id})${ex.category ? ` - Category: ${ex.category}` : ""}${ex.equipment ? ` - Equipment: ${ex.equipment}` : ""}${ex.muscleGroups && ex.muscleGroups.length > 0 ? ` - Muscle Groups: ${ex.muscleGroups.join(", ")}` : ""}`
   )
-  .join('\n')}
+  .join("\n")}
 </TRAINER_PREFERRED_EXERCISES>
 `
 }
@@ -123,17 +122,17 @@ export function formatWorkoutsAsText(workouts: Workout[]): string {
 Workout ${i + 1}: ${workout.name} (ID: ${workout.id})
 ${workout.blocks
   .map((block: any) => {
-    if (block.type === 'exercise') {
+    if (block.type === "exercise") {
       const { exercise } = block
       return `- ${exercise.name} (ID: ${exercise.id})
   Sets: ${exercise.metadata.sets}
   Reps: ${exercise.metadata.reps}
   Weight: ${exercise.metadata.weight}
   Rest: ${exercise.metadata.rest}
-  ${exercise.metadata.notes ? `Notes: ${exercise.metadata.notes}` : ''}`
-    } else {
-      const { circuit } = block
-      return `- Circuit: ${circuit.name}
+  ${exercise.metadata.notes ? `Notes: ${exercise.metadata.notes}` : ""}`
+    }
+    const { circuit } = block
+    return `- Circuit: ${circuit.name}
   Sets: ${circuit.metadata.sets}
   Rest: ${circuit.metadata.rest}
   Exercises:
@@ -144,14 +143,13 @@ ${workout.blocks
     Reps: ${ex.exercise.metadata.reps}
     Weight: ${ex.exercise.metadata.weight}
     Rest: ${ex.exercise.metadata.rest}
-    ${ex.exercise.metadata.notes ? `Notes: ${ex.exercise.metadata.notes}` : ''}`
+    ${ex.exercise.metadata.notes ? `Notes: ${ex.exercise.metadata.notes}` : ""}`
     )
-    .join('\n  ')}`
-    }
+    .join("\n  ")}`
   })
-  .join('\n')}`
+  .join("\n")}`
     )
-    .join('\n')
+    .join("\n")
 }
 /**
  * Builds the system prompt by combining the base `systemPromptv1` with any client or exercise context.
@@ -166,7 +164,7 @@ export function buildSystemPrompt(
   const contextSections: string[] = []
 
   contextItems.forEach((item) => {
-    if (item.type === 'client') {
+    if (item.type === "client") {
       const clientData = item.data as z.infer<
         typeof clientContextSchemaInternal
       >
@@ -174,16 +172,16 @@ export function buildSystemPrompt(
       contextSections.push(`
 <CURRENT_CLIENT_CONTEXT>
 - Name: ${clientData.firstName}
-- Age: ${clientData.age ?? 'Not specified'}
-- Weight: ${clientData.weightKg ? `${clientData.weightKg} kg` : 'Not specified'}
-- Height: ${clientData.heightCm ? `${clientData.heightCm} cm` : 'Not specified'}
-- Lifting Experience: ${clientData.liftingExperienceMonths ? `${clientData.liftingExperienceMonths} months` : 'Not specified'}
-- Gender: ${clientData.gender ?? 'Not specified'}
+- Age: ${clientData.age ?? "Not specified"}
+- Weight: ${clientData.weightKg ? `${clientData.weightKg} kg` : "Not specified"}
+- Height: ${clientData.heightCm ? `${clientData.heightCm} cm` : "Not specified"}
+- Lifting Experience: ${clientData.liftingExperienceMonths ? `${clientData.liftingExperienceMonths} months` : "Not specified"}
+- Gender: ${clientData.gender ?? "Not specified"}
 
 Client Details:
-${clientData.details?.map((d) => `- ${d.title}: ${d.description}`).join('\n') ?? 'No additional details provided'}
+${clientData.details?.map((d) => `- ${d.title}: ${d.description}`).join("\n") ?? "No additional details provided"}
 </CURRENT_CLIENT_CONTEXT>`)
-    } else if (item.type === 'exercises') {
+    } else if (item.type === "exercises") {
       // Use the shared utility function for exercise context formatting
       const exerciseContext = formatExerciseContext([item])
       if (exerciseContext) {
@@ -202,8 +200,8 @@ ${formatWorkoutsAsText(workouts)}
 
   const contextString =
     contextSections.length > 0
-      ? contextSections.join('\n\n')
-      : 'No specific context provided - you can help with general fitness advice and program design.'
+      ? contextSections.join("\n\n")
+      : "No specific context provided - you can help with general fitness advice and program design."
 
   return `${systemPromptv1}
 

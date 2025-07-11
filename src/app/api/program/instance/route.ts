@@ -1,10 +1,10 @@
-import { workoutInstanceSchema, workoutSchema } from '@/lib/domain/workouts'
+import { NextResponse } from "next/server"
+import { workoutInstanceSchema, workoutSchema } from "@/lib/domain/workouts"
 import {
   createWorkoutInstance,
   updateWorkoutInstance,
-} from '@/lib/supabase/server/database.operations.mutations'
-import { NextResponse } from 'next/server'
-import { withAuthBodySchema } from '../../middleware/withAuth'
+} from "@/lib/supabase/server/database.operations.mutations"
+import { withAuthBodySchema } from "../../middleware/withAuth"
 
 export const POST = withAuthBodySchema(
   { schema: workoutSchema },

@@ -1,14 +1,14 @@
-import { simulateReadableStream } from 'ai'
-import { MockLanguageModelV1 } from 'ai/test'
+import { simulateReadableStream } from "ai"
+import { MockLanguageModelV1 } from "ai/test"
 // TODO: get this from ai chatbot
 // import { getResponseChunksByPrompt } from '@/tests/prompts/utils';
 
 export const chatModel = new MockLanguageModelV1({
   doGenerate: async () => ({
     rawCall: { rawPrompt: null, rawSettings: {} },
-    finishReason: 'stop',
+    finishReason: "stop",
     usage: { promptTokens: 10, completionTokens: 20 },
-    text: `Hello, world!`,
+    text: "Hello, world!",
   }),
   doStream: async ({ prompt }) => ({
     stream: simulateReadableStream({

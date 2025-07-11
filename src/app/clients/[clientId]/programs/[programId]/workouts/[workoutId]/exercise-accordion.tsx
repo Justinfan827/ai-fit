@@ -3,7 +3,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion'
+} from "@/components/ui/accordion"
 import {
   Form,
   FormControl,
@@ -11,16 +11,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import {
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import type {
   ExerciseInstance,
   Workout,
   WorkoutExercise,
   WorkoutInstance,
-} from '@/lib/domain/workouts'
-import { cn } from '@/lib/utils'
-import { WorkoutForm } from './form'
+} from "@/lib/domain/workouts"
+import { cn } from "@/lib/utils"
+import type { WorkoutForm } from "./form"
 
 export function WorkoutAccordion({
   workout,
@@ -68,7 +68,7 @@ export function WorkoutAccordion({
     //     </Accordion>
     //   </form>
     // </Form>
-    <div></div>
+    <div />
   )
 }
 
@@ -84,15 +84,15 @@ function SetsContent({
   const numSets = Number(exercise.sets)
   const inputFields = [
     {
-      label: 'reps' as const,
+      label: "reps" as const,
       value: exercise.reps,
     },
     {
-      label: 'weight' as const,
+      label: "weight" as const,
       value: exercise.weight,
     },
     {
-      label: 'rest' as const,
+      label: "rest" as const,
       value: exercise.rest,
     },
   ]
@@ -104,13 +104,13 @@ function SetsContent({
           reps: setFields.reps,
           weight: setFields.weight,
           rest: setFields.rest,
-        }).every((field) => field !== '')
+        }).every((field) => field !== "")
         return (
-          <div key={index} className="flex items-end justify-start gap-8">
+          <div className="flex items-end justify-start gap-8" key={index}>
             <div
               className={cn(
-                'h-10 w-10 rounded-full border border-neutral-700 p-2 text-center font-mono transition-colors delay-75 ease-in-out',
-                completed && 'border-green-900'
+                "h-10 w-10 rounded-full border border-neutral-700 p-2 text-center font-mono transition-colors delay-75 ease-in-out",
+                completed && "border-green-900"
               )}
             >
               {index + 1}
@@ -118,27 +118,27 @@ function SetsContent({
             {inputFields.map(({ label, value }) => {
               return (
                 <FormField
-                  key={`${exerciseIdx}-${index}-${label}`}
                   control={form.control}
+                  key={`${exerciseIdx}-${index}-${label}`}
                   name={`exercises.${exerciseIdx}.sets.${index}.${label}`}
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <div
-                          key={label}
                           className="w-[60px] flex-col items-center justify-center space-y-1 text-center"
+                          key={label}
                         >
-                          <FormLabel className="text-lg font-semibold">
+                          <FormLabel className="font-semibold text-lg">
                             {label}
                           </FormLabel>
                           <Input
-                            type="number"
+                            className={cn(
+                              "h-10 w-[60px] transition-colors delay-100 ease-in-out [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+                              completed && "border-green-900"
+                            )}
                             inputMode="numeric"
                             placeholder={`${value}`}
-                            className={cn(
-                              'h-10 w-[60px] [appearance:textfield] transition-colors delay-100 ease-in-out [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
-                              completed && 'border-green-900'
-                            )}
+                            type="number"
                             {...field}
                           />
                         </div>
@@ -165,8 +165,8 @@ export function WorkoutAccordionInstance({
 }) {
   return (
     <Form {...form}>
-      <form id="workout-form" className="space-y-6">
-        <Accordion type="multiple" className="w-full">
+      <form className="space-y-6" id="workout-form">
+        <Accordion className="w-full" type="multiple">
           {workoutInstance.blocks.map((block, index) => (
             <AccordionItem
               key={block.exercise.name}
@@ -174,14 +174,14 @@ export function WorkoutAccordionInstance({
             >
               <AccordionTrigger>
                 <div
-                  key={index}
                   className="flex items-center justify-start space-x-3"
+                  key={index}
                 >
                   <div className="h-10 w-10 rounded-sm border border-neutral-700 p-2 text-center font-mono">
                     {index + 1}
                   </div>
                   <div>
-                    <p className="text-lg font-semibold">
+                    <p className="font-semibold text-lg">
                       {block.exercise.name}
                     </p>
                     <p className="tracking-wider">
@@ -192,16 +192,16 @@ export function WorkoutAccordionInstance({
                         .map((set) => {
                           return `${set.planned.reps}x${set.planned.weight}lb`
                         })
-                        .join(', ')}
+                        .join(", ")}
                     </p>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <SetsContentInstance
+                  exercise={block.exercise}
                   exerciseIdx={index}
                   form={form}
-                  exercise={block.exercise}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -223,13 +223,13 @@ function SetsContentInstance({
 }) {
   const inputFields = [
     {
-      label: 'reps' as const,
+      label: "reps" as const,
     },
     {
-      label: 'weight' as const,
+      label: "weight" as const,
     },
     {
-      label: 'rest' as const,
+      label: "rest" as const,
     },
   ]
   return (
@@ -240,13 +240,13 @@ function SetsContentInstance({
           reps: setFields.reps,
           weight: setFields.weight,
           rest: setFields.rest,
-        }).every((field) => field !== '')
+        }).every((field) => field !== "")
         return (
-          <div key={index} className="flex items-end justify-start gap-8">
+          <div className="flex items-end justify-start gap-8" key={index}>
             <div
               className={cn(
-                'h-10 w-10 rounded-full border border-neutral-700 p-2 text-center font-mono transition-colors delay-75 ease-in-out',
-                completed && 'border-green-900'
+                "h-10 w-10 rounded-full border border-neutral-700 p-2 text-center font-mono transition-colors delay-75 ease-in-out",
+                completed && "border-green-900"
               )}
             >
               {index + 1}
@@ -254,27 +254,27 @@ function SetsContentInstance({
             {inputFields.map(({ label }) => {
               return (
                 <FormField
-                  key={`${exerciseIdx}-${index}-${label}`}
                   control={form.control}
+                  key={`${exerciseIdx}-${index}-${label}`}
                   name={`exercises.${exerciseIdx}.sets.${index}.${label}`}
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <div
-                          key={label}
                           className="w-[60px] flex-col items-center justify-center space-y-1 text-center"
+                          key={label}
                         >
-                          <FormLabel className="text-lg font-semibold">
+                          <FormLabel className="font-semibold text-lg">
                             {label}
                           </FormLabel>
                           <Input
-                            type="number"
+                            className={cn(
+                              "h-10 w-[60px] transition-colors delay-100 ease-in-out [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+                              completed && "border-green-900"
+                            )}
                             inputMode="numeric"
                             placeholder={`${set.planned[label]}`}
-                            className={cn(
-                              'h-10 w-[60px] [appearance:textfield] transition-colors delay-100 ease-in-out [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
-                              completed && 'border-green-900'
-                            )}
+                            type="number"
                             {...field}
                           />
                         </div>

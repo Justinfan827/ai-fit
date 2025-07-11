@@ -1,12 +1,12 @@
-import { PageLayout } from '@/components/page-layout'
-import { createServerClient } from '@/lib/supabase/create-server-client'
+import { PageLayout } from "@/components/page-layout"
+import { createServerClient } from "@/lib/supabase/create-server-client"
 import {
   getCurrentUser,
   getCurrentUserClients,
-} from '@/lib/supabase/server/database.operations.queries'
-import newTrainerRepo from '@/lib/supabase/server/users/trainer-repo'
-import { NextJSSearchParams } from '@/lib/types/types'
-import ClientPage from './client-page'
+} from "@/lib/supabase/server/database.operations.queries"
+import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
+import type { NextJSSearchParams } from "@/lib/types/types"
+import ClientPage from "./client-page"
 
 export default async function Page({
   searchParams,
@@ -46,7 +46,7 @@ export default async function Page({
   }
 
   // Optionally get client data if clientId is provided
-  let clientData = undefined
+  let clientData
   if (clientId) {
     const clientResult = await trainerRepo.getClientHomePageData(clientId)
     if (clientResult.error) {
@@ -58,20 +58,20 @@ export default async function Page({
   return (
     <PageLayout>
       <ClientPage
-        baseExercises={exercises.data.base}
-        trainerExercises={exercises.data.custom}
-        trainerId={user.data.sbUser.id}
-        clientData={clientData}
         availableClients={clients.data.map((c) => ({
           ...c,
           programs: [],
           age: 0,
           liftingExperienceMonths: 0,
-          gender: '',
+          gender: "",
           weightKg: 0,
           heightCm: 0,
           details: [],
-        }))} // Convert Client[] to ClientHomePage[]
+        }))}
+        baseExercises={exercises.data.base}
+        clientData={clientData}
+        trainerExercises={exercises.data.custom}
+        trainerId={user.data.sbUser.id} // Convert Client[] to ClientHomePage[]
       />
     </PageLayout>
   )

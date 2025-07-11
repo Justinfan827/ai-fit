@@ -1,12 +1,12 @@
-import { useZEditorActions } from '@/hooks/zustand/program-editor'
-import { Exercise } from '@/lib/domain/workouts'
 import {
   Combobox,
   ComboboxInput,
   ComboboxOption,
   ComboboxOptions,
-} from '@headlessui/react'
-import { useEffect, useRef, useState } from 'react'
+} from "@headlessui/react"
+import { useEffect, useRef, useState } from "react"
+import { useZEditorActions } from "@/hooks/zustand/program-editor"
+import type { Exercise } from "@/lib/domain/workouts"
 
 export type ExerciseInputPopoverProps = {
   value: string
@@ -47,28 +47,28 @@ export default function ExerciseInput({
   }
 
   return (
-    <Combobox value={value} onChange={onSelectInternal} immediate>
+    <Combobox immediate onChange={onSelectInternal} value={value}>
       <ComboboxInput
-        ref={ref}
-        onChange={onChange}
-        onBlur={onBlur}
         className="h-full w-full bg-neutral-950 py-2 text-sm focus-within:outline-hidden focus:outline-hidden"
+        onBlur={onBlur}
+        onChange={onChange}
+        ref={ref}
       />
       <ComboboxOptions
         anchor={{
-          to: 'bottom start',
-          offset: '-9px',
-          gap: '8px',
+          to: "bottom start",
+          offset: "-9px",
+          gap: "8px",
         }}
+        className="w-[calc(var(--input-width)+18px)] rounded-b-sm border border-border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"
         transition
-        className="border-border w-[calc(var(--input-width)+18px)] rounded-b-sm border bg-neutral-950 p-1 text-sm shadow-lg empty:invisible"
       >
         {exercises.map((exercise) => {
           return (
             <ComboboxOption
-              value={exercise.name}
+              className="cursor-default select-none rounded-sm bg-neutral-950 p-1 focus:outline-hidden data-focus:bg-neutral-900 data-selected:text-accent-foreground"
               key={exercise.id}
-              className="data-selected:text-accent-foreground cursor-default rounded-sm bg-neutral-950 p-1 select-none focus:outline-hidden data-focus:bg-neutral-900"
+              value={exercise.name}
             >
               {exercise.name}
             </ComboboxOption>

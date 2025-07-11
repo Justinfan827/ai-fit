@@ -1,7 +1,8 @@
-import Link from 'next/link'
-import React, { memo } from 'react'
-import ReactMarkdown, { type Components } from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import Link from "next/link"
+import type React from "react"
+import { memo } from "react"
+import ReactMarkdown, { type Components } from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 // Shared props type for custom markdown renderers
 type MarkdownElementProps = {
@@ -44,8 +45,8 @@ const components: Partial<Components> = {
       // @ts-expect-error
       <Link
         className="text-blue-500 hover:underline"
-        target="_blank"
         rel="noreferrer"
+        target="_blank"
         {...props}
       >
         {children}
@@ -54,42 +55,42 @@ const components: Partial<Components> = {
   },
   h1: ({ children, ...props }: MarkdownElementProps) => {
     return (
-      <h1 className="mt-6 mb-2 text-3xl font-semibold" {...props}>
+      <h1 className="mt-6 mb-2 font-semibold text-3xl" {...props}>
         {children}
       </h1>
     )
   },
   h2: ({ children, ...props }: MarkdownElementProps) => {
     return (
-      <h2 className="mt-6 mb-2 text-2xl font-semibold" {...props}>
+      <h2 className="mt-6 mb-2 font-semibold text-2xl" {...props}>
         {children}
       </h2>
     )
   },
   h3: ({ children, ...props }: MarkdownElementProps) => {
     return (
-      <h3 className="mt-6 mb-2 text-xl font-semibold" {...props}>
+      <h3 className="mt-6 mb-2 font-semibold text-xl" {...props}>
         {children}
       </h3>
     )
   },
   h4: ({ children, ...props }: MarkdownElementProps) => {
     return (
-      <h4 className="mt-6 mb-2 text-lg font-semibold" {...props}>
+      <h4 className="mt-6 mb-2 font-semibold text-lg" {...props}>
         {children}
       </h4>
     )
   },
   h5: ({ children, ...props }: MarkdownElementProps) => {
     return (
-      <h5 className="mt-6 mb-2 text-base font-semibold" {...props}>
+      <h5 className="mt-6 mb-2 font-semibold text-base" {...props}>
         {children}
       </h5>
     )
   },
   h6: ({ children, ...props }: MarkdownElementProps) => {
     return (
-      <h6 className="mt-6 mb-2 text-sm font-semibold" {...props}>
+      <h6 className="mt-6 mb-2 font-semibold text-sm" {...props}>
         {children}
       </h6>
     )
@@ -100,7 +101,7 @@ const remarkPlugins = [remarkGfm]
 
 const NonMemoizedMarkdown = ({ children }: { children: string }) => {
   return (
-    <ReactMarkdown remarkPlugins={remarkPlugins} components={components}>
+    <ReactMarkdown components={components} remarkPlugins={remarkPlugins}>
       {children}
     </ReactMarkdown>
   )

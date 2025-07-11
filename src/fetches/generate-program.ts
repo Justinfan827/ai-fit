@@ -1,16 +1,16 @@
-import { AIProgram, aiProgramSchema } from '@/lib/domain/workouts'
-import { APIResponse } from '@/lib/types/apires'
-import { getError } from '@/lib/utils/util'
+import { type AIProgram, aiProgramSchema } from "@/lib/domain/workouts"
+import type { APIResponse } from "@/lib/types/apires"
+import { getError } from "@/lib/utils/util"
 
 export default async function apiGenerateProgram(body: {
   clientInfo: string
   totalNumDays: number
 }): Promise<APIResponse<AIProgram>> {
   try {
-    const res = await fetch(`/api/ai/generate-program`, {
-      method: 'POST',
+    const res = await fetch("/api/ai/generate-program", {
+      method: "POST",
       body: JSON.stringify(body),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
+      headers: new Headers({ "Content-Type": "application/json" }),
     })
     if (!res.ok) {
       const bodyMsg = await res.text()

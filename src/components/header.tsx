@@ -1,7 +1,7 @@
-import { Logo } from '@/components/icons'
-import { Breadcrumb, BreadcrumbList } from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
-import { Usermenu } from '@/components/user-dropdown'
+import { Logo } from "@/components/icons"
+import { Breadcrumb, BreadcrumbList } from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import { Usermenu } from "@/components/user-dropdown"
 
 export default async function Header({
   children,
@@ -12,7 +12,7 @@ export default async function Header({
     <header className="flex h-16 w-full items-center justify-between border-b px-4">
       <div className="flex shrink-0 items-center justify-start gap-4">
         <Logo />
-        <Separator orientation="vertical" className="h-4" />
+        <Separator className="h-4" orientation="vertical" />
         <Breadcrumb>
           <BreadcrumbList>{children}</BreadcrumbList>
         </Breadcrumb>

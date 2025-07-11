@@ -1,12 +1,12 @@
-import 'server-only'
+import "server-only"
 
-import { AIWorkout, aiWorkoutSchema } from '@/lib/domain/workouts'
-import { APIResponse } from '@/lib/types/apires'
-import { getError } from '@/lib/utils/util'
-import OpenAI from 'openai'
-import { zodResponseFormat } from 'openai/helpers/zod'
-import { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
-import { systemPromptv1 } from '../prompts/prompts'
+import OpenAI from "openai"
+import { zodResponseFormat } from "openai/helpers/zod"
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions"
+import { type AIWorkout, aiWorkoutSchema } from "@/lib/domain/workouts"
+import type { APIResponse } from "@/lib/types/apires"
+import { getError } from "@/lib/utils/util"
+import { systemPromptv1 } from "../prompts/prompts"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -14,41 +14,41 @@ async function generateWorkout({
   context,
 }: {
   context: {
-    role: 'assistant' | 'user'
+    role: "assistant" | "user"
     content: string
   }[]
 }): Promise<APIResponse<AIWorkout>> {
   const messages: Array<ChatCompletionMessageParam> = [
     {
-      role: 'system',
+      role: "system",
       content: systemPromptv1,
     },
     ...context,
   ]
-  console.log('\n\n\n')
-  console.log('sending message')
+  console.log("\n\n\n")
+  console.log("sending message")
   console.log(JSON.stringify(messages, null, 2))
-  console.log('\n\n\n')
+  console.log("\n\n\n")
   try {
     const completion = await openai.beta.chat.completions.parse({
-      model: 'gpt-4o-mini',
+      model: "gpt-4o-mini",
       messages,
-      response_format: zodResponseFormat(aiWorkoutSchema, 'workout'),
-      max_completion_tokens: 16384,
+      response_format: zodResponseFormat(aiWorkoutSchema, "workout"),
+      max_completion_tokens: 16_384,
     })
 
     console.log({ completion })
     const aiGeneratedPlan = completion.choices[0].message
     if (aiGeneratedPlan.parsed) {
-      console.log('\n\n\n')
-      console.log('successful plan generation')
+      console.log("\n\n\n")
+      console.log("successful plan generation")
       console.log(JSON.stringify(aiGeneratedPlan.parsed, null, 2))
-      console.log('\n\n\n')
+      console.log("\n\n\n")
       const { data: verifiedPlan, error } = aiWorkoutSchema.safeParse(
         aiGeneratedPlan.parsed
       )
       if (error) {
-        console.log('error in generating workout schema')
+        console.log("error in generating workout schema")
         console.log(JSON.stringify(error, null, 2))
         return {
           data: null,
@@ -59,7 +59,8 @@ async function generateWorkout({
         data: verifiedPlan,
         error: null,
       }
-    } else if (aiGeneratedPlan.refusal) {
+    }
+    if (aiGeneratedPlan.refusal) {
       // handle refusal
       console.log(aiGeneratedPlan.refusal)
       return {
@@ -69,13 +70,13 @@ async function generateWorkout({
     }
     return {
       data: null,
-      error: new Error('No workout generated'),
+      error: new Error("No workout generated"),
     }
   } catch (e) {
-    console.log('\n\n\n')
-    console.log('catching error')
+    console.log("\n\n\n")
+    console.log("catching error")
     console.log({ e })
-    console.log('\n\n\n')
+    console.log("\n\n\n")
     // if (e instanceof z.ZodError) {
     //   console.log(e.errors)
     // } else if (e.constructor.name == 'LengthFinishReasonError') {

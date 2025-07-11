@@ -1,20 +1,27 @@
-import { User } from '@supabase/supabase-js'
-import { NextRequest, NextResponse } from 'next/server'
-import { infer as ZodInfer, ZodObject, ZodRawShape } from 'zod'
-import { authUserRequest } from '../auth'
-import { handleAPIResponse } from '../error-response'
-import { APIError } from '../errors'
+import type { User } from "@supabase/supabase-js"
+import type { NextRequest, NextResponse } from "next/server"
+import type { infer as ZodInfer, ZodObject, ZodRawShape } from "zod"
+import { authUserRequest } from "../auth"
+import { handleAPIResponse } from "../error-response"
+import { APIError } from "../errors"
 
-interface withPublicHandler {
-  ({ req }: { req: NextRequest }): Promise<NextResponse>
-}
+type withPublicHandler = ({
+  req,
+}: {
+  req: NextRequest
+}) => Promise<NextResponse>
 
-interface withAuthHandler {
-  ({ req }: { req: NextRequest; user: User }): Promise<NextResponse>
-}
-interface withAuthBodyHandler {
-  (params: { req: NextRequest; user: User; body: any }): Promise<NextResponse>
-}
+type withAuthHandler = ({
+  req,
+}: {
+  req: NextRequest
+  user: User
+}) => Promise<NextResponse>
+type withAuthBodyHandler = (params: {
+  req: NextRequest
+  user: User
+  body: any
+}) => Promise<NextResponse>
 
 export const withPublic = (handler: withPublicHandler) => {
   return (req: NextRequest) => {
@@ -47,8 +54,8 @@ export const withAuthBody = (handler: withAuthBodyHandler) => {
       const body = await req.json()
       if (!body) {
         throw new APIError({
-          code: 'bad_request',
-          message: 'Request body is required for this endpoint',
+          code: "bad_request",
+          message: "Request body is required for this endpoint",
         })
       }
       return handler({
@@ -62,9 +69,11 @@ export const withAuthBody = (handler: withAuthBodyHandler) => {
   }
 }
 
-interface WithAuthBodyHandler<T> {
-  (params: { req: NextRequest; user: User; body: T }): Promise<NextResponse>
-}
+type WithAuthBodyHandler<T> = (params: {
+  req: NextRequest
+  user: User
+  body: T
+}) => Promise<NextResponse>
 
 export const withAuthBodySchema = <T extends ZodRawShape>(
   { schema }: { schema: ZodObject<T> },
@@ -76,8 +85,8 @@ export const withAuthBodySchema = <T extends ZodRawShape>(
       const body = await req.json()
       if (!body) {
         throw new APIError({
-          code: 'bad_request',
-          message: 'Request body is required for this endpoint',
+          code: "bad_request",
+          message: "Request body is required for this endpoint",
         })
       }
 

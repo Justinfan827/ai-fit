@@ -1,12 +1,12 @@
-import 'server-only'
+import "server-only"
 
-import { ClientHomePage } from '@/lib/domain/clients'
-import { Exercise } from '@/lib/domain/workouts'
-import createAdminClient from '@/lib/supabase/create-admin-client'
-import { Maybe } from '@/lib/types/types'
-import { v4 as uuidv4 } from 'uuid'
-import { createServerClient } from '../../create-server-client'
-import { resolvePrograms } from '../programs/utils'
+import { v4 as uuidv4 } from "uuid"
+import type { ClientHomePage } from "@/lib/domain/clients"
+import type { Exercise } from "@/lib/domain/workouts"
+import createAdminClient from "@/lib/supabase/create-admin-client"
+import type { Maybe } from "@/lib/types/types"
+import { createServerClient } from "../../create-server-client"
+import { resolvePrograms } from "../programs/utils"
 
 /*
  * Thin data layer to handle server-side logic for trainers
@@ -26,8 +26,8 @@ export class TrainerClientRepo {
   ): Promise<Maybe<{ base: Exercise[]; custom: Exercise[] }>> {
     const sb = await createServerClient()
     const [base, custom] = await Promise.all([
-      sb.from('exercises').select('*').is('owner_id', null),
-      sb.from('exercises').select('*').eq('owner_id', trainerId),
+      sb.from("exercises").select("*").is("owner_id", null),
+      sb.from("exercises").select("*").eq("owner_id", trainerId),
     ])
     if (base.error) {
       return {
@@ -45,13 +45,13 @@ export class TrainerClientRepo {
     const baseData = base.data.map((e) => ({
       id: e.id,
       name: e.name,
-      muscleGroup: e.primary_trained_colloquial || '',
+      muscleGroup: e.primary_trained_colloquial || "",
       ownerId: e.owner_id,
     }))
     const customData = custom.data.map((e) => ({
       id: e.id,
       name: e.name,
-      muscleGroup: e.primary_trained_colloquial || '',
+      muscleGroup: e.primary_trained_colloquial || "",
       ownerId: e.owner_id,
     }))
     return {
@@ -78,30 +78,30 @@ export class TrainerClientRepo {
       password: email,
       email_confirm: true,
       app_metadata: {
-        provider: 'email',
-        providers: ['email'],
+        provider: "email",
+        providers: ["email"],
       },
     })
     if (error) {
       return { data: null, error }
     }
 
-    const { error: rpcErr } = await sb.rpc('set_claim', {
+    const { error: rpcErr } = await sb.rpc("set_claim", {
       uid: data.user.id,
-      claim: 'USER_ROLE',
-      value: 'CLIENT',
+      claim: "USER_ROLE",
+      value: "CLIENT",
     })
     if (rpcErr) {
       return { data: null, error: rpcErr }
     }
     const { error: insertErr } = await sb
-      .from('users')
+      .from("users")
       .update({
         trainer_id: trainerId,
         first_name: firstName,
         last_name: lastName,
       })
-      .eq('id', data.user.id)
+      .eq("id", data.user.id)
     if (insertErr) {
       return { data: null, error: insertErr }
     }
@@ -128,9 +128,9 @@ export class TrainerClientRepo {
   }) {
     const sb = await createServerClient()
     const { data, error } = await sb
-      .from('users')
-      .select('metadata')
-      .eq('id', clientId)
+      .from("users")
+      .select("metadata")
+      .eq("id", clientId)
       .single()
     if (error) {
       return { data: null, error }
@@ -140,12 +140,12 @@ export class TrainerClientRepo {
       (d: any) => d.id !== detailId
     )
     const { data: user, error: updateErr } = await sb
-      .from('users')
+      .from("users")
       .update({
         metadata,
       })
-      .eq('id', clientId)
-      .select('*')
+      .eq("id", clientId)
+      .select("*")
     if (updateErr) {
       return { data: null, error: updateErr }
     }
@@ -168,9 +168,9 @@ export class TrainerClientRepo {
   }) {
     const sb = await createServerClient()
     const { data, error } = await sb
-      .from('users')
-      .select('metadata')
-      .eq('id', clientId)
+      .from("users")
+      .select("metadata")
+      .eq("id", clientId)
       .single()
     if (error) {
       return { data: null, error }
@@ -184,12 +184,12 @@ export class TrainerClientRepo {
     })
 
     const { data: user, error: updateErr } = await sb
-      .from('users')
+      .from("users")
       .update({
         metadata,
       })
-      .eq('id', clientId)
-      .select('*')
+      .eq("id", clientId)
+      .select("*")
     if (updateErr) {
       return { data: null, error: updateErr }
     }
@@ -216,10 +216,10 @@ export class TrainerClientRepo {
     }
 
     const { data: client, error: clientError } = await sb
-      .from('users')
-      .select('*')
-      .eq('trainer_id', userRes.user.id)
-      .eq('id', clientId)
+      .from("users")
+      .select("*")
+      .eq("trainer_id", userRes.user.id)
+      .eq("id", clientId)
       .single()
 
     if (clientError) {
@@ -227,10 +227,10 @@ export class TrainerClientRepo {
     }
 
     const { data: pData, error: pErr } = await sb
-      .from('programs')
-      .select('*')
-      .eq('user_id', client.id)
-      .order('created_at', { ascending: false })
+      .from("programs")
+      .select("*")
+      .eq("user_id", client.id)
+      .order("created_at", { ascending: false })
 
     if (pErr) {
       return { data: null, error: pErr }
@@ -246,9 +246,9 @@ export class TrainerClientRepo {
     return {
       data: {
         id: client.id,
-        email: client.email || '',
-        firstName: client.first_name || '',
-        lastName: client.last_name || '',
+        email: client.email || "",
+        firstName: client.first_name || "",
+        lastName: client.last_name || "",
         programs: progData,
         age: metadata.age || 0,
         gender: metadata.gender,

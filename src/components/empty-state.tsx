@@ -1,8 +1,9 @@
-import { Logo } from '@/components/icons'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import Link from 'next/link'
-import React, { ReactNode } from 'react'
+import Link from "next/link"
+import type React from "react"
+import type { ReactNode } from "react"
+import { Logo } from "@/components/icons"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 // Type definitions
 interface EmptyStateCardProps {
@@ -36,11 +37,11 @@ function EmptyStateCard({
 }: EmptyStateCardProps & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      id="empty-state-card"
       className={cn(
-        'flex flex-col items-center justify-center gap-6 rounded-md border border-neutral-800 py-8',
+        "flex flex-col items-center justify-center gap-6 rounded-md border border-neutral-800 py-8",
         className
       )}
+      id="empty-state-card"
       {...props}
     >
       <div className="rounded-md border border-neutral-800 p-4">
@@ -49,12 +50,12 @@ function EmptyStateCard({
       <div className="flex flex-col items-center justify-center gap-2">
         <p className="text-md">{title}</p>
         <div className="flex max-w-[250px] justify-center text-center">
-          <p className="text-sm text-neutral-400">{subtitle}</p>
+          <p className="text-neutral-400 text-sm">{subtitle}</p>
         </div>
       </div>
       {buttonText && buttonHref && (
         <div className="flex w-full justify-center pt-2">
-          <Button variant="outline" asChild>
+          <Button asChild variant="outline">
             <Link href={buttonHref}>{buttonText}</Link>
           </Button>
         </div>
@@ -71,14 +72,14 @@ const EmptyStateLogo: React.FC = () => (
 
 const EmptyStateText: React.FC<EmptyStateTextProps> = ({ title, children }) => (
   <div className="flex flex-col items-center justify-center gap-2">
-    <p className="text-md font-bold">{title}</p>
+    <p className="font-bold text-md">{title}</p>
     {children}
   </div>
 )
 
 const EmptyStateContent: React.FC<EmptyStateContentProps> = ({ children }) => (
   <div className="flex w-2/3 justify-center text-center">
-    <p className="text-sm text-neutral-400">{children}</p>
+    <p className="text-neutral-400 text-sm">{children}</p>
   </div>
 )
 
@@ -87,7 +88,7 @@ const EmptyStateAction: React.FC<EmptyStateActionProps> = ({
   linkText,
 }) => (
   <div className="flex w-full justify-center pt-2">
-    <Button variant="outline" asChild>
+    <Button asChild variant="outline">
       <Link href={link}>{linkText}</Link>
     </Button>
   </div>

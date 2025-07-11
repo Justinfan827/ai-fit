@@ -14,4 +14,4 @@ type NextJSSearchParams = Promise<{
   [key: string]: string | string[] | undefined
 }>
 
-export { type Maybe, type NextJSSearchParams, type NotOK, type OK }
+export type { Maybe, NextJSSearchParams, NotOK, OK }

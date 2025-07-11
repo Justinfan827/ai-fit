@@ -1,5 +1,5 @@
-import { Workout } from '@/lib/domain/workouts'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from "react"
+import type { Workout } from "@/lib/domain/workouts"
 
 interface WorkoutHistoryState {
   history: Workout[]
@@ -80,7 +80,7 @@ export function useWorkoutHistory(initialWorkout: Workout) {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
         e.preventDefault()
         if (e.shiftKey) {
           redo()
@@ -90,8 +90,8 @@ export function useWorkoutHistory(initialWorkout: Workout) {
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
   }, [undo, redo])
 
   // Reset history when initial workout changes (e.g., new workout loaded)

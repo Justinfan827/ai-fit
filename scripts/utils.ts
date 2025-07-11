@@ -1,5 +1,5 @@
-import chalk from 'chalk'
-import logSymbols from 'log-symbols'
+import chalk from "chalk"
+import logSymbols from "log-symbols"
 
 export function requireEnvVars(...envVars: (keyof NodeJS.ProcessEnv)[]) {
   const ret: Partial<NodeJS.ProcessEnv> = {}

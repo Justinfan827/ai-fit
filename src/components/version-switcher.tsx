@@ -1,20 +1,19 @@
-'use client'
+"use client"
 
-import { GalleryVerticalEnd } from 'lucide-react'
-import * as React from 'react'
-
+import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons"
+import { GalleryVerticalEnd } from "lucide-react"
+import * as React from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu"
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar'
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons'
+} from "@/components/ui/sidebar"
 
 export function VersionSwitcher({
   versions,
@@ -31,10 +30,10 @@ export function VersionSwitcher({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              size="lg"
             >
-              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 <GalleryVerticalEnd className="size-4" />
               </div>
               <div className="flex flex-col gap-0.5 leading-none">
@@ -45,15 +44,15 @@ export function VersionSwitcher({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width)"
             align="start"
+            className="w-(--radix-dropdown-menu-trigger-width)"
           >
             {versions.map((version) => (
               <DropdownMenuItem
                 key={version}
                 onSelect={() => setSelectedVersion(version)}
               >
-                v{version}{' '}
+                v{version}{" "}
                 {version === selectedVersion && (
                   <CheckIcon className="ml-auto" />
                 )}

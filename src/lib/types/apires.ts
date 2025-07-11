@@ -4,7 +4,7 @@ These are the return types for API calls
 
 */
 
-import { NextResponse } from 'next/server'
+import type { NextResponse } from "next/server"
 
 export interface APISuccessResponse<T> {
   data: T

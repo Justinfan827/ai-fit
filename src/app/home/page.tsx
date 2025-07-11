@@ -1,18 +1,18 @@
-import ClientButtonNewClient from '@/components/ClientButtonNewClient'
-import { EmptyStateCard } from '@/components/empty-state'
-import Header from '@/components/header'
-import { PageHeader } from '@/components/page-header'
-import { PageContent, PageLayout, PageSection } from '@/components/page-layout'
-import { Tp } from '@/components/typography'
-import { BreadcrumbItem, BreadcrumbPage } from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
+import Link from "next/link"
+import ClientButtonNewClient from "@/components/ClientButtonNewClient"
+import { EmptyStateCard } from "@/components/empty-state"
+import Header from "@/components/header"
+import { PageHeader } from "@/components/page-header"
+import { PageContent, PageLayout, PageSection } from "@/components/page-layout"
+import { Tp } from "@/components/typography"
+import { BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb"
+import { Button } from "@/components/ui/button"
 import {
   getAllPrograms,
   getCurrentUser,
   getCurrentUserClients,
-} from '@/lib/supabase/server/database.operations.queries'
-import { cn } from '@/lib/utils'
-import Link from 'next/link'
+} from "@/lib/supabase/server/database.operations.queries"
+import { cn } from "@/lib/utils"
 
 export default async function WorkoutsPage() {
   const [programs, user, clients] = await Promise.all([
@@ -46,40 +46,40 @@ export default async function WorkoutsPage() {
 
   return (
     <PageLayout>
-      <div id="home content" className="w-full">
+      <div className="w-full" id="home content">
         <Header>
           <BreadcrumbItem className="hidden md:block">
             <BreadcrumbPage>Home</BreadcrumbPage>
           </BreadcrumbItem>
         </Header>
         <PageHeader
-          title={`Welcome ${userData.metadata.firstName} ${userData.metadata.lastName}`}
-          subtitle={userData.sbUser.email}
           actions={headerActions}
+          subtitle={userData.sbUser.email}
+          title={`Welcome ${userData.metadata.firstName} ${userData.metadata.lastName}`}
         />
         <PageContent>
           <PageSection>
             <Tp className="text-2xl tracking-wide">Programs</Tp>
             {programData.length === 0 ? (
               <EmptyStateCard
-                title="Create a program"
-                subtitle="Create a new program to get started with ai powered programming."
-                buttonText="New program"
                 buttonHref="/home/programs/new"
+                buttonText="New program"
                 className="w-full"
+                subtitle="Create a new program to get started with ai powered programming."
+                title="Create a program"
               />
             ) : (
               <div className="">
                 {programData.map((program, idx) => (
                   <Link
+                    className={cn(
+                      "flex border-neutral-700 border-x px-4 py-4",
+                      idx === 0 && "rounded-t-sm border-neutral-700 border-t",
+                      idx === programData.length - 1 && "rounded-b-sm",
+                      "border-neutral-700 border-b"
+                    )}
                     href={`/home/programs/${program.id}`}
                     key={program.id}
-                    className={cn(
-                      'flex border-x border-neutral-700 px-4 py-4',
-                      idx === 0 && 'rounded-t-sm border-t border-neutral-700',
-                      idx === programData.length - 1 && 'rounded-b-sm',
-                      'border-b border-neutral-700'
-                    )}
                   >
                     {program.name}
                   </Link>
@@ -92,24 +92,24 @@ export default async function WorkoutsPage() {
 
             {clientsData.length === 0 ? (
               <EmptyStateCard
-                title="Add a client"
-                subtitle="Add a new client to get started with ai powered programming."
-                buttonText="New Client"
                 buttonHref="/home/programs/new"
+                buttonText="New Client"
                 className="w-full"
+                subtitle="Add a new client to get started with ai powered programming."
+                title="Add a client"
               />
             ) : (
               <div className="flex flex-col">
                 {clientsData.map((client, idx) => (
                   <Link
+                    className={cn(
+                      "flex border-neutral-700 border-x px-4 py-4",
+                      idx === 0 && "rounded-t-sm border-neutral-700 border-t",
+                      idx === clientsData.length - 1 && "rounded-b-sm",
+                      "border-neutral-700 border-b"
+                    )}
                     href={`/home/clients/${client.id}`}
                     key={client.id}
-                    className={cn(
-                      'flex border-x border-neutral-700 px-4 py-4',
-                      idx === 0 && 'rounded-t-sm border-t border-neutral-700',
-                      idx === clientsData.length - 1 && 'rounded-b-sm',
-                      'border-b border-neutral-700'
-                    )}
                   >
                     {client.firstName} {client.lastName}
                   </Link>

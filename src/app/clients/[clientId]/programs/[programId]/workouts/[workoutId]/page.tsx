@@ -1,5 +1,5 @@
-import { getUserWorkout } from '@/lib/supabase/server/database.operations.queries'
-import ClientPage from './client-page'
+import { getUserWorkout } from "@/lib/supabase/server/database.operations.queries"
+import ClientPage from "./client-page"
 
 export default async function ClientWorkoutPage({
   params,
@@ -20,7 +20,7 @@ export default async function ClientWorkoutPage({
 
   return (
     <div className="w-full space-y-2 p-2">
-      <ClientPage workout={workout.data} clientId={clientId} />
+      <ClientPage clientId={clientId} workout={workout.data} />
     </div>
   )
 }

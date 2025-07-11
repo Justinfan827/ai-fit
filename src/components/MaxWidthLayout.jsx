@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react"
 
 /**
  * A reusable layout component that enforces a maximum width on its contents
@@ -11,8 +11,8 @@ import React from 'react'
  */
 const MaxWidthLayout = ({
   children,
-  className = '',
-  maxWidth = 'max-w-4xl',
+  className = "",
+  maxWidth = "max-w-4xl",
 }) => {
   return (
     <div className={`mx-auto px-4 ${maxWidth} ${className}`}>{children}</div>

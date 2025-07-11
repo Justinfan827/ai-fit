@@ -1,25 +1,25 @@
-import { Blocks, Program, programSchema } from '@/lib/domain/workouts'
-import { Maybe } from '@/lib/types/types'
-import { createServerClient } from '../../create-server-client'
-import { Database } from '../../database.types'
-import { DBClient } from '../../types'
+import { type Blocks, type Program, programSchema } from "@/lib/domain/workouts"
+import type { Maybe } from "@/lib/types/types"
+import { createServerClient } from "../../create-server-client"
+import type { Database } from "../../database.types"
+import type { DBClient } from "../../types"
 
 export async function resolveProgram(
-  dbProgram: Database['public']['Tables']['programs']['Row']
+  dbProgram: Database["public"]["Tables"]["programs"]["Row"]
 ): Promise<Maybe<Program>> {
   const client = await createServerClient()
   const { data: wData, error: wErr } = await client
-    .from('workouts')
-    .select('*')
-    .eq('program_id', dbProgram.id)
-    .order('program_order', { ascending: true })
+    .from("workouts")
+    .select("*")
+    .eq("program_id", dbProgram.id)
+    .order("program_order", { ascending: true })
 
   if (wErr) {
     return { data: null, error: wErr }
   }
   const program: Program = {
     id: dbProgram.id,
-    type: dbProgram.type as 'weekly' | 'splits',
+    type: dbProgram.type as "weekly" | "splits",
     name: dbProgram.name,
     created_at: dbProgram.created_at,
     workouts: wData.map((workout) => ({
@@ -43,16 +43,16 @@ export async function resolveProgram(
 
 export async function resolvePrograms(
   client: DBClient,
-  pData: Database['public']['Tables']['programs']['Row'][]
+  pData: Database["public"]["Tables"]["programs"]["Row"][]
 ): Promise<Maybe<Program[]>> {
   const returnData: Program[] = []
   const res = await Promise.all(
     pData.map(async (p) => {
       const { data: wData, error: wErr } = await client
-        .from('workouts')
-        .select('*')
-        .eq('program_id', p.id)
-        .order('program_order', { ascending: true })
+        .from("workouts")
+        .select("*")
+        .eq("program_id", p.id)
+        .order("program_order", { ascending: true })
 
       if (wErr) {
         return { error: wErr }
@@ -61,7 +61,7 @@ export async function resolvePrograms(
         id: p.id,
         name: p.name,
         created_at: p.created_at,
-        type: p.type as 'weekly' | 'splits',
+        type: p.type as "weekly" | "splits",
         workouts: wData.map((workout) => ({
           id: workout.id,
           program_order: workout.program_order,

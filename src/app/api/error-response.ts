@@ -1,13 +1,13 @@
-import { PostgrestError } from '@supabase/postgrest-js'
-import { AuthError } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
-import { ZodError } from 'zod'
+import { PostgrestError } from "@supabase/postgrest-js"
+import { AuthError } from "@supabase/supabase-js"
+import { NextResponse } from "next/server"
+import { ZodError } from "zod"
 import {
   APIError,
+  type ErrorResponse,
   errorCodeToHttpStatus,
-  ErrorResponse,
   fromZodError,
-} from './errors'
+} from "./errors"
 
 export function handleAPIResponse(e: unknown) {
   const errCodeAndMsg = asError(e)
@@ -26,7 +26,7 @@ export function asError(e: any): ErrorResponse {
   if (e instanceof AuthError) {
     return {
       error: {
-        code: 'unauthorized',
+        code: "unauthorized",
         message: e.message,
       },
     }
@@ -46,16 +46,16 @@ export function asError(e: any): ErrorResponse {
     return {
       error: {
         // TODO: handle different postgres codes differently
-        code: 'internal_server_error',
+        code: "internal_server_error",
         message: e.message,
       },
     }
   }
   return {
     error: {
-      code: 'internal_server_error',
+      code: "internal_server_error",
       message:
-        'An internal server error occurred. Please contact our support if the problem persists.',
+        "An internal server error occurred. Please contact our support if the problem persists.",
     },
   }
 }

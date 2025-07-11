@@ -1,6 +1,6 @@
-import { Program, programSchema } from '@/lib/domain/workouts'
-import { APIResponse } from '@/lib/types/apires'
-import { getError } from '@/lib/utils/util'
+import { type Program, programSchema } from "@/lib/domain/workouts"
+import type { APIResponse } from "@/lib/types/apires"
+import { getError } from "@/lib/utils/util"
 
 export default async function apiEditProgram({
   body,
@@ -8,10 +8,10 @@ export default async function apiEditProgram({
   body: Program
 }): Promise<APIResponse<Program>> {
   try {
-    const res = await fetch(`/api/program`, {
-      method: 'PUT',
+    const res = await fetch("/api/program", {
+      method: "PUT",
       body: JSON.stringify(body),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
+      headers: new Headers({ "Content-Type": "application/json" }),
     })
     if (!res.ok) {
       const bodyMsg = await res.text()

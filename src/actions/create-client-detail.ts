@@ -1,18 +1,18 @@
-'use server'
+"use server"
 
-import newTrainerRepo from '@/lib/supabase/server/users/trainer-repo'
-import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
-import { withActionAuthSchema } from './middleware/withAuth'
+import { revalidatePath } from "next/cache"
+import { z } from "zod"
+import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
+import { withActionAuthSchema } from "./middleware/withAuth"
 
 // This schema is used to validate input from client.
 const schema = z.object({
   clientId: z.string(),
   title: z.string().min(2, {
-    message: 'Title must be at least 2 characters.',
+    message: "Title must be at least 2 characters.",
   }),
   description: z.string().min(2, {
-    message: 'Description must be at least 2 characters.',
+    message: "Description must be at least 2 characters.",
   }),
 })
 

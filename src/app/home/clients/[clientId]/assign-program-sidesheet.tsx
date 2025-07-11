@@ -1,7 +1,10 @@
-'use client'
-import LoadingButton from '@/components/loading-button'
-import { ProgramPicker } from '@/components/program-dropdown-picker'
-import { Button } from '@/components/ui/button'
+"use client"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
+import LoadingButton from "@/components/loading-button"
+import { ProgramPicker } from "@/components/program-dropdown-picker"
+import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
@@ -10,12 +13,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet'
-import apiAssignProgramToClient from '@/fetches/assign-program-to-client'
-import { Program } from '@/lib/domain/workouts'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { toast } from 'sonner'
+} from "@/components/ui/sheet"
+import apiAssignProgramToClient from "@/fetches/assign-program-to-client"
+import type { Program } from "@/lib/domain/workouts"
 
 interface Props {
   clientId: string
@@ -25,7 +25,7 @@ interface Props {
 export function AssignProgramSidesheet({ clientId, programs }: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedProgramId, setSelectedProgramId] = useState('')
+  const [selectedProgramId, setSelectedProgramId] = useState("")
   const router = useRouter()
   const handleAssignProgram = async () => {
     setIsLoading(true)
@@ -35,26 +35,26 @@ export function AssignProgramSidesheet({ clientId, programs }: Props) {
       programId: selectedProgramId,
     })
     if (error) {
-      toast('Error assigning program', {
+      toast("Error assigning program", {
         description: error.message,
       })
       setIsLoading(false)
       return
     }
-    toast('Program assigned', {})
+    toast("Program assigned", {})
     setIsLoading(false)
     setIsOpen(false)
     router.refresh()
   }
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+    <Sheet onOpenChange={setIsOpen} open={isOpen}>
       <SheetTrigger asChild>
         <LoadingButton
-          variant="outline"
           isLoading={isLoading}
           onClick={() => {
             setIsOpen(true)
           }}
+          variant="outline"
         >
           Assign Program
         </LoadingButton>
@@ -66,10 +66,10 @@ export function AssignProgramSidesheet({ clientId, programs }: Props) {
         </SheetHeader>
         <div className="grid gap-4 py-4">
           <ProgramPicker
-            programs={programs}
             handleSelect={({ value }) => {
               setSelectedProgramId(value)
             }}
+            programs={programs}
           />
         </div>
         <SheetFooter>

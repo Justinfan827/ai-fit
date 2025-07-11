@@ -1,19 +1,19 @@
-import { ErrorBase, ErrorOptions } from '@/lib/error-base'
-import { z, ZodError } from 'zod'
-import { generateErrorMessage } from 'zod-error'
+import { type ZodError, z } from "zod"
+import { generateErrorMessage } from "zod-error"
+import { ErrorBase, type ErrorOptions } from "@/lib/error-base"
 
 const ErrorCode = z.enum([
-  'bad_request',
-  'not_found',
-  'internal_server_error',
-  'unauthorized',
-  'forbidden',
-  'rate_limit_exceeded',
-  'invite_expired',
-  'invite_pending',
-  'exceeded_limit',
-  'conflict',
-  'unprocessable_entity',
+  "bad_request",
+  "not_found",
+  "internal_server_error",
+  "unauthorized",
+  "forbidden",
+  "rate_limit_exceeded",
+  "invite_expired",
+  "invite_pending",
+  "exceeded_limit",
+  "conflict",
+  "unprocessable_entity",
 ])
 
 type ErrorCode = z.infer<typeof ErrorCode>
@@ -46,24 +46,24 @@ type ErrorResponse = z.infer<typeof ErrorSchema>
 function fromZodError(error: ZodError): ErrorResponse {
   return {
     error: {
-      code: 'unprocessable_entity',
+      code: "unprocessable_entity",
       message: generateErrorMessage(error.issues, {
         maxErrors: 1,
         delimiter: {
-          component: ': ',
+          component: ": ",
         },
         path: {
           enabled: true,
-          type: 'objectNotation',
-          label: '',
+          type: "objectNotation",
+          label: "",
         },
         code: {
           enabled: true,
-          label: '',
+          label: "",
         },
         message: {
           enabled: true,
-          label: '',
+          label: "",
         },
       }),
     },

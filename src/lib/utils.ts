@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -10,5 +10,5 @@ export function capitalizeFirstLetter(str: string) {
 }
 
 export function isLive() {
-  return process.env.NODE_ENV === 'production'
+  return process.env.NODE_ENV === "production"
 }
