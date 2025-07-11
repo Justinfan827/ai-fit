@@ -9,10 +9,12 @@ import type {
   Blocks,
   CircuitBlock,
   Exercise,
+  ExerciseBlock,
   Program,
   Workout,
   Workouts,
 } from "@/lib/domain/workouts"
+import log from "@/lib/logger/logger"
 
 const EditorStoreContext = createContext<UseBoundStore<
   StoreApi<EditorState>
@@ -210,6 +212,186 @@ export const sortProposedChanges = (changes: WorkoutChange[]) => {
   })
 }
 
+/*
+  Handle a proposal for an exercise block. 
+
+  Rejecting the add-block or add-circuit-exercise proposal. Mark the block for removal.
+  Rejecting the remove-block or remove-circuit-exercise proposal. Keep the block and remove the pending status.
+  Rejecting the update-block or update-circuit-exercise proposal. Restore old block and remove the pending status.
+*/
+export const handleRejectExerciseBlock = (
+  block: ExerciseBlock,
+  proposal: WorkoutChange,
+  opts: {
+    acceptanceTypeName: "add-block" | "add-circuit-exercise"
+    rejectionTypeName: "remove-block" | "remove-circuit-exercise"
+    updateTypeName: "update-block" | "update-circuit-exercise"
+  }
+) => {
+  const match = block.pendingStatus?.proposalId === proposal.id
+  if (!match) {
+    return block
+  }
+  if (proposal.type === opts.acceptanceTypeName) {
+    return null // Mark for removal
+  }
+  if (proposal.type === opts.rejectionTypeName) {
+    const { pendingStatus: _, ...blockWithoutPending } = block
+    return blockWithoutPending
+  }
+  if (
+    proposal.type === opts.updateTypeName &&
+    block.pendingStatus?.type === "updating"
+  ) {
+    return block.pendingStatus.oldBlock
+  }
+  return block
+}
+
+/*
+  Handle applying a proposal for an exercise block.
+  
+  Applying the remove-block or remove-circuit-exercise proposal. Mark the block for removal.
+  Applying the add-block, add-circuit-exercise, or update-block/update-circuit-exercise proposal. Remove the pending status to make the change permanent.
+*/
+export const handleApplyExerciseBlock = (
+  exerciseBlock: ExerciseBlock,
+  proposal: WorkoutChange,
+  opts: {
+    removalTypeName: "remove-block" | "remove-circuit-exercise"
+  }
+) => {
+  const match = exerciseBlock.pendingStatus?.proposalId === proposal.id
+  if (!match) {
+    return exerciseBlock
+  }
+  if (proposal.type === opts.removalTypeName) {
+    return null // Mark for removal
+  }
+  // For add-block, add-circuit-exercise, update-block, update-circuit-exercise
+  // Just remove the pending status to make the change permanent
+  const { pendingStatus: _, ...blockWithoutPending } = exerciseBlock
+  return blockWithoutPending
+}
+
+/*
+
+Determine an action to take given a proposal and a circuit block. 
+
+Rejecting the add-block proposal. Mark the block for removal.
+Rejecting the remove-block proposal. Keep the block and remove the pending status.
+Rejecting the update-block proposal. Restore old block and remove the pending status.
+
+Rejecting the add-circuit-exercise proposal. Mark the exercise for removal.
+Rejecting the remove-circuit-exercise proposal. Restore the exercise and remove the pending status.
+Rejecting the update-circuit-exercise proposal. Restore the original exercise and remove the pending status.
+
+*/
+export const handleRejectCircuitBlock = (
+  block: CircuitBlock,
+  proposal: WorkoutChange
+) => {
+  const match = block.pendingStatus?.proposalId === proposal.id
+  if (match && proposal.type === "add-block") {
+    return null
+  }
+  if (match && proposal.type === "remove-block") {
+    const { pendingStatus: _, ...blockWithoutPending } = block
+    return blockWithoutPending
+  }
+  if (
+    match &&
+    proposal.type === "update-block" &&
+    block.pendingStatus?.type === "updating"
+  ) {
+    return block.pendingStatus?.oldBlock
+  }
+  if (
+    proposal.type === "add-circuit-exercise" ||
+    proposal.type === "remove-circuit-exercise" ||
+    proposal.type === "update-circuit-exercise"
+  ) {
+    if (block.type !== "circuit") {
+      log.error("block is not a circuit")
+      return block
+    }
+
+    return {
+      ...block,
+      circuit: {
+        ...block.circuit,
+        exercises: block.circuit.exercises
+          .map((exercise) =>
+            handleRejectExerciseBlock(exercise, proposal, {
+              acceptanceTypeName: "add-circuit-exercise",
+              rejectionTypeName: "remove-circuit-exercise",
+              updateTypeName: "update-circuit-exercise",
+            })
+          )
+          .filter(
+            (exercise): exercise is NonNullable<typeof exercise> =>
+              exercise !== null
+          ), // Remove null exercises
+      },
+    }
+  }
+  return block
+}
+
+/*
+  Handle applying a proposal for a circuit block.
+  
+  Applying the remove-block proposal. Mark the block for removal.
+  Applying the add-block or update-block proposal. Remove the pending status to make the change permanent.
+  
+  Applying the remove-circuit-exercise proposal. Mark the exercise for removal.
+  Applying the add-circuit-exercise or update-circuit-exercise proposal. Remove the pending status to make the change permanent.
+*/
+export const handleApplyCircuitBlock = (
+  circuitBlock: CircuitBlock,
+  proposal: WorkoutChange
+) => {
+  const match = circuitBlock.pendingStatus?.proposalId === proposal.id
+  if (match && proposal.type === "remove-block") {
+    return null
+  }
+  if (
+    match &&
+    (proposal.type === "add-block" || proposal.type === "update-block")
+  ) {
+    const { pendingStatus: _, ...blockWithoutPending } = circuitBlock
+    return blockWithoutPending
+  }
+  if (
+    proposal.type === "add-circuit-exercise" ||
+    proposal.type === "remove-circuit-exercise" ||
+    proposal.type === "update-circuit-exercise"
+  ) {
+    if (circuitBlock.type !== "circuit") {
+      log.error("block is not a circuit")
+      return circuitBlock
+    }
+
+    return {
+      ...circuitBlock,
+      circuit: {
+        ...circuitBlock.circuit,
+        exercises: circuitBlock.circuit.exercises
+          .map((exercise) =>
+            handleApplyExerciseBlock(exercise, proposal, {
+              removalTypeName: "remove-circuit-exercise",
+            })
+          )
+          .filter(
+            (exercise): exercise is NonNullable<typeof exercise> =>
+              exercise !== null
+          ), // Remove null exercises
+      },
+    }
+  }
+  return circuitBlock
+}
+
 // https://tkdodo.eu/blog/zustand-and-react-context
 const EditorProgramProvider = ({
   children,
@@ -306,12 +488,12 @@ const EditorProgramProvider = ({
 
   // Initialize workout histories for initial workouts
   const initialWorkoutHistories: Record<string, WorkoutHistory> = {}
-  programWithMergedWorkouts.workouts.forEach((workout) => {
+  for (const workout of programWithMergedWorkouts.workouts) {
     initialWorkoutHistories[workout.id] = {
       history: [workout],
       currentIndex: 0,
     }
-  })
+  }
 
   const [store] = useState(() =>
     create<EditorState>((set, get) => ({
@@ -331,14 +513,14 @@ const EditorProgramProvider = ({
           const updatedHistories = { ...workoutHistories }
 
           // Initialize history for any new workouts
-          workouts.forEach((workout) => {
+          for (const workout of workouts) {
             if (!updatedHistories[workout.id]) {
               updatedHistories[workout.id] = {
                 history: [workout],
                 currentIndex: 0,
               }
             }
-          })
+          }
 
           set({ workouts, workoutHistories: updatedHistories })
         },
@@ -356,8 +538,8 @@ const EditorProgramProvider = ({
           set({ name })
         },
         search: (query = "") => {
-          const { exercises } = get()
-          const fuse = new Fuse(exercises, {
+          const { exercises: exerciseList } = get()
+          const fuse = new Fuse(exerciseList, {
             includeScore: true,
             keys: [
               {
@@ -378,72 +560,41 @@ const EditorProgramProvider = ({
           const proposal = proposedChanges.find((p) => p.id === proposalId)
           if (!proposal) return
 
-          const updatedWorkouts = workouts.map((workout) => {
+          const updatedWorkouts = workouts.map((workout, workoutIndex) => {
+            if (workoutIndex !== proposal.workoutIndex) return workout
+
             return {
               ...workout,
               blocks: workout.blocks
-                .map((block) => {
-                  if (
-                    proposal.type === "remove-block" &&
-                    block.pendingStatus?.proposalId === proposalId
-                  ) {
-                    // Remove the block entirely
-                    return null
+                .map((workoutBlock) => {
+                  switch (workoutBlock.type) {
+                    case "exercise":
+                      return handleApplyExerciseBlock(workoutBlock, proposal, {
+                        removalTypeName: "remove-block",
+                      })
+                    case "circuit":
+                      return handleApplyCircuitBlock(workoutBlock, proposal)
+                    default:
+                      log.error("No handler for block type", { workoutBlock })
+                      return workoutBlock
                   }
-
-                  // Check if this block has a pending status with the matching proposalId
-                  if (block.pendingStatus?.proposalId === proposalId) {
-                    // Remove the pendingStatus for non-removal proposals
-                    const { pendingStatus, ...blockWithoutPending } = block
-                    return blockWithoutPending
-                  }
-
-                  // For circuit blocks, also check exercises within the circuit
-                  if (block.type === "circuit") {
-                    return {
-                      ...block,
-                      circuit: {
-                        ...block.circuit,
-                        exercises: block.circuit.exercises
-                          .map((exercise) => {
-                            // Handle circuit exercise removals
-                            if (
-                              proposal.type === "remove-circuit-exercise" &&
-                              exercise.pendingStatus?.proposalId === proposalId
-                            ) {
-                              // Remove the exercise entirely
-                              return null
-                            }
-
-                            if (
-                              exercise.pendingStatus?.proposalId === proposalId
-                            ) {
-                              const {
-                                pendingStatus,
-                                ...exerciseWithoutPending
-                              } = exercise
-                              return exerciseWithoutPending
-                            }
-                            return exercise
-                          })
-                          .filter(
-                            (
-                              exercise
-                            ): exercise is NonNullable<typeof exercise> =>
-                              exercise !== null
-                          ), // Remove null exercises
-                      },
-                    }
-                  }
-
-                  return block
                 })
                 .filter(
-                  (block): block is NonNullable<typeof block> => block !== null
+                  (
+                    workoutBlock
+                  ): workoutBlock is NonNullable<typeof workoutBlock> =>
+                    workoutBlock !== null
                 ), // Remove null blocks
             }
           })
-          set({ workouts: updatedWorkouts })
+
+          // Remove the applied proposal from the proposedChanges array
+          set({
+            workouts: updatedWorkouts,
+            proposedChanges: proposedChanges.filter(
+              (change) => change.id !== proposalId
+            ),
+          })
         },
         rejectPendingProposalById: (proposalId: string) => {
           const { workouts, proposedChanges } = get()
@@ -452,6 +603,7 @@ const EditorProgramProvider = ({
           const proposal = proposedChanges.find((p) => p.id === proposalId)
           if (!proposal) return
 
+          log.info("reverting proposal", { proposal, workouts })
           // Revert the change in workouts
           const updatedWorkouts = workouts.map((workout, workoutIndex) => {
             if (workoutIndex !== proposal.workoutIndex) return workout
@@ -459,105 +611,20 @@ const EditorProgramProvider = ({
             return {
               ...workout,
               blocks: workout.blocks
-                .map((block, blockIndex) => {
-                  // Handle block-level changes
-                  if (
-                    proposal.type === "add-block" &&
-                    blockIndex === proposal.blockIndex
-                  ) {
-                    // Remove the added block if it has the matching proposal ID
-                    if (block.pendingStatus?.proposalId === proposalId) {
-                      return null // Mark for removal
-                    }
+                .map((block) => {
+                  switch (block.type) {
+                    case "exercise":
+                      return handleRejectExerciseBlock(block, proposal, {
+                        acceptanceTypeName: "add-block",
+                        rejectionTypeName: "remove-block",
+                        updateTypeName: "update-block",
+                      })
+                    case "circuit":
+                      return handleRejectCircuitBlock(block, proposal)
+                    default:
+                      log.error("No handler for block type", { block })
+                      return block
                   }
-
-                  if (
-                    proposal.type === "remove-block" &&
-                    blockIndex === proposal.blockIndex
-                  ) {
-                    // Restore the removed block by removing pending status
-                    if (block.pendingStatus?.proposalId === proposalId) {
-                      const { pendingStatus, ...blockWithoutPending } = block
-                      return blockWithoutPending
-                    }
-                  }
-
-                  if (
-                    proposal.type === "update-block" &&
-                    blockIndex === proposal.blockIndex
-                  ) {
-                    // Restore the original block
-                    if (
-                      block.pendingStatus?.proposalId === proposalId &&
-                      block.pendingStatus.type === "updating"
-                    ) {
-                      return block.pendingStatus.oldBlock
-                    }
-                  }
-
-                  // Handle circuit exercise changes
-                  if (
-                    block.type === "circuit" &&
-                    (proposal.type === "add-circuit-exercise" ||
-                      proposal.type === "remove-circuit-exercise" ||
-                      proposal.type === "update-circuit-exercise") &&
-                    blockIndex === proposal.circuitBlockIndex
-                  ) {
-                    return {
-                      ...block,
-                      circuit: {
-                        ...block.circuit,
-                        exercises: block.circuit.exercises
-                          .map((exercise, exerciseIndex) => {
-                            if (exerciseIndex === proposal.exerciseIndex) {
-                              if (proposal.type === "add-circuit-exercise") {
-                                // Remove the added exercise if it has the matching proposal ID
-                                if (
-                                  exercise.pendingStatus?.proposalId ===
-                                  proposalId
-                                ) {
-                                  return null // Mark for removal
-                                }
-                              }
-
-                              if (proposal.type === "remove-circuit-exercise") {
-                                // Restore the removed exercise by removing pending status
-                                if (
-                                  exercise.pendingStatus?.proposalId ===
-                                  proposalId
-                                ) {
-                                  const {
-                                    pendingStatus,
-                                    ...exerciseWithoutPending
-                                  } = exercise
-                                  return exerciseWithoutPending
-                                }
-                              }
-
-                              if (proposal.type === "update-circuit-exercise") {
-                                // Restore the original exercise
-                                if (
-                                  exercise.pendingStatus?.proposalId ===
-                                    proposalId &&
-                                  exercise.pendingStatus.type === "updating"
-                                ) {
-                                  return exercise.pendingStatus.oldBlock
-                                }
-                              }
-                            }
-                            return exercise
-                          })
-                          .filter(
-                            (
-                              exercise
-                            ): exercise is NonNullable<typeof exercise> =>
-                              exercise !== null
-                          ), // Remove null exercises
-                      },
-                    }
-                  }
-
-                  return block
                 })
                 .filter(
                   (block): block is NonNullable<typeof block> => block !== null
@@ -721,15 +788,15 @@ export const useWorkoutHistoryKeyboardShortcuts = (workoutId: string) => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
-        e.preventDefault()
-        if (e.shiftKey) {
-          if (canRedoWorkout(workoutId)) {
-            redoWorkout(workoutId)
-          }
-        } else if (canUndoWorkout(workoutId)) {
-          undoWorkout(workoutId)
-        }
+      const isUndoRedo = (e.metaKey || e.ctrlKey) && e.key === "z"
+      if (!isUndoRedo) return
+
+      e.preventDefault()
+
+      if (e.shiftKey && canRedoWorkout(workoutId)) {
+        redoWorkout(workoutId)
+      } else if (!e.shiftKey && canUndoWorkout(workoutId)) {
+        undoWorkout(workoutId)
       }
     }
 

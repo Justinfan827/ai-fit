@@ -6,5 +6,12 @@
       "semicolons": "asNeeded",
       "quoteStyle": "double"
     }
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "useBlockStatements": "off"
+      }
+    }
   }
 }

@@ -18,7 +18,6 @@ interface ProposedChangesMenuProps {
 export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
   const proposedChanges = useZProposedChanges()
   const {
-    setProposedChanges,
     setCurrentChangeId,
     applyPendingProposalById,
     rejectPendingProposalById,
@@ -68,7 +67,6 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
     [
       proposedChanges,
       currentChangeIndex,
-      setProposedChanges,
       setCurrentChangeId,
       applyPendingProposalById,
     ]
@@ -103,30 +101,6 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
       setCurrentChangeId,
     ]
   )
-
-  const acceptAllChanges = useCallback(() => {
-    // Remove pending status for all changes
-    proposedChanges.forEach((change) => {
-      applyPendingProposalById(change.id)
-    })
-
-    setProposedChanges([])
-    setCurrentChangeId(null)
-  }, [
-    proposedChanges,
-    applyPendingProposalById,
-    setProposedChanges,
-    setCurrentChangeId,
-  ])
-
-  const rejectAllChanges = useCallback(() => {
-    // Use rejectProposal for each change to revert them
-    proposedChanges.forEach((change) => {
-      rejectPendingProposalById(change.id)
-    })
-
-    setCurrentChangeId(null)
-  }, [proposedChanges, rejectPendingProposalById, setCurrentChangeId])
 
   const navigateToNext = useCallback(() => {
     if (proposedChanges.length > 0) {
@@ -168,15 +142,7 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [
-    hasChanges,
-    currentChange,
-    acceptChange,
-    rejectChange,
-    acceptAllChanges,
-    navigateToNext,
-    navigateToPrevious,
-  ])
+  }, [hasChanges, currentChange, acceptChange, rejectChange])
 
   if (!hasChanges) return null
   return (
