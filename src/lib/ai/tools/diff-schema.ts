@@ -9,7 +9,7 @@ const baseChangeSchema = z.object({
   id: z.string().describe("Unique identifier for this change proposal"),
 })
 
-const updateBlockSchemaAI = z.object({
+const updateBlockAISchema = z.object({
   type: z.literal("update-block"),
   workoutIndex: z
     .number()
@@ -19,10 +19,10 @@ const updateBlockSchemaAI = z.object({
 })
 
 const updateBlockSchema = baseChangeSchema
-  .extend(updateBlockSchemaAI.shape)
+  .extend(updateBlockAISchema.shape)
   .describe("Update a block in the workout program")
 
-const addBlockSchemaAI = z.object({
+const addBlockAISchema = z.object({
   type: z.literal("add-block"),
   workoutIndex: z
     .number()
@@ -31,10 +31,10 @@ const addBlockSchemaAI = z.object({
   block: blockSchema.describe("The block to add"),
 })
 const addBlockSchema = baseChangeSchema
-  .extend(addBlockSchemaAI.shape)
+  .extend(addBlockAISchema.shape)
   .describe("Add a block to the workout program")
 
-const removeBlockSchemaAI = z.object({
+const removeBlockAISchema = z.object({
   type: z.literal("remove-block"),
   workoutIndex: z
     .number()
@@ -42,10 +42,10 @@ const removeBlockSchemaAI = z.object({
   blockIndex: z.number().describe("The index of the block to remove"),
 })
 const removeBlockSchema = baseChangeSchema
-  .extend(removeBlockSchemaAI.shape)
+  .extend(removeBlockAISchema.shape)
   .describe("Remove a block from the workout program")
 
-const addCircuitExerciseSchemaAI = z.object({
+const addCircuitExerciseAISchema = z.object({
   type: z.literal("add-circuit-exercise"),
   workoutIndex: z
     .number()
@@ -57,10 +57,10 @@ const addCircuitExerciseSchemaAI = z.object({
   exercise: exerciseBlockSchema.describe("The exercise to add"),
 })
 const addCircuitExerciseSchema = baseChangeSchema
-  .extend(addCircuitExerciseSchemaAI.shape)
+  .extend(addCircuitExerciseAISchema.shape)
   .describe("Add an exercise to a circuit block")
 
-const removeCircuitExerciseSchemaAI = z.object({
+const removeCircuitExerciseAISchema = z.object({
   type: z.literal("remove-circuit-exercise"),
   workoutIndex: z
     .number()
@@ -71,10 +71,10 @@ const removeCircuitExerciseSchemaAI = z.object({
   exerciseIndex: z.number().describe("The index of the exercise to remove"),
 })
 const removeCircuitExerciseSchema = baseChangeSchema
-  .extend(removeCircuitExerciseSchemaAI.shape)
+  .extend(removeCircuitExerciseAISchema.shape)
   .describe("Remove an exercise from a circuit block")
 
-const updateCircuitExerciseSchemaAI = z.object({
+const updateCircuitExerciseAISchema = z.object({
   type: z.literal("update-circuit-exercise"),
   workoutIndex: z
     .number()
@@ -86,18 +86,18 @@ const updateCircuitExerciseSchemaAI = z.object({
   exercise: exerciseBlockSchema.describe("The updated exercise"),
 })
 const updateCircuitExerciseSchema = baseChangeSchema
-  .extend(updateCircuitExerciseSchemaAI.shape)
+  .extend(updateCircuitExerciseAISchema.shape)
   .describe("Update an exercise in a circuit block")
 
-// workoutChangeSchemaAI is the schema we pass to the LLM.
+// workoutChangeAISchema is the schema we pass to the LLM.
 // No UUID's. We generate them manually.
-const workoutChangeSchemaAI = z.union([
-  updateBlockSchemaAI,
-  addBlockSchemaAI,
-  removeBlockSchemaAI,
-  addCircuitExerciseSchemaAI,
-  removeCircuitExerciseSchemaAI,
-  updateCircuitExerciseSchemaAI,
+const workoutChangeAISchema = z.union([
+  updateBlockAISchema,
+  addBlockAISchema,
+  removeBlockAISchema,
+  addCircuitExerciseAISchema,
+  removeCircuitExerciseAISchema,
+  updateCircuitExerciseAISchema,
 ])
 
 const workoutChangeSchema = z.union([
@@ -110,10 +110,16 @@ const workoutChangeSchema = z.union([
 ])
 
 type WorkoutChange = z.infer<typeof workoutChangeSchema>
-type WorkoutChangeAI = z.infer<typeof workoutChangeSchemaAI>
+type WorkoutChangeAI = z.infer<typeof workoutChangeAISchema>
+type UpdateBlockAI = z.infer<typeof updateBlockAISchema>
+type AddBlockAI = z.infer<typeof addBlockAISchema>
+type RemoveBlockAI = z.infer<typeof removeBlockAISchema>
+type AddCircuitExerciseAI = z.infer<typeof addCircuitExerciseAISchema>
+type RemoveCircuitExerciseAI = z.infer<typeof removeCircuitExerciseAISchema>
+type UpdateCircuitExerciseAI = z.infer<typeof updateCircuitExerciseAISchema>
 
 export {
-  workoutChangeSchemaAI,
+  workoutChangeAISchema,
   addBlockSchema,
   addCircuitExerciseSchema,
   removeBlockSchema,
@@ -123,4 +129,10 @@ export {
   workoutChangeSchema,
   type WorkoutChange,
   type WorkoutChangeAI,
+  type UpdateBlockAI,
+  type AddBlockAI,
+  type RemoveBlockAI,
+  type AddCircuitExerciseAI,
+  type RemoveCircuitExerciseAI,
+  type UpdateCircuitExerciseAI,
 }

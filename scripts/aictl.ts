@@ -1,6 +1,9 @@
 import { confirm, input } from "@inquirer/prompts"
 import { Command } from "commander"
-import { buildSystemPrompt } from "@/lib/ai/prompts/prompts"
+import {
+  buildSystemPrompt,
+  buildWorkoutModificationPrompt,
+} from "@/lib/ai/prompts/prompts"
 import log from "@/lib/logger/logger"
 import { getError } from "@/lib/utils/util"
 import runUserCreation from "./cmd-create-user"
@@ -74,7 +77,15 @@ program
   .description("Test prompts")
   .action(() => {
     const builtPrompt = buildSystemPrompt(testExercises, testWorkouts)
-    log.console(builtPrompt)
+    log.consoleWithHeader("Built prompt", builtPrompt)
+    const updateWorkoutProgramPrompt = buildWorkoutModificationPrompt(
+      testExercises,
+      testWorkouts
+    )
+    log.consoleWithHeader(
+      "Update workout program prompt",
+      updateWorkoutProgramPrompt
+    )
   })
 
 program.parse(process.argv)

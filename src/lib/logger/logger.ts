@@ -66,9 +66,9 @@ export const log = {
   // biome-ignore lint/suspicious/noConsole: this is for debugging
   console: (...args: unknown[]) => console.log(...args),
   consoleWithHeader: (message: string, ...args: unknown[]) => {
-    log.console(`<==========${message}==========>`)
+    log.console(`\n<==========${message}==========>\n`)
     log.console(...args)
-    log.console(`</==========${message}==========/>`)
+    log.console(`\n</==========${message}==========/>\n`)
   },
 }
 

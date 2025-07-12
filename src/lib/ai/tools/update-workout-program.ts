@@ -2,6 +2,7 @@ import {
   type CoreMessage,
   type DataStreamWriter,
   generateText,
+  type JSONValue,
   streamObject,
   tool,
 } from "ai"
@@ -14,7 +15,7 @@ import {
   buildWorkoutModificationPrompt,
 } from "../prompts/prompts"
 import { myProvider } from "../providers"
-import { workoutChangeSchemaAI } from "./diff-schema"
+import { workoutChangeAISchema } from "./diff-schema"
 
 interface UpdateWorkoutProgramArgs {
   messages: CoreMessage[]
@@ -31,52 +32,32 @@ export const updateWorkoutProgram = ({
 }: UpdateWorkoutProgramArgs) => {
   return tool({
     description: "Suggest new exercises to add to an existing workout program",
-    parameters: z.object({}),
-    execute: async () => {
+    parameters: z.object({
+      suggestedChangeText: z
+        .string()
+        .describe(
+          "A text description of the change to make to the workout program."
+        ),
+    }),
+    execute: async ({ suggestedChangeText }) => {
       const systemPrompt = buildWorkoutModificationPrompt(
         contextItems,
         existingWorkouts
       )
+      log.consoleWithHeader("Suggested change text:", suggestedChangeText)
       log.consoleWithHeader(
         "Create workout changes tool: system prompt",
         systemPrompt
       )
 
-      // TODO: collapse into one?
-      const { text: updatedWorkoutText } = await generateText({
-        model: myProvider.languageModel("chat-model"),
-        system: systemPrompt,
-        messages,
-      })
-
-      log.consoleWithHeader(
-        "Create workout changes tool: updated workout text",
-        updatedWorkoutText
-      )
-
-      const diffGenerationSystemPrompt = buildDiffGenerationPrompt(
-        existingWorkouts,
-        updatedWorkoutText
-      )
-      const diffGenerationPrompt =
-        "generate a workout diff for the following changes"
-
-      log.consoleWithHeader(
-        "Create workout changes tool: diff generation system prompt",
-        diffGenerationSystemPrompt
-      )
-      log.consoleWithHeader(
-        "Create workout changes tool: diff generation prompt",
-        diffGenerationPrompt
-      )
       try {
         // Step 2: Convert text changes to structured diff
         const { elementStream } = streamObject({
           model: myProvider.languageModel("chat-model"),
-          schema: workoutChangeSchemaAI,
+          schema: workoutChangeAISchema,
           output: "array",
-          system: diffGenerationSystemPrompt,
-          prompt: diffGenerationPrompt,
+          system: systemPrompt,
+          prompt: suggestedChangeText,
           onError: (error) => {
             log.error("Diff generation caught error:", error)
           },
@@ -87,7 +68,7 @@ export const updateWorkoutProgram = ({
           log.consoleWithHeader("Suggested diff:", element)
           dataStream.writeData({
             type: "workout-diff",
-            content: element,
+            content: element as JSONValue,
           })
         }
         log.consoleWithHeader("Finished elementStream iteration")

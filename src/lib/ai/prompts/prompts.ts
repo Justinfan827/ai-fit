@@ -1,4 +1,17 @@
-import type { Workout, Workouts } from "@/lib/domain/workouts"
+import type {
+  CircuitBlock,
+  ExerciseBlock,
+  Workout,
+  Workouts,
+} from "@/lib/domain/workouts"
+import type {
+  AddBlockAI,
+  AddCircuitExerciseAI,
+  RemoveBlockAI,
+  RemoveCircuitExerciseAI,
+  UpdateBlockAI,
+  UpdateCircuitExerciseAI,
+} from "../tools/diff-schema"
 import type {
   ClientContextData,
   ContextItem,
@@ -77,10 +90,186 @@ You have access to the following tools:
 - updateWorkoutProgram: given a description of a workout progam, create a json object that represents changes to apply to the existing workout program.
 `
 
+const sampleExerciseBlock: ExerciseBlock = {
+  type: "exercise",
+  exercise: {
+    id: "516e0990-972e-496d-b4d1-4950d4c54451",
+    name: "Leg Extensions",
+    metadata: {
+      sets: "3-15",
+      reps: "12",
+      weight: "100",
+      rest: "30s",
+    },
+  },
+}
+
+const sampleCircuitBlock: CircuitBlock = {
+  type: "circuit",
+  circuit: {
+    isDefault: false,
+    name: "Circuit 1",
+    description: "Circuit 1 description",
+    metadata: {
+      sets: "3",
+      rest: "30s",
+      notes: "Circuit 1 notes",
+    },
+    exercises: [
+      {
+        type: "exercise",
+        exercise: {
+          id: "b4711ec3-d3b5-43ef-a2bd-a29d6bfd4caa",
+          name: "Calf Raises w/Knees Bent",
+          metadata: {
+            sets: "3",
+            reps: "12",
+            weight: "100",
+            rest: "30s",
+          },
+        },
+      },
+      {
+        type: "exercise",
+        exercise: {
+          id: "149beb8e-245b-434e-81e9-f53507bf2381",
+          name: "Heel Elevated Squats",
+          metadata: {
+            sets: "3",
+            reps: "12",
+            weight: "100",
+            rest: "30s",
+          },
+        },
+      },
+    ],
+  },
+}
+
+const addBlockExample: AddBlockAI = {
+  type: "add-block",
+  workoutIndex: 0,
+  blockIndex: 0,
+  block: sampleExerciseBlock,
+}
+
+const updateBlockExample: UpdateBlockAI = {
+  type: "update-block",
+  workoutIndex: 0,
+  blockIndex: 0,
+  block: sampleExerciseBlock,
+}
+const removeBlockExample: RemoveBlockAI = {
+  type: "remove-block",
+  workoutIndex: 0,
+  blockIndex: 0,
+}
+
+const addCircuitExerciseExample: AddCircuitExerciseAI = {
+  type: "add-circuit-exercise",
+  workoutIndex: 0,
+  circuitBlockIndex: 0,
+  exerciseIndex: 0,
+  exercise: sampleExerciseBlock,
+}
+
+const removeCircuitExerciseExample: RemoveCircuitExerciseAI = {
+  type: "remove-circuit-exercise",
+  workoutIndex: 0,
+  circuitBlockIndex: 0,
+  exerciseIndex: 0,
+}
+
+const updateCircuitExerciseExample: UpdateCircuitExerciseAI = {
+  type: "update-circuit-exercise",
+  workoutIndex: 0,
+  circuitBlockIndex: 0,
+  exerciseIndex: 0,
+  exercise: sampleExerciseBlock,
+}
+
 export const updateWorkoutToolPrompt = `
+You are an AI assistant that is helping coaches make changes to an existing workout program.
+Your task is to convert a text suggestion for a workout program into a structured JSON object
+that represents the changes to apply to an existing workout program.
+
+You have access to:
+- The current workout program in JSON format.
+- A list of general system exercises.
+- A list of the coach's preferred exercises.
+
+You will take the suggestion and find the appropriate exercise from the list of general system exercises
+and the coach's preferred exercises, and return a JSON array of objects, where each object represents
+a change to apply to the existing workout program. Every exercise is uniquely identified by its id.
+When referencing an exercise, you MUST use the exercise's id.
+
+The workout program consists of a 0 indexed array of workouts. Each workout consists a 0 indexed array of 'blocks'.
+Each block can either be a single exercise, or a 'circuit', which is a group of exercises that are 
+performed in a circuit. Each workout has an index. Each block has an index. 
+Each exercise inside a circuit block also has an index.
+
+Here is an example of an 'exercise' block:
+<example-exercise-block>
+${JSON.stringify(sampleExerciseBlock, null, 2)}
+</example-exercise-block>
+
+Here is an example of a 'circuit' block, containing 2 exercises:
+<example-circuit-block>
+${JSON.stringify(sampleCircuitBlock, null, 2)}
+</example-circuit-block>
+
+Each JSON object in the resulting array must represent a single change for the workout program.
+In total, there are 6 types of changes that can be applied a workout program. You make a distinction
+between changes applied to a generic 'block', and changes applied to a specific 'circuit' block.
+
+These are the 6 types of changes that can get applied, with examples:
+1. update-block
+${JSON.stringify(updateBlockExample, null, 2)}
+2. add-block
+${JSON.stringify(addBlockExample, null, 2)}
+3. remove-block
+${JSON.stringify(removeBlockExample, null, 2)}
+4. add-circuit-exercise
+${JSON.stringify(addCircuitExerciseExample, null, 2)}
+5. update-circuit-exercise
+${JSON.stringify(updateCircuitExerciseExample, null, 2)}
+6. remove-circuit-exercise
+${JSON.stringify(removeCircuitExerciseExample, null, 2)}
+
+When specifying changes, the workoutIndex refers to which workout the change is being applied to.
+For changes applied to an 'exercise' block, the blockIndex refers to which block in the workout
+the change is being applied to. 
+For the update-block change, the blockIndex refers to which block in the workout the change is being applied to.
+For the add-block change, the blockIndex refers to the index of the new block.
+For the remove-block change, the blockIndex refers to which block in the workout to remove.
+For changes applied to a 'circuit' block, the circuitBlockIndex refers to which block in the 
+workout the change is being applied to. The exerciseIndex refers to which exercise in the circuit block the change is being applied to.
+
+For the add-circuit-exercise change, the circuitBlockIndex refers to the index of the circuit block to add an exercise to. 
+The exerciseIndex refers to the index of the exercise to add.
+
+For the update-circuit-exercise change, the circuitBlockIndex refers to the index of the circuit block to update the exercise in.
+The exerciseIndex refers to the index of the exercise to update.
+
+For the remove-circuit-exercise change, the circuitBlockIndex refers to the index of the circuit block to remove an exercise from.
+The exerciseIndex refers to the index of the exercise to remove.
+
+Each exercise comes with a metadata object. The metadata object has the following fields:
+- sets: the number of sets to perform
+- reps: the number of reps to perform
+- weight: the weight to use
+- rest: the rest period between sets
+- notes: any additional notes about the exercise. This can be an empty string.
+
+Metadata fields are strings that follow specific formats:
+12, 10, 8 (comma-separated)
+12-15, 10-12, 8-10 (comma-separated ranges)
+E/S, E, or ES (each side)
+BW, BW+10, BW+20 (bodyweight + added weight)
+30s, 1m, 2m30s (rest periods in seconds, minutes, or minutes and seconds)
 `
 
-export function buildWorkoutContext(workouts: Workout[]): string {
+export const buildWorkoutContext = (workouts: Workout[]): string => {
   return workouts
     .map(
       (workout, i) => `Workout ${i + 1}: ${workout.name} 
@@ -102,7 +291,7 @@ ${workout.blocks
   Exercises:
   ${circuit.exercises
     .map(
-      (ex: any) => `  - ${ex.exercise.name} 
+      (ex: ExerciseBlock) => `  - ${ex.exercise.name} 
     Sets: ${ex.exercise.metadata.sets}
     Reps: ${ex.exercise.metadata.reps}
     Weight: ${ex.exercise.metadata.weight}
@@ -145,11 +334,14 @@ ${clientData.details?.map((d) => `- ${d.title}: ${d.description}`).join("\n") ??
 )}`
 }
 
-function buildExercisesContext(exercises: ExercisesContextData) {
-  return createSection(
-    preferredExercisesSectionName,
-    exercises.exercises.map((e) => e.name).join("\n")
+function buildExercisesContext(
+  exercises: ExercisesContextData,
+  { includeIDs }: { includeIDs: boolean } = { includeIDs: false }
+) {
+  const exerciseNames = exercises.exercises.map((e) =>
+    includeIDs ? `${e.name} (id: ${e.id})` : e.name
   )
+  return createSection(preferredExercisesSectionName, exerciseNames.join("\n"))
 }
 
 /**
@@ -183,63 +375,17 @@ function buildWorkoutModificationPrompt(
   contextItems: ContextItem[] = [],
   workouts?: Workouts
 ): string {
-  const basePrompt = buildSystemPrompt(contextItems, workouts)
+  const contextSections = contextItems
+    .filter((i) => i.type === "exercises")
+    .map((i) => buildExercisesContext(i.data, { includeIDs: true }))
 
-  return `${basePrompt}
-
-## WORKOUT MODIFICATION MODE
-
-You are now operating in specialized workout modification mode. Your task is to modify the current workout program based on the user's request and output the complete updated program in text format.
-
-### Exercise Selection Rules
-- Choose exercises ONLY from the provided exercise database - do not generate or hallucinate exercises
-- ALWAYS use the exact exercise ID from the provided exercise context when selecting exercises
-- "Dynamic warm-ups" or generic exercise names are not allowed - use specific exercise names
-- Consider biomechanical factors such as joint limitations, mobility, and movement patterns when making substitutions
-- Ensure exercise variety and progression over time while keeping the program aligned with the client's capabilities
-- When adding new exercises, they MUST be selected from the <TRAINER_PREFERRED_EXERCISES> section with their exact IDs
-
-### Training Variables Requirements
-Each exercise must include specific values for:
-- **Sets**: Use formats like "12, 10, 8" (comma-separated), "8-12" (ranges), or "12-15, 10-12, 8-10" (range combinations)
-- **Reps**: Same formatting as sets, include "E/S", "E", or "ES" for unilateral exercises (each side)
-- **Weight**: Use specific values in lbs (135, 45, 0.5), "B/W" or "BW" for bodyweight, "BW+10" for added weight
-- **Rest**: Use "30s" (seconds), "1m" (minutes), "2m30s" (minutes and seconds)
-- **Notes**: Optional but helpful for form cues or modifications
-
-### Program Structure Integrity
-- Maintain the requested number of training days per week
-- Respect existing workout structure (exercise blocks vs circuit blocks)
-- Ensure logical exercise ordering and muscle group balance
-- Consider training volume and recovery between sessions
-
-### Output Format Requirements
-Provide your response in exactly this structure:
-
-1. **Brief Explanation**: Start with 2-3 sentences explaining what changes you made and why
-2. **Complete Updated Workout**: Output the entire modified program in the same text format as the original
-
-Maintain the exact same text structure but with your modifications applied:
-- Keep workout names and IDs unchanged unless explicitly requested
-- Keep exercise IDs unchanged unless substituting exercises
-- Update sets, reps, weight, rest, and notes as needed
-- For new exercises, use the exact exercise ID from the <TRAINER_PREFERRED_EXERCISES> section
-- NEVER use placeholder IDs like "NEW_EXERCISE_ID" - always use real exercise IDs from the context
-
-### Safety Guidelines
-- Always validate that new exercises exist in the provided exercise database
-- Maintain appropriate progression and volume for the client's experience level
-- Consider equipment availability when making substitutions
-- Ensure rest periods are appropriate for the training goals
-- Factor in any client limitations or contraindications mentioned in their details
-
-### Exercise ID Validation
-- Before using any exercise, verify it exists in the <TRAINER_PREFERRED_EXERCISES> section
-- Exercise IDs must be exact UUID matches from the provided exercise list
-- If an exercise is not in the provided list, do not use it - suggest the closest available alternative
-- When outputting exercise information, always include both the exercise name AND its exact ID
-
-Analyze the current program, make the requested modifications while maintaining program integrity, and provide the complete updated workout program.`
+  const workoutsSection = workouts
+    ? createSection(
+        currentWorkoutsSectionName,
+        JSON.stringify(workouts, null, 2)
+      )
+    : ""
+  return `${updateWorkoutToolPrompt}\n${contextSections.join("\n")}\n${workoutsSection}`
 }
 
 /**
