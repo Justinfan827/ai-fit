@@ -1,7 +1,10 @@
 import { confirm, input } from "@inquirer/prompts"
 import { Command } from "commander"
+import { buildSystemPrompt } from "@/lib/ai/prompts/prompts"
+import log from "@/lib/logger/logger"
 import { getError } from "@/lib/utils/util"
 import runUserCreation from "./cmd-create-user"
+import { testExercises, testWorkouts } from "./testdata"
 import { errorLog, requireEnvVars, successLog } from "./utils"
 
 // dashctl is a cli for our portal
@@ -64,6 +67,14 @@ program
     } catch (err) {
       errorLog(getError(err).message)
     }
+  })
+
+program
+  .command("test-prompts")
+  .description("Test prompts")
+  .action(() => {
+    const builtPrompt = buildSystemPrompt(testExercises, testWorkouts)
+    log.console(builtPrompt)
   })
 
 program.parse(process.argv)

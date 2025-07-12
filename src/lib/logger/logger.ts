@@ -1,19 +1,25 @@
 import pino from "pino"
 
-// Logger configuration based on environment
+// Determine if we should use pretty printing
+// Only use pino-pretty in development AND when not in serverless/edge environments
+const shouldUsePretty =
+  process.env.NODE_ENV === "development" &&
+  !process.env.VERCEL &&
+  !process.env.NEXT_RUNTIME
+
 const loggerConfig = {
   level: process.env.NODE_ENV === "production" ? "info" : "debug",
-  transport:
-    process.env.NODE_ENV === "development"
-      ? {
-          target: "pino-pretty",
-          options: {
-            colorize: true,
-            translateTime: "yyyy-mm-dd HH:MM:ss",
-            ignore: "pid,hostname",
-          },
-        }
-      : undefined,
+  // Only use pino-pretty in local development
+  transport: shouldUsePretty
+    ? {
+        target: "pino-pretty",
+        options: {
+          colorize: true,
+          translateTime: "yyyy-mm-dd HH:MM:ss",
+          ignore: "pid,hostname",
+        },
+      }
+    : undefined,
   formatters: {
     level: (label: string) => {
       return { level: label }
@@ -28,19 +34,42 @@ const loggerConfig = {
 // Create the logger instance
 const logger = pino(loggerConfig)
 
+// Helper function to log with proper pino format
+const logWithMetadata = (
+  logFn: (obj: unknown, msg?: string) => void,
+  message: string,
+  ...args: unknown[]
+) => {
+  // If first arg is an object, use it as metadata
+  if (args.length > 0 && typeof args[0] === "object" && args[0] !== null) {
+    logFn(args[0], message)
+  } else {
+    logFn(message)
+  }
+}
+
 // Export logger with typed interface
 export const log = {
   trace: (message: string, ...args: unknown[]) =>
-    logger.trace(message, ...args),
+    logWithMetadata(logger.trace.bind(logger), message, ...args),
   debug: (message: string, ...args: unknown[]) =>
-    logger.debug(message, ...args),
-  info: (message: string, ...args: unknown[]) => logger.info(message, ...args),
-  warn: (message: string, ...args: unknown[]) => logger.warn(message, ...args),
+    logWithMetadata(logger.debug.bind(logger), message, ...args),
+  info: (message: string, ...args: unknown[]) =>
+    logWithMetadata(logger.info.bind(logger), message, ...args),
+  warn: (message: string, ...args: unknown[]) =>
+    logWithMetadata(logger.warn.bind(logger), message, ...args),
   error: (message: string, ...args: unknown[]) =>
-    logger.error(message, ...args),
+    logWithMetadata(logger.error.bind(logger), message, ...args),
   fatal: (message: string, ...args: unknown[]) =>
-    logger.fatal(message, ...args),
+    logWithMetadata(logger.fatal.bind(logger), message, ...args),
   child: (bindings: Record<string, unknown>) => logger.child(bindings),
+  // biome-ignore lint/suspicious/noConsole: this is for debugging
+  console: (...args: unknown[]) => console.log(...args),
+  consoleWithHeader: (message: string, ...args: unknown[]) => {
+    log.console(`<==========${message}==========>`)
+    log.console(...args)
+    log.console(`</==========${message}==========/>`)
+  },
 }
 
 // Export the raw pino instance for advanced usage

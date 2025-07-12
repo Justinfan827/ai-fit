@@ -3,7 +3,7 @@ import "server-only"
 import OpenAI from "openai"
 import { zodResponseFormat } from "openai/helpers/zod"
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions"
-import { systemPromptv1 } from "@/lib/ai/prompts/prompts"
+import { systemPrompt } from "@/lib/ai/prompts/prompts"
 import {
   type GenerateProgramSchema,
   generateProgramSchema,
@@ -25,7 +25,7 @@ export default async function openaiGenerate({
   const messages: Array<ChatCompletionMessageParam> = [
     {
       role: "system",
-      content: systemPromptv1,
+      content: systemPrompt,
     },
     ...context,
   ]

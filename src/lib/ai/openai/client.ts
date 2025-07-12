@@ -6,7 +6,7 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 import { type AIWorkout, aiWorkoutSchema } from "@/lib/domain/workouts"
 import type { APIResponse } from "@/lib/types/apires"
 import { getError } from "@/lib/utils/util"
-import { systemPromptv1 } from "../prompts/prompts"
+import { systemPrompt } from "../prompts/prompts"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -21,7 +21,7 @@ async function generateWorkout({
   const messages: Array<ChatCompletionMessageParam> = [
     {
       role: "system",
-      content: systemPromptv1,
+      content: systemPrompt,
     },
     ...context,
   ]

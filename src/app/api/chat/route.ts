@@ -6,7 +6,10 @@ import {
   streamText,
 } from "ai"
 import { buildSystemPrompt } from "@/lib/ai/prompts/prompts"
-import { createWorkoutChanges } from "@/lib/ai/tools/create-workout-changes"
+import { myProvider } from "@/lib/ai/providers"
+import { updateWorkoutProgram } from "@/lib/ai/tools/update-workout-program"
+import log from "@/lib/logger/logger"
+import { sendDebugLog } from "@/lib/supabase/server/database.operations.mutations"
 import { requestSchema } from "./schema"
 
 // Allow streaming responses up to 30 seconds
@@ -18,48 +21,16 @@ export async function POST(req: Request) {
     const { messages, contextItems = [], workouts } = requestSchema.parse(body)
     const systemPrompt = buildSystemPrompt(contextItems, workouts)
     const coreMessages = convertToCoreMessages(messages)
-    const lastMessage = messages[messages.length - 1]
-
-    //     // Step 1: Classify intent
-    //     const { object: intent } = await generateObject({
-    //       model: openai('gpt-4o-mini'),
-    //       schema: intentSchema,
-    //       prompt: `Classify this user message in the context of fitness coaching:
-
-    // Message: "${lastMessage.content}"
-
-    // Context: The user is a fitness coach working with a client program that contains ${workouts.length} workout(s).
-
-    // Determine if this is:
-    // - "general": Questions about the program, client info, exercises, or general fitness advice
-    // - "workout_modification": Requests to edit, modify, add, or remove exercises/sets/reps from workouts
-
-    // If it's a workout modification, identify what they want to change.`,
-    //     })
-
-    // Build system prompt
-    console.log("System prompt:")
-    console.log("--------------------------------")
-    console.log(systemPrompt)
-    console.log("--------------------------------")
-    console.log("Last message:")
-    console.log("--------------------------------")
-    console.log(lastMessage.content)
-    console.log("--------------------------------")
-    console.log("Core messages:")
-    console.log("--------------------------------")
-    console.log(coreMessages)
-    console.log("--------------------------------")
-
+    log.consoleWithHeader("System prompt", systemPrompt)
     const stream = createDataStream({
-      execute: async (dataStream: DataStreamWriter) => {
+      execute: (dataStream: DataStreamWriter) => {
         try {
           const result = streamText({
-            model: openai("gpt-4o-mini"),
+            model: myProvider.languageModel("chat-model"),
             system: systemPrompt,
             messages: coreMessages,
             tools: {
-              createWorkoutChanges: createWorkoutChanges({
+              updateWorkoutProgram: updateWorkoutProgram({
                 messages: coreMessages,
                 contextItems,
                 existingWorkouts: workouts,
@@ -67,34 +38,20 @@ export async function POST(req: Request) {
               }),
             },
             maxSteps: 3,
-            onFinish: async ({ steps }) => {
-              console.log("--------------------------------")
-              console.log("On finish steps:")
-              console.log("--------------------------------")
-              console.log(JSON.stringify(steps, null, 2))
-              console.log("--------------------------------")
+            onFinish: async ({ request, text }) => {
+              await sendDebugLog(JSON.parse(request?.body || "{}"), text)
             },
-            onError: (error) => {
-              console.log("--------------------------------")
-              console.log("Error:")
-              console.log("--------------------------------")
-              console.log(error)
-              console.log("--------------------------------")
-            },
+            onError: (error) => log.error("Stream error:", error),
           })
           result.mergeIntoDataStream(dataStream)
         } catch (error) {
-          console.log("--------------------------------")
-          console.log("Stream error:")
-          console.log("--------------------------------")
-          console.log(JSON.stringify(error, null, 2))
-          console.log("--------------------------------")
+          log.error("Stream error:", error)
         }
       },
     })
     return new Response(stream)
   } catch (error) {
-    console.error("Chat API Error:", error)
+    log.error("Chat API Error:", { error })
     return Response.json(
       { error: "Failed to process chat request" },
       { status: 500 }

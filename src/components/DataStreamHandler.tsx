@@ -26,7 +26,7 @@ export function DataStreamHandler({
     const newDeltas = dataStream.slice(lastProcessedIndex.current + 1)
     lastProcessedIndex.current = dataStream.length - 1
     const newDeltasTypes = newDeltas as DataStreamDelta[]
-    newDeltasTypes.forEach((delta) => {
+    for (const delta of newDeltasTypes) {
       switch (delta.type) {
         case "workout-diff": {
           // Add unique IDs to changes if they don't already have them
@@ -35,9 +35,13 @@ export function DataStreamHandler({
             id: change.id || uuidv4(), // Add ID if it doesn't exist
           }))
           setProposedChanges(changesWithIds)
+          break
+        }
+        default: {
+          throw new Error(`Unknown delta type: ${delta.type}`)
         }
       }
-    })
+    }
   }, [dataStream, setProposedChanges])
 
   return null
