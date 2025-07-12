@@ -1,19 +1,10 @@
-import {
-  type CoreMessage,
-  type DataStreamWriter,
-  generateText,
-  type JSONValue,
-  streamObject,
-  tool,
-} from "ai"
+import { type CoreMessage, type DataStreamWriter, streamObject, tool } from "ai"
+import { v4 as uuidv4 } from "uuid"
 import { z } from "zod"
 import type { Workouts } from "@/lib/domain/workouts"
-import log from "@/lib/logger/logger"
+import { log } from "@/lib/logger/logger"
 import type { ContextItem } from "../prompts/context-schema"
-import {
-  buildDiffGenerationPrompt,
-  buildWorkoutModificationPrompt,
-} from "../prompts/prompts"
+import { buildWorkoutModificationPrompt } from "../prompts/prompts"
 import { myProvider } from "../providers"
 import { workoutChangeAISchema } from "./diff-schema"
 
@@ -27,11 +18,11 @@ interface UpdateWorkoutProgramArgs {
 export const updateWorkoutProgram = ({
   existingWorkouts,
   contextItems,
-  messages,
   dataStream,
 }: UpdateWorkoutProgramArgs) => {
   return tool({
-    description: "Suggest new exercises to add to an existing workout program",
+    description:
+      "Take a text description of a change to the workout program and generate a structured diff of the change to apply to the workout program.",
     parameters: z.object({
       suggestedChangeText: z
         .string()
@@ -46,7 +37,7 @@ export const updateWorkoutProgram = ({
       )
       log.consoleWithHeader("Suggested change text:", suggestedChangeText)
       log.consoleWithHeader(
-        "Create workout changes tool: system prompt",
+        "Update workout program system prompt:",
         systemPrompt
       )
 
@@ -65,17 +56,24 @@ export const updateWorkoutProgram = ({
         log.consoleWithHeader("Diff generation streaming.")
 
         for await (const element of elementStream) {
-          log.consoleWithHeader("Suggested diff:", element)
+          const diffParsed = workoutChangeAISchema.safeParse(element)
+          if (!diffParsed.success) {
+            log.error("Diff generation caught error:", diffParsed.error)
+            continue
+          }
+          // add a uuid to the diff
+          const diffWithId = {
+            ...diffParsed.data,
+            id: uuidv4().toString(),
+          }
+          log.consoleWithHeader("Suggested diff:", diffWithId)
           dataStream.writeData({
             type: "workout-diff",
-            content: element as JSONValue,
+            content: diffWithId,
           })
         }
         log.consoleWithHeader("Finished elementStream iteration")
-        return (
-          "Done creating workout changes. Updated workout text: " +
-          updatedWorkoutText
-        )
+        return "Done generating diff for workout changes."
       } catch (error) {
         log.error("Diff generation caught error:", error)
       }

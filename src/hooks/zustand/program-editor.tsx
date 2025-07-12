@@ -1,12 +1,9 @@
 import Fuse from "fuse.js"
 import { createContext, useContext, useEffect, useState } from "react"
-import { v4 as uuidv4 } from "uuid"
 import { create, type StoreApi, type UseBoundStore, useStore } from "zustand"
 import { mergeWorkoutWithProposedChanges } from "@/components/grid/workout-merge"
 import type { WorkoutChange } from "@/lib/ai/tools/diff-schema"
 import type {
-  Block,
-  Blocks,
   CircuitBlock,
   Exercise,
   ExerciseBlock,
@@ -15,6 +12,7 @@ import type {
   Workouts,
 } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
+import { newTestInitialProgram, newTestProposedChanges } from "./test-state"
 
 const EditorStoreContext = createContext<UseBoundStore<
   StoreApi<EditorState>
@@ -47,7 +45,10 @@ type WorkoutActions = {
   setProgramType: (pType: "weekly" | "splits") => void
   setProgramName: (name: string) => void
   setWorkouts: (workouts: Workouts) => void
+  // set the proposed changes to a new array
   setProposedChanges: (changes: WorkoutChange[]) => void
+  // add to the proposed changes array
+  addProposedChanges: (changes: WorkoutChange[]) => void
   setCurrentChangeId: (changeId: string | null) => void
   applyPendingProposalById: (proposalId: string) => void
   rejectPendingProposalById: (proposalId: string) => void
@@ -62,125 +63,6 @@ type WorkoutActions = {
   getCurrentWorkout: (workoutId: string) => Workout | undefined
 }
 
-const newInitialProgram = (exercises: Exercise[]): Program => {
-  const exerciseBlocks: Blocks = exercises
-    .slice(0, 2)
-    .map((exercise): Block => {
-      return {
-        type: "exercise",
-        exercise: {
-          id: exercise.id,
-          name: exercise.name,
-          metadata: {
-            sets: "3",
-            reps: "12",
-            weight: "100",
-            rest: "30s",
-          },
-        },
-      }
-    })
-
-  const circuitBlock: CircuitBlock = {
-    type: "circuit",
-    circuit: {
-      isDefault: false,
-      name: "Circuit 1",
-      description: "Circuit 1 description",
-      metadata: {
-        sets: "3",
-        rest: "30s",
-        notes: "Circuit 1 notes",
-      },
-      exercises: [
-        {
-          type: "exercise",
-          exercise: {
-            id: exercises[2].id,
-            name: exercises[2].name,
-            metadata: {
-              sets: "3",
-              reps: "12",
-              weight: "100",
-              rest: "30s",
-            },
-          },
-        },
-        {
-          type: "exercise",
-          exercise: {
-            id: exercises[3].id,
-            name: exercises[3].name,
-            metadata: {
-              sets: "3",
-              reps: "12",
-              weight: "100",
-              rest: "30s",
-            },
-          },
-        },
-      ],
-    },
-  }
-
-  const circuitBlock2: CircuitBlock = {
-    type: "circuit",
-    circuit: {
-      isDefault: false,
-      name: "Circuit 2",
-      description: "Circuit 2 description",
-      metadata: {
-        sets: "3",
-        rest: "30s",
-        notes: "Circuit 2 notes",
-      },
-      exercises: [
-        {
-          type: "exercise",
-          exercise: {
-            id: exercises[6].id,
-            name: exercises[6].name,
-            metadata: {
-              sets: "3",
-              reps: "12",
-              weight: "100",
-              rest: "30s",
-            },
-          },
-        },
-        {
-          type: "exercise",
-          exercise: {
-            id: exercises[7].id,
-            name: exercises[7].name,
-            metadata: {
-              sets: "3",
-              reps: "12",
-              weight: "100",
-              rest: "30s",
-            },
-          },
-        },
-      ],
-    },
-  }
-
-  return {
-    id: uuidv4().toString(),
-    created_at: new Date().toISOString(),
-    name: "New Program",
-    type: "weekly",
-    workouts: [
-      {
-        id: uuidv4().toString(),
-        name: "workout 1",
-        program_id: uuidv4().toString(), // populated on create
-        program_order: 0,
-        blocks: [...exerciseBlocks, circuitBlock, circuitBlock2],
-      },
-    ],
-  }
-}
 export const sortProposedChanges = (changes: WorkoutChange[]) => {
   return changes.sort((a, b) => {
     // first sort by workout index
@@ -402,81 +284,10 @@ const EditorProgramProvider = ({
   exercises: Exercise[]
   initialProgram?: Program
 }) => {
-  const program = initialProgram || newInitialProgram(exercises)
+  const program = initialProgram || newTestInitialProgram(exercises)
   const isNewProgram = !initialProgram
-  const sortedProposedChanges = sortProposedChanges([
-    {
-      id: uuidv4(),
-      type: "add-circuit-exercise",
-      workoutIndex: 0,
-      circuitBlockIndex: 3,
-      exerciseIndex: 0,
-      exercise: {
-        type: "exercise",
-        exercise: {
-          id: exercises[4].id,
-          name: exercises[4].name,
-          metadata: {
-            sets: "3",
-            reps: "12",
-            weight: "100",
-            rest: "30s",
-          },
-        },
-      },
-    },
-    {
-      id: uuidv4(),
-      type: "add-block",
-      workoutIndex: 0,
-      blockIndex: 0,
-      block: {
-        type: "exercise",
-        exercise: {
-          id: exercises[4].id,
-          name: exercises[4].name,
-          metadata: {
-            sets: "3",
-            reps: "12",
-            weight: "100",
-            rest: "30s",
-          },
-        },
-      },
-    },
-    {
-      id: uuidv4(),
-      type: "update-block",
-      workoutIndex: 0,
-      blockIndex: 0,
-      block: {
-        type: "exercise",
-        exercise: {
-          id: exercises[7].id,
-          name: exercises[7].name,
-          metadata: {
-            sets: "3",
-            reps: "12",
-            weight: "100",
-            rest: "30s",
-          },
-        },
-      },
-    },
-    {
-      id: uuidv4(),
-      type: "remove-block",
-      workoutIndex: 0,
-      blockIndex: 2,
-    },
-    {
-      id: uuidv4(),
-      type: "remove-circuit-exercise",
-      workoutIndex: 0,
-      circuitBlockIndex: 3,
-      exerciseIndex: 0,
-    },
-  ])
+  // const sortedProposedChanges = newTestProposedChanges(exercises)
+  const sortedProposedChanges: WorkoutChange[] = []
   // merge proposed changes with workouts
   const mergedWorkouts = program.workouts.map((workout) => {
     return mergeWorkoutWithProposedChanges(workout, sortedProposedChanges)
@@ -524,8 +335,22 @@ const EditorProgramProvider = ({
 
           set({ workouts, workoutHistories: updatedHistories })
         },
+        addProposedChanges: (changes: WorkoutChange[]) => {
+          const newProposedChanges = sortProposedChanges([
+            ...get().proposedChanges,
+            ...changes,
+          ])
+          set({ proposedChanges: newProposedChanges })
+          // merge the changes with the existing workout
+          const updatedWorkouts = get().workouts.map((workout) => {
+            return mergeWorkoutWithProposedChanges(workout, newProposedChanges)
+          })
+          set({ workouts: updatedWorkouts })
+        },
         setProposedChanges: (changes: WorkoutChange[]) => {
-          set({ proposedChanges: changes })
+          set({
+            proposedChanges: sortProposedChanges(changes),
+          })
         },
         setCurrentChangeId: (changeId: string | null) => {
           set({ currentChangeId: changeId })

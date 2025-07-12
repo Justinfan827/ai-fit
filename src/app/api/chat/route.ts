@@ -1,4 +1,3 @@
-
 import {
   convertToCoreMessages,
   createDataStream,
@@ -31,7 +30,6 @@ export async function POST(req: Request) {
             messages: coreMessages,
             tools: {
               updateWorkoutProgram: updateWorkoutProgram({
-                messages: coreMessages,
                 contextItems,
                 existingWorkouts: workouts,
                 dataStream,

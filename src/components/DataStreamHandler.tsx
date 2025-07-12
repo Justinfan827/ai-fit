@@ -4,7 +4,11 @@ import type { JSONValue } from "ai"
 import { useEffect, useRef } from "react"
 import { v4 as uuidv4 } from "uuid"
 import { useZEditorActions } from "@/hooks/zustand/program-editor"
-import type { WorkoutChange } from "@/lib/ai/tools/diff-schema"
+import {
+  type WorkoutChange,
+  workoutChangeSchema,
+} from "@/lib/ai/tools/diff-schema"
+import { log } from "@/lib/logger/logger"
 
 type WorkoutDiff = {
   type: "workout-diff"
@@ -19,7 +23,7 @@ export function DataStreamHandler({
   dataStream: JSONValue[] | undefined
 }) {
   const lastProcessedIndex = useRef(-1)
-  const { setProposedChanges } = useZEditorActions()
+  const { addProposedChanges } = useZEditorActions()
   useEffect(() => {
     if (!dataStream?.length) return
 
@@ -29,12 +33,14 @@ export function DataStreamHandler({
     for (const delta of newDeltasTypes) {
       switch (delta.type) {
         case "workout-diff": {
-          // Add unique IDs to changes if they don't already have them
-          const changesWithIds = delta.content.map((change) => ({
-            ...change,
-            id: change.id || uuidv4(), // Add ID if it doesn't exist
-          }))
-          setProposedChanges(changesWithIds)
+          log.info("workout-diff", delta.content)
+          const diffParsed = workoutChangeSchema.safeParse(delta.content)
+          if (!diffParsed.success) {
+            log.error("Diff generation caught error:", diffParsed.error)
+            continue
+          }
+          // merge the diff into the existing proposed changes
+          addProposedChanges([diffParsed.data])
           break
         }
         default: {
@@ -42,7 +48,7 @@ export function DataStreamHandler({
         }
       }
     }
-  }, [dataStream, setProposedChanges])
+  }, [dataStream, addProposedChanges])
 
   return null
 }
