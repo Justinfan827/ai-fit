@@ -173,7 +173,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       expect(result.blocks).toHaveLength(3)
       expect(result.blocks[1]).toEqual({
@@ -212,7 +212,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       expect(result.blocks).toHaveLength(3)
       expect(result.blocks[0]).toEqual({
@@ -254,7 +254,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       expect(result.blocks).toHaveLength(2)
       expect(result.blocks[0]).toEqual({
@@ -281,7 +281,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       expect(result.blocks).toHaveLength(2)
       expect(result.blocks[0]).toEqual({
@@ -323,7 +323,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       expect(result.blocks).toHaveLength(2)
       const circuitBlock = result.blocks[1] as CircuitBlock
@@ -366,7 +366,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       // Should remain unchanged
       expect(result.blocks).toHaveLength(2)
@@ -404,7 +404,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       expect(result.blocks).toHaveLength(2)
       const circuitBlock = result.blocks[1] as CircuitBlock
@@ -448,7 +448,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       // Should remain unchanged
       expect(result.blocks).toHaveLength(2)
@@ -470,7 +470,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       expect(result.blocks).toHaveLength(2)
       const circuitBlock = result.blocks[1] as CircuitBlock
@@ -497,7 +497,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       // Should remain unchanged
       expect(result.blocks).toHaveLength(2)
@@ -562,7 +562,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ])
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       // Should have 3 blocks (original 2 + 1 added)
       expect(result.blocks).toHaveLength(3)
@@ -599,7 +599,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
     it("should handle empty changes array", () => {
       const mockWorkout = createMockWorkout()
       const changes: WorkoutChange[] = []
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       expect(result).toEqual(mockWorkout)
     })
@@ -616,7 +616,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ]
 
-      mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
 
       expect(mockWorkout).toEqual(originalWorkout)
     })
@@ -671,7 +671,7 @@ describe("mergeWorkoutWithProposedChanges", () => {
         },
       ])
 
-      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes)
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 0)
       expect(result.blocks).toHaveLength(4)
       expect(result.blocks[0].type).toEqual("exercise")
       expect(result.blocks[1].type).toEqual("exercise")

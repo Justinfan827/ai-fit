@@ -12,7 +12,7 @@ import type {
   Workouts,
 } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
-import { newTestInitialProgram, newTestProposedChanges } from "./test-state"
+import { newTestInitialProgram } from "./test-state"
 
 const EditorStoreContext = createContext<UseBoundStore<
   StoreApi<EditorState>
@@ -289,8 +289,12 @@ const EditorProgramProvider = ({
   // const sortedProposedChanges = newTestProposedChanges(exercises)
   const sortedProposedChanges: WorkoutChange[] = []
   // merge proposed changes with workouts
-  const mergedWorkouts = program.workouts.map((workout) => {
-    return mergeWorkoutWithProposedChanges(workout, sortedProposedChanges)
+  const mergedWorkouts = program.workouts.map((workout, workoutIndex) => {
+    return mergeWorkoutWithProposedChanges(
+      workout,
+      sortedProposedChanges,
+      workoutIndex
+    )
   })
   const programWithMergedWorkouts = {
     ...program,
@@ -342,9 +346,15 @@ const EditorProgramProvider = ({
           ])
           set({ proposedChanges: newProposedChanges })
           // merge the changes with the existing workout
-          const updatedWorkouts = get().workouts.map((workout) => {
-            return mergeWorkoutWithProposedChanges(workout, newProposedChanges)
-          })
+          const updatedWorkouts = get().workouts.map(
+            (workout, workoutIndex) => {
+              return mergeWorkoutWithProposedChanges(
+                workout,
+                newProposedChanges,
+                workoutIndex
+              )
+            }
+          )
           set({ workouts: updatedWorkouts })
         },
         setProposedChanges: (changes: WorkoutChange[]) => {
