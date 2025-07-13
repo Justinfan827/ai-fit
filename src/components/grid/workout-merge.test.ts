@@ -596,6 +596,19 @@ describe("mergeWorkoutWithProposedChanges", () => {
   })
 
   describe("edge cases", () => {
+    it("should not apply changes if the workout index is not matching the workout index of the change", () => {
+      const mockWorkout = createMockWorkout()
+      const changes: WorkoutChange[] = [
+        {
+          id: "123e4567-e89b-12d3-a456-426614174017",
+          type: "remove-block",
+          workoutIndex: 0,
+          blockIndex: 0,
+        },
+      ]
+      const result = mergeWorkoutWithProposedChanges(mockWorkout, changes, 1)
+      expect(result).toEqual(mockWorkout)
+    })
     it("should handle empty changes array", () => {
       const mockWorkout = createMockWorkout()
       const changes: WorkoutChange[] = []
