@@ -23,6 +23,7 @@ import type {
   ExerciseBlock,
   Workout,
 } from "@/lib/domain/workouts"
+import log from "@/lib/logger/logger"
 import { cn } from "@/lib/utils"
 import type { Column } from "./columns"
 
@@ -268,7 +269,7 @@ function GridContentRows({
 }: {
   columns: Column[]
   workout: Workout
-  onWorkoutChange: (workout: Workout) => void
+  onWorkoutChange: (wrk: Workout) => void
   onProposalAction?: (proposalId: string, action: "accept" | "reject") => void
 }) {
   // Create grid directly from workout
@@ -433,7 +434,11 @@ function GridContentRows({
   ) => {
     // Get the current exercise data for comparison
     const cell = grid[row][col]
-    const currentBlock = workout.blocks[cell.originalBlockIndex!]
+    if (!cell.originalBlockIndex) {
+      log.error("No original block index found", { cell })
+      return
+    }
+    const currentBlock = workout.blocks[cell.originalBlockIndex]
     const oldExercise =
       currentBlock?.type === "exercise"
         ? { id: currentBlock.exercise.id, name: currentBlock.exercise.name }
@@ -588,13 +593,13 @@ function GridContentRows({
     }
   }
 
-  const { setProposedChanges } = useZEditorActions()
+  // TODO: handle proposal action
   const handleProposalAction = (
     rowIndex: number,
     action: "accept" | "reject"
   ) => {
     const cell = grid[rowIndex]?.[0]
-    if (!(cell && cell.isProposed && cell.pendingStatus?.proposalId)) {
+    if (!(cell?.isProposed && cell.pendingStatus?.proposalId)) {
       return
     }
 
@@ -670,6 +675,124 @@ type GridRowProps = {
   currentChangeId: string | null
 }
 
+type RowActionBarProps = {
+  row: Cell[]
+  rowIndex: number
+  openDropdownRow: number | null
+  handleProposalAction: (rowIndex: number, action: "accept" | "reject") => void
+  handleAddRow: (
+    rowIndex: number,
+    colIndex: number,
+    type: "exercise" | "circuit" | "exercise-in-circuit"
+  ) => void
+  handleOnSelectExercise: (exercise: Exercise, row: number, col: number) => void
+  setOpenDropdownRow: (row: number | null) => void
+}
+
+/*
+ RowActionBar is the action bar that appears next to each row.
+ */
+function RowActionBar({
+  row,
+  rowIndex,
+  openDropdownRow,
+  handleProposalAction,
+  setOpenDropdownRow,
+  handleAddRow,
+}: RowActionBarProps) {
+  // Helper function to get color class based on proposed change type
+  const getProposedChangeColorClass = (changeType?: string) => {
+    if (changeType === "adding") {
+      return "text-green-400 hover:text-green-300"
+    }
+    if (changeType === "removing") {
+      return "text-red-400 hover:text-red-300"
+    }
+    return "text-blue-400 hover:text-blue-300"
+  }
+
+  // Helper function to determine if we should show accept/reject buttons
+  const shouldShowProposalButtons = () => {
+    const firstCell = row[0]
+    if (!firstCell?.isProposed) return false
+
+    return (
+      firstCell.isCircuitHeader ||
+      !(firstCell.isCircuitExercise || firstCell.isCircuitHeader) ||
+      (firstCell.isCircuitExercise && firstCell.isIndividualChange)
+    )
+  }
+
+  // Helper function to render the content based on state
+  const renderActionButtons = () => {
+    const firstCell = row[0]
+
+    if (shouldShowProposalButtons()) {
+      // Proposed change action buttons
+      return (
+        <>
+          <Button
+            className={`h-6 w-6 cursor-pointer transition-opacity ease-in-out focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 ${getProposedChangeColorClass(firstCell?.proposedChangeType)}`}
+            onClick={() => {
+              handleProposalAction(rowIndex, "accept")
+            }}
+            size="icon"
+            title={`Accept proposed ${firstCell?.proposedChangeType?.replace("-", " ")}`}
+            variant="ghost"
+          >
+            <Icons.check className="h-4 w-4" />
+          </Button>
+          <Button
+            className="h-6 w-6 cursor-pointer text-red-400 transition-opacity ease-in-out hover:text-red-300 focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
+            onClick={() => {
+              handleProposalAction(rowIndex, "reject")
+            }}
+            size="icon"
+            title={`Reject proposed ${firstCell?.proposedChangeType?.replace("-", " ")}`}
+            variant="ghost"
+          >
+            <Icons.x className="h-4 w-4" />
+          </Button>
+        </>
+      )
+    }
+
+    // if (firstCell?.isProposed && firstCell?.isCircuitExercise) {
+    //   // For circuit exercises that are part of a proposed change, show empty space to maintain alignment
+    //   return (
+    //     <div className="flex">
+    //       <div className="h-6 w-6" />
+    //       <div className="h-6 w-6" />
+    //     </div>
+    //   )
+    // }
+    return (
+      <>
+        <div className="h-6 w-6" />
+        <AddRowDropdown
+          isInCircuit={
+            firstCell?.isCircuitHeader || firstCell?.isCircuitExercise
+          }
+          onAddRow={(type) => handleAddRow(rowIndex, 0, type)}
+          onOpenChange={(open) => setOpenDropdownRow(open ? rowIndex : null)}
+        />
+      </>
+    )
+  }
+
+  return (
+    <div
+      className={cn(
+        "flex items-center px-2",
+        openDropdownRow === rowIndex ? "opacity-100" : ""
+      )}
+      id="action menu"
+    >
+      {renderActionButtons()}
+    </div>
+  )
+}
+
 function GridContentRow({
   row,
   numRows,
@@ -688,91 +811,19 @@ function GridContentRow({
   editingValue,
   stopEditing,
   startEditing,
-  grid,
-  workout,
   currentChangeId,
 }: GridRowProps) {
   return (
     <div className="group flex h-9 w-full" key={`row-${rowIndex}`}>
-      <div
-        className={`flex items-center px-2 ${
-          openDropdownRow === rowIndex ? "opacity-100" : ""
-        }`}
-        id="action menu"
-      >
-        {row[0]?.isProposed &&
-        // Show accept/reject buttons on:
-        // - Circuit headers (for any circuit-related changes)
-        // - Standalone exercises (for remove-block or add-block)
-        // - Circuit exercises when individually being added/removed (not part of circuit removal)
-        (row[0]?.isCircuitHeader ||
-          !(row[0]?.isCircuitExercise || row[0]?.isCircuitHeader) ||
-          (row[0]?.isCircuitExercise && row[0]?.isIndividualChange)) ? (
-          // Proposed change action buttons
-          <>
-            <Button
-              className={`h-6 w-6 cursor-pointer transition-opacity ease-in-out focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 ${
-                row[0]?.proposedChangeType === "adding"
-                  ? "text-green-400 hover:text-green-300"
-                  : row[0]?.proposedChangeType === "removing"
-                    ? "text-red-400 hover:text-red-300"
-                    : "text-blue-400 hover:text-blue-300"
-              }`}
-              onClick={() => {
-                handleProposalAction(rowIndex, "accept")
-              }}
-              size="icon"
-              title={`Accept proposed ${row[0]?.proposedChangeType?.replace("-", " ")}`}
-              variant="ghost"
-            >
-              <Icons.check className="h-4 w-4" />
-            </Button>
-            <Button
-              className="h-6 w-6 cursor-pointer text-red-400 transition-opacity ease-in-out hover:text-red-300 focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
-              onClick={() => {
-                handleProposalAction(rowIndex, "reject")
-              }}
-              size="icon"
-              title={`Reject proposed ${row[0]?.proposedChangeType?.replace("-", " ")}`}
-              variant="ghost"
-            >
-              <Icons.x className="h-4 w-4" />
-            </Button>
-          </>
-        ) : row[0]?.isProposed && row[0]?.isCircuitExercise ? (
-          // For circuit exercises that are part of a proposed change, show empty space to maintain alignment
-          <div className="flex">
-            <div className="h-6 w-6" />
-            <div className="h-6 w-6" />
-          </div>
-        ) : (
-          // Regular action buttons
-          <>
-            <div className="">
-              <AddRowDropdown
-                isInCircuit={
-                  row[0]?.isCircuitHeader || row[0]?.isCircuitExercise
-                }
-                onAddRow={(type) => handleAddRow(rowIndex, 0, type)}
-                onOpenChange={(open) =>
-                  setOpenDropdownRow(open ? rowIndex : null)
-                }
-              />
-            </div>
-            <div className="">
-              <Button
-                className={`h-6 w-6 cursor-pointer text-accent-foreground transition-opacity ease-in-out focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 ${
-                  openDropdownRow === rowIndex ? "opacity-100" : "opacity-0"
-                }`}
-                size="icon"
-                variant="ghost"
-              >
-                <Icons.gripVertical className="h-4 w-4" />
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
+      <RowActionBar
+        handleAddRow={handleAddRow}
+        handleOnSelectExercise={handleOnSelectExercise}
+        handleProposalAction={handleProposalAction}
+        openDropdownRow={openDropdownRow}
+        row={row}
+        rowIndex={rowIndex}
+        setOpenDropdownRow={setOpenDropdownRow}
+      />
       {row.map((cell, colIndex) => (
         <div
           className={getCellClasses(

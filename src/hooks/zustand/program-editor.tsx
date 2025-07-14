@@ -12,7 +12,7 @@ import type {
   Workouts,
 } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
-import { newTestInitialProgram } from "./test-state"
+import { newTestInitialProgram, newTestProposedChanges } from "./test-state"
 
 const EditorStoreContext = createContext<UseBoundStore<
   StoreApi<EditorState>
@@ -286,8 +286,8 @@ const EditorProgramProvider = ({
 }) => {
   const program = initialProgram || newTestInitialProgram(exercises)
   const isNewProgram = !initialProgram
-  // const sortedProposedChanges = newTestProposedChanges(exercises)
-  const sortedProposedChanges: WorkoutChange[] = []
+  const sortedProposedChanges = sortProposedChanges(newTestProposedChanges(exercises))  
+  // const sortedProposedChanges: WorkoutChange[] = []
   // merge proposed changes with workouts
   const mergedWorkouts = program.workouts.map((workout, workoutIndex) => {
     return mergeWorkoutWithProposedChanges(
