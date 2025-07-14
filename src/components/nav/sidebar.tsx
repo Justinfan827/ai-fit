@@ -10,6 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import type { CurrentUser } from "@/lib/supabase/server/database.operations.queries"
 
 // Menu items.
 const items = [
@@ -38,7 +39,10 @@ const items = [
   },
 ]
 
-export function AppSidebar({ hideOnURLs = [] }: { hideOnURLs?: string[] }) {
+type AppSidebarProps = {
+  hideOnURLs?: string[]
+}
+export function AppSidebar({ hideOnURLs = [] }: AppSidebarProps) {
   const path = usePathname()
   // check if the current path is in the hideOnURLs array
 

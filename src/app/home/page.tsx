@@ -7,6 +7,7 @@ import { PageContent, PageLayout, PageSection } from "@/components/page-layout"
 import { Tp } from "@/components/typography"
 import { BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
+import { PAGES } from "@/lib/constants"
 import {
   getAllPrograms,
   getCurrentUser,
@@ -39,7 +40,7 @@ export default async function WorkoutsPage() {
     <>
       <ClientButtonNewClient />
       <Button asChild>
-        <Link href="/home/programs/new">New program</Link>
+        <Link href={PAGES.generateProgram.url}>New program</Link>
       </Button>
     </>
   )
@@ -62,7 +63,7 @@ export default async function WorkoutsPage() {
             <Tp className="text-2xl tracking-wide">Programs</Tp>
             {programData.length === 0 ? (
               <EmptyStateCard
-                buttonHref="/home/programs/new"
+                buttonHref={PAGES.generateProgram.url}
                 buttonText="New program"
                 className="w-full"
                 subtitle="Create a new program to get started with ai powered programming."
@@ -78,7 +79,7 @@ export default async function WorkoutsPage() {
                       idx === programData.length - 1 && "rounded-b-sm",
                       "border-neutral-700 border-b"
                     )}
-                    href={`/home/programs/${program.id}`}
+                    href={PAGES.programId.url(program.id)}
                     key={program.id}
                   >
                     {program.name}
@@ -92,7 +93,8 @@ export default async function WorkoutsPage() {
 
             {clientsData.length === 0 ? (
               <EmptyStateCard
-                buttonHref="/home/programs/new"
+                // TODO: update this.
+                buttonHref={PAGES.generateProgram.url}
                 buttonText="New Client"
                 className="w-full"
                 subtitle="Add a new client to get started with ai powered programming."
@@ -108,7 +110,7 @@ export default async function WorkoutsPage() {
                       idx === clientsData.length - 1 && "rounded-b-sm",
                       "border-neutral-700 border-b"
                     )}
-                    href={`/home/clients/${client.id}`}
+                    href={PAGES.clientId.url(client.id)}
                     key={client.id}
                   >
                     {client.firstName} {client.lastName}
