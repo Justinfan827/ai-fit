@@ -8,7 +8,7 @@ import {
   useZCurrentChangeId,
   useZEditorActions,
   useZProposedChanges,
-} from "@/hooks/zustand/program-editor"
+} from "@/hooks/zustand/program-editor-state"
 import log from "@/lib/logger/logger"
 import { cn } from "@/lib/utils"
 

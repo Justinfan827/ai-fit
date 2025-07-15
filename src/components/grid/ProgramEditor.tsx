@@ -22,7 +22,7 @@ import {
   useZProgramType,
   useZProgramWorkouts,
   useZProposedChanges,
-} from "@/hooks/zustand/program-editor"
+} from "@/hooks/zustand/program-editor-state"
 import {
   type Program,
   programSchema,
@@ -44,7 +44,7 @@ export default function ProgramEditor() {
   const programName = useZProgramName()
   const programCreatedAt = useZProgramCreatedAt()
   const programId = useZProgramId()
-  const { setProgramType, setProgramName, setWorkouts, setProposedChanges } =
+  const { setProgramName, setWorkouts, setProposedChanges } =
     useZEditorActions()
   const workoutsByWeek = groupWorkoutsByWeek(workouts)
 
@@ -71,46 +71,6 @@ export default function ProgramEditor() {
     }
   }
 
-  // update grid when ai program gets generated
-  const { generatedProgram, isPending: isAIGenPending } =
-    useAIGeneratedWorkouts()
-  useEffect(() => {
-    if (generatedProgram) {
-      const workouts: Workout[] = generatedProgram.workouts.map((w, idx) => {
-        return {
-          ...w,
-          id: uuidv4().toString(), // populated on create
-          program_id: uuidv4().toString(), // populated on create
-          program_order: idx,
-          blocks: w.blocks.map((b) => {
-            if (b.type === "exercise") {
-              // Transform aiExerciseSchema to ExerciseBlock
-              return {
-                type: "exercise" as const,
-                exercise: {
-                  id: uuidv4().toString(),
-                  name: b.exercise.name,
-                  metadata: {
-                    sets: b.exercise.metadata.sets,
-                    reps: b.exercise.metadata.reps,
-                    weight: b.exercise.metadata.weight,
-                    rest: b.exercise.metadata.rest,
-                    notes: "",
-                  },
-                },
-              }
-            }
-            return {
-              type: "circuit" as const,
-              circuit: b.circuit,
-            }
-          }),
-        }
-      })
-      setWorkouts(workouts)
-    }
-  }, [generatedProgram, setWorkouts])
-
   const addNewWorkoutToWeek = ({ week }: { week?: number }) => {
     /*
      *  TODO: should i change the meaning of program order? I.e.
@@ -122,7 +82,7 @@ export default function ProgramEditor() {
      *
      *  For a split, the program order should not be duplicated.
      *
-     *  If i force deletion of anything after week 1 when you switch to a split,
+     *  If force deletion of anything after week 1 when you switch to a split,
      *  this should be fine! i just need to make sure when i fetch programs, i order by
      *  week, and then program_order, for weekly programs.
      *
@@ -220,10 +180,12 @@ export default function ProgramEditor() {
     router.refresh()
   }
 
-  const handleSelect = (v: "weekly" | "splits") => {
-    setProgramType(v)
-  }
+  // TODO: uncomment when we support weekly programs
+  // const handleProgramSelect = (v: "weekly" | "splits") => {
+  //   setProgramType(v)
+  // }
 
+  // handle duplicating the current week to the next week
   const handleDuplicateWeek = (weekIdx: number) => {
     const dupeWorkouts = workoutsByWeek[weekIdx].map((w) => {
       return {
@@ -238,7 +200,8 @@ export default function ProgramEditor() {
   // Create header actions for the PageHeader
   const headerActions = (
     <div className="flex items-center justify-center space-x-2">
-      <ProgramSelect onValueChange={handleSelect} value={programType} />
+      {/* TODO: uncomment when we support weekly programs */}
+      {/* <ProgramSelect onValueChange={handleProgramSelect} value={programType} /> */}
       <LoadingButton
         className="w-20"
         isLoading={isPending}
@@ -262,16 +225,6 @@ export default function ProgramEditor() {
         }
       />
       <div className="overflow-x-auto p-4">
-        {isAIGenPending && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-neutral-950/10 pb-14 backdrop-blur-xs">
-            <p className="animate-pulse font-light text-neutral-100 tracking-wide">
-              Generating program...
-            </p>
-            <div className="flex flex-col items-center justify-center gap-4">
-              <Icons.spinner className="h-8 w-8 animate-spin text-neutral-50" />
-            </div>
-          </div>
-        )}
         <div className="flex gap-8">
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
             return (
@@ -282,29 +235,33 @@ export default function ProgramEditor() {
               >
                 <div className="gap-4">
                   <div className="ml-16 flex items-center justify-between gap-4 pr-[52px] pb-3">
-                    <Badge
-                      className="font-light text-muted-foreground text-xs uppercase tracking-widest"
-                      variant="outline"
-                    >
-                      Week {weekIdx + 1}
-                    </Badge>
-                    <div className="flex items-center" id="action menu">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            className="h-8 w-8 text-accent-foreground/50 hover:text-accent-foreground"
-                            onClick={() => handleDuplicateWeek(weekIdx)}
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <Icons.copy className="h-5 w-5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Duplicate Week</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
+                    {programType === "weekly" && (
+                      <Badge
+                        className="font-light text-muted-foreground text-xs uppercase tracking-widest"
+                        variant="outline"
+                      >
+                        Week {weekIdx + 1}
+                      </Badge>
+                    )}
+                    {programType === "weekly" && (
+                      <div className="flex items-center" id="action menu">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              className="h-8 w-8 text-accent-foreground/50 hover:text-accent-foreground"
+                              onClick={() => handleDuplicateWeek(weekIdx)}
+                              size="icon"
+                              variant="ghost"
+                            >
+                              <Icons.copy className="h-5 w-5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Duplicate Week</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    )}
                   </div>
                   <div className="w-full grow space-y-8" id="workouts-data">
                     {weeksWorkouts.map((workout, workoutIdx) => {
@@ -359,19 +316,21 @@ export default function ProgramEditor() {
                               workout={workout}
                             />
                           </div>
-                          <div className="mt-[48px] flex flex-col items-stretch">
-                            <Button
-                              className="grow font-normal text-sm"
-                              id="next-week-workout-btn"
-                              onClick={() =>
-                                addNewWorkoutToWeek({ week: weekIdx + 1 })
-                              }
-                              size="icon"
-                              variant="dashed"
-                            >
-                              <Icons.plus className="h-4 w-4 rounded-full" />
-                            </Button>
-                          </div>
+                          {programType === "weekly" && (
+                            <div className="mt-[48px] flex flex-col items-stretch">
+                              <Button
+                                className="grow font-normal text-sm"
+                                id="next-week-workout-btn"
+                                onClick={() =>
+                                  addNewWorkoutToWeek({ week: weekIdx + 1 })
+                                }
+                                size="icon"
+                                variant="dashed"
+                              >
+                                <Icons.plus className="h-4 w-4 rounded-full" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       )
                     })}

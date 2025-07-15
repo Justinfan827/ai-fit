@@ -192,12 +192,12 @@ const newTestInitialProgram = (exercises: Exercise[]): Program => {
     id: uuidv4().toString(),
     created_at: new Date().toISOString(),
     name: "New Program",
-    type: "weekly",
+    type: "splits",
     workouts: [
       {
         id: uuidv4().toString(),
         name: "workout 1",
-        program_id: uuidv4().toString(), // populated on create
+        program_id: uuidv4().toString(),
         program_order: 0,
         blocks: [...exerciseBlocks, circuitBlock, circuitBlock2],
       },

@@ -5,7 +5,7 @@ import {
   ComboboxOptions,
 } from "@headlessui/react"
 import { useEffect, useRef, useState } from "react"
-import { useZEditorActions } from "@/hooks/zustand/program-editor"
+import { useZEditorActions } from "@/hooks/zustand/program-editor-state"
 import type { Exercise } from "@/lib/domain/workouts"
 
 export type ExerciseInputPopoverProps = {

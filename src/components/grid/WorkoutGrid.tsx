@@ -16,7 +16,7 @@ import {
   useWorkoutHistoryKeyboardShortcuts,
   useZCurrentChangeId,
   useZEditorActions,
-} from "@/hooks/zustand/program-editor"
+} from "@/hooks/zustand/program-editor-state"
 import type {
   CircuitBlock,
   Exercise,
