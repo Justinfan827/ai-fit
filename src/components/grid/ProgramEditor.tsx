@@ -6,13 +6,11 @@ import { toast } from "sonner"
 import { v4 as uuidv4 } from "uuid"
 import EditableTypography from "@/components/EditableTypeography"
 import { defaultBlocks, defaultColumns } from "@/components/grid/columns"
-import { ProgramSelect } from "@/components/grid/ProgramSelect"
 import { Icons } from "@/components/icons"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import apiCreateProgram from "@/fetches/create-program"
 import apiEditProgram from "@/fetches/edit-program"
-import { useAIGeneratedWorkouts } from "@/hooks/use-workout"
 import {
   useZEditorActions,
   useZIsNewProgram,
@@ -23,11 +21,7 @@ import {
   useZProgramWorkouts,
   useZProposedChanges,
 } from "@/hooks/zustand/program-editor-state"
-import {
-  type Program,
-  programSchema,
-  type Workout,
-} from "@/lib/domain/workouts"
+import { type Program, programSchema } from "@/lib/domain/workouts"
 import PlusButton from "../buttons/PlusButton"
 import LoadingButton from "../loading-button"
 import { ProposedChangesMenu } from "../proposed-changes-menu"

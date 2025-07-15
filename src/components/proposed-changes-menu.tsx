@@ -9,7 +9,6 @@ import {
   useZEditorActions,
   useZProposedChanges,
 } from "@/hooks/zustand/program-editor-state"
-import log from "@/lib/logger/logger"
 import { cn } from "@/lib/utils"
 
 interface ProposedChangesMenuProps {

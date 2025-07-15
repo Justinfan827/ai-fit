@@ -2,9 +2,17 @@
 
 import { useChat } from "@ai-sdk/react"
 import { Dumbbell, Plus, UserIcon, X } from "lucide-react"
-import * as React from "react"
+import {
+  type ChangeEvent,
+  type ComponentProps,
+  type FormEvent,
+  type FormEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
 import { Markdown } from "@/components/markdown"
-
 import {
   Sidebar,
   SidebarContent,
@@ -19,6 +27,14 @@ import {
 import type { ClientHomePage } from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
 import { cn } from "@/lib/utils"
+import {
+  AIInput,
+  AIInputButton,
+  AIInputSubmit,
+  AIInputTextarea,
+  AIInputToolbar,
+  AIInputTools,
+} from "./AIInput"
 import { DataStreamHandler } from "./DataStreamHandler"
 import { ExerciseSelectionDialog } from "./forms/ExerciseSelectionDialog"
 import { Icons } from "./icons"
@@ -35,8 +51,7 @@ import { ScrollArea } from "./ui/scroll-area"
 import { Separator } from "./ui/separator"
 import { Textarea } from "./ui/textarea"
 
-interface ProgramEditorSidebarProps
-  extends React.ComponentProps<typeof Sidebar> {
+interface ProgramEditorSidebarProps extends ComponentProps<typeof Sidebar> {
   trainerId: string
   exercises: Exercise[]
   client?: ClientHomePage // Make client optional
@@ -58,10 +73,8 @@ export function ProgramEditorSidebar({
 }: ProgramEditorSidebarProps) {
   const workouts = useZProgramWorkouts()
   const proposedChanges = useZProposedChanges()
-  console.log(workouts)
-  console.log(proposedChanges)
-  const [exercises, setExercises] = React.useState<Exercise[]>(initialExercises)
-  const [contextItems, setContextItems] = React.useState<ContextItem[]>(() => {
+  const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
+  const [contextItems, setContextItems] = useState<ContextItem[]>(() => {
     return [
       {
         id: "exercises-preferred",
@@ -97,11 +110,11 @@ export function ProgramEditorSidebar({
     initialMessages: [],
   })
 
-  const scrollAreaRef = React.useRef<HTMLDivElement>(null)
-  const bottomRef = React.useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
 
   // Utility function to scroll to bottom
-  const scrollToBottom = React.useCallback(() => {
+  const scrollToBottom = useCallback(() => {
     if (bottomRef.current) {
       // Ensure we wait until next paint so DOM is up to date
       requestAnimationFrame(() => {
@@ -111,10 +124,17 @@ export function ProgramEditorSidebar({
   }, [])
 
   // Auto-scroll to bottom when new messages arrive or when typing
-  React.useEffect(() => {
+  useEffect(() => {
     scrollToBottom()
-  }, [messages, status, scrollToBottom])
+  }, [scrollToBottom])
 
+  const onAddContext = (payload: ContextAddPayload) => {
+    if (payload.type === "client") {
+      addClientContext(payload.data)
+    } else if (payload.type === "exercises") {
+      addExercisesContext(payload.data)
+    }
+  }
   const addClientContext = (selectedClient: ClientHomePage) => {
     const clientItem: ContextItem = {
       id: `client-${selectedClient.id}`,
@@ -129,7 +149,8 @@ export function ProgramEditorSidebar({
     })
   }
 
-  const addExercisesContext = () => {
+  // TODO: figure out how to handle subset of selected exercises
+  const addExercisesContext = (_selectedExercises: Exercise[]) => {
     // When adding the exercise context we want ALL library exercises selected by default
     const allExercisesSelected = initialExercises
 
@@ -192,10 +213,7 @@ export function ProgramEditorSidebar({
           selectedExercises={exercises}
           setExercises={handleExercisesChange}
         >
-          <Badge
-            className="flex cursor-pointer items-center gap-1 text-xs"
-            variant="secondary"
-          >
+          <Badge className="flex cursor-pointer items-center gap-1 border-input bg-background text-foreground text-xs">
             {getContextIcon(item.type)}
             <span>{item.label}</span>
             <Button
@@ -216,9 +234,8 @@ export function ProgramEditorSidebar({
 
     return (
       <Badge
-        className="flex items-center gap-1 text-xs"
+        className="flex cursor-pointer items-center gap-1 border-input bg-background text-foreground text-xs"
         key={item.id}
-        variant="secondary"
       >
         {getContextIcon(item.type)}
         <span>{item.label}</span>
@@ -330,95 +347,124 @@ export function ProgramEditorSidebar({
 
       <SidebarFooter>
         <div className="space-y-3 px-4 pb-2">
-          <form className="relative flex gap-2" onSubmit={handleSubmit}>
-            <div className="absolute top-3 left-3">
-              <div className="flex gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      className="text-muted-foreground"
-                      size="xs"
-                      variant="outline"
-                    >
-                      <Plus className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    {availableClients.length > 0 && (
-                      <>
-                        <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
-                          Clients
-                        </div>
-                        {availableClients.map((availableClient) => (
-                          <DropdownMenuItem
-                            disabled={contextItems.some(
-                              (item) =>
-                                item.type === "client" &&
-                                item.data.id === availableClient.id
-                            )}
-                            key={availableClient.id}
-                            onClick={() => addClientContext(availableClient)}
-                          >
-                            <UserIcon className="mr-2 size-4" />
-                            {availableClient.firstName}
-                          </DropdownMenuItem>
-                        ))}
-                        <Separator className="my-1" />
-                      </>
-                    )}
-                    <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
-                      Exercise Library
-                    </div>
-                    <DropdownMenuItem
-                      disabled={contextItems.some(
-                        (item) => item.type === "exercises"
-                      )}
-                      onClick={addExercisesContext}
-                    >
-                      <Dumbbell className="mr-2 size-4" />
-                      Exercises ({exercises.length})
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <div className="space-y-2">
-                  {contextItems.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {contextItems.map((item) => renderContextBadge(item))}
-                    </div>
-                  )}
-                </div>
+          <div className="flex items-center gap-2">
+            {/* Context Items */}
+            {contextItems.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {contextItems.map((item) => renderContextBadge(item))}
               </div>
-            </div>
-            <Textarea
-              className="min-h-[80px] resize-none pt-12 pb-14 text-sm"
-              disabled={status === "streaming"}
-              onChange={handleInputChange}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSubmit(e)
-                }
-              }}
-              placeholder="Ask me to build your program..."
-              value={input}
-            />
-            <div className="absolute right-3 bottom-3">
-              <Button
-                className="shrink-0 rounded-full p-1.5"
-                disabled={status === "streaming" || !input.trim()}
-                size="noSize"
-                type="submit"
-              >
-                <Icons.send className="size-4" />
-              </Button>
-            </div>
-          </form>
-          <p className="text-center text-muted-foreground text-xs">
-            Press Enter to send, Shift+Enter for new line
-          </p>
+            )}
+          </div>
+          <SidebarInput
+            onAddContext={onAddContext}
+            onChange={handleInputChange}
+            onSubmit={handleSubmit}
+            state={{
+              clients: availableClients,
+              exercises: initialExercises,
+              contextItems,
+            }}
+            value={input}
+          />
         </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
+  )
+}
+
+interface SidebarInputProps {
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void
+  value: string
+  state: {
+    clients: ClientHomePage[]
+    exercises: Exercise[]
+    contextItems: ContextItem[]
+  }
+  onAddContext: (payload: ContextAddPayload) => void
+}
+
+type ClientContextAddPayload = {
+  type: "client"
+  data: ClientHomePage
+}
+
+type ExercisesContextAddPayload = {
+  type: "exercises"
+  data: Exercise[]
+}
+
+type ContextAddPayload = ClientContextAddPayload | ExercisesContextAddPayload
+
+function SidebarInput({
+  onChange,
+  onSubmit,
+  state,
+  onAddContext,
+  value,
+}: SidebarInputProps) {
+  return (
+    <AIInput onSubmit={onSubmit}>
+      <AIInputTextarea onChange={onChange} value={value} />
+      <AIInputToolbar>
+        <AIInputTools>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <AIInputButton>
+                <Plus className="size-4" />
+              </AIInputButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              {state.clients.length > 0 && (
+                <>
+                  <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
+                    Clients
+                  </div>
+                  {state.clients.map((availableClient) => (
+                    <DropdownMenuItem
+                      disabled={state.contextItems.some(
+                        (item) =>
+                          item.type === "client" &&
+                          item.data.id === availableClient.id
+                      )}
+                      key={availableClient.id}
+                      onClick={() =>
+                        onAddContext({
+                          type: "client",
+                          data: availableClient,
+                        })
+                      }
+                    >
+                      <UserIcon className="mr-2 size-4" />
+                      {availableClient.firstName}
+                    </DropdownMenuItem>
+                  ))}
+                  <Separator className="my-1" />
+                </>
+              )}
+              <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
+                Exercise Library
+              </div>
+              <DropdownMenuItem
+                disabled={state.contextItems.some(
+                  (item) => item.type === "exercises"
+                )}
+                onClick={() =>
+                  onAddContext({
+                    type: "exercises",
+                    data: state.exercises,
+                  })
+                }
+              >
+                <Dumbbell className="mr-2 size-4" />
+                Exercises ({state.exercises.length})
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </AIInputTools>
+        <AIInputSubmit disabled={!value} status="ready" />
+      </AIInputToolbar>
+    </AIInput>
   )
 }
