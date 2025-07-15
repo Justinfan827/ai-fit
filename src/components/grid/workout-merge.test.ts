@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { sortProposedChanges } from "@/hooks/zustand/program-editor"
+import { sortProposedChanges } from "@/hooks/zustand/program-editor-state"
 import type { WorkoutChange } from "@/lib/ai/tools/diff-schema"
 import type {
   Block,

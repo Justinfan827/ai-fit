@@ -90,8 +90,8 @@ export const blocksSchema = z.array(blockSchema)
 export const workoutSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string
   program_order: z.number(),
-  week: z.number().optional(),
-  program_id: z.string().uuid(), // Validates a UUID string
+  week: z.number().optional(), // Only present for weekly programs
+  program_id: z.string().uuid(),
   name: z.string(),
   blocks: blocksSchema,
 })

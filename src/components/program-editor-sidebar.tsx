@@ -15,7 +15,7 @@ import {
 import {
   useZProgramWorkouts,
   useZProposedChanges,
-} from "@/hooks/zustand/program-editor"
+} from "@/hooks/zustand/program-editor-state"
 import type { ClientHomePage } from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
 import { cn } from "@/lib/utils"

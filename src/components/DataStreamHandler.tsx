@@ -3,7 +3,7 @@
 import type { JSONValue } from "ai"
 import { useEffect, useRef } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { useZEditorActions } from "@/hooks/zustand/program-editor"
+import { useZEditorActions } from "@/hooks/zustand/program-editor-state"
 import {
   type WorkoutChange,
   workoutChangeSchema,
