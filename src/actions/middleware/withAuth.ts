@@ -42,7 +42,6 @@ async function withAuthUtils<TInput, TResult>(options: {
       handlerArgs.input = parsedInput.data
     }
 
-    console.log("Running handler with args", handlerArgs)
     const result = await handler(handlerArgs)
     return {
       data: result,

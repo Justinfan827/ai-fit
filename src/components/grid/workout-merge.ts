@@ -1,4 +1,6 @@
+import { diff } from "deep-object-diff"
 import { cloneDeep } from "lodash"
+
 import type { WorkoutChange } from "@/lib/ai/tools/diff-schema"
 import type { Block, ExerciseBlock, Workout } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
@@ -86,11 +88,10 @@ const applyAddBlock = (
 }
 
 const applyUpdateBlock = (
-  originalWorkout: Workout,
   workout: Workout,
   change: WorkoutChange & { type: "update-block" }
 ): void => {
-  const blockToUpdate = originalWorkout.blocks[change.blockIndex]
+  const blockToUpdate = workout.blocks[change.blockIndex]
   const updatedBlock: Block = {
     ...change.block,
     pendingStatus: {
@@ -103,11 +104,10 @@ const applyUpdateBlock = (
 }
 
 const applyRemoveBlock = (
-  originalWorkout: Workout,
   workout: Workout,
   change: WorkoutChange & { type: "remove-block" }
 ): void => {
-  const blockToRemove = originalWorkout.blocks[change.blockIndex]
+  const blockToRemove = workout.blocks[change.blockIndex]
   const removedBlock: Block = {
     ...blockToRemove,
     pendingStatus: { type: "removing", proposalId: change.id },
@@ -116,11 +116,10 @@ const applyRemoveBlock = (
 }
 
 const applyAddCircuitExercise = (
-  originalWorkout: Workout,
   workout: Workout,
   change: WorkoutChange & { type: "add-circuit-exercise" }
 ): void => {
-  const circuitBlock = originalWorkout.blocks[change.circuitBlockIndex]
+  const circuitBlock = workout.blocks[change.circuitBlockIndex]
   if (circuitBlock.type !== "circuit") {
     log.error("Attempted to add an exercise to a non-circuit block", {
       change,
@@ -144,11 +143,10 @@ const applyAddCircuitExercise = (
 }
 
 const applyRemoveCircuitExercise = (
-  originalWorkout: Workout,
   workout: Workout,
   change: WorkoutChange & { type: "remove-circuit-exercise" }
 ): void => {
-  const circuitBlockToRemove = originalWorkout.blocks[change.circuitBlockIndex]
+  const circuitBlockToRemove = workout.blocks[change.circuitBlockIndex]
   if (circuitBlockToRemove.type !== "circuit") {
     log.error("Attempted to remove an exercise from a non-circuit block", {
       change,
@@ -171,11 +169,10 @@ const applyRemoveCircuitExercise = (
 }
 
 const applyUpdateCircuitExercise = (
-  originalWorkout: Workout,
   workout: Workout,
   change: WorkoutChange & { type: "update-circuit-exercise" }
 ): void => {
-  const circuitBlockToUpdate = originalWorkout.blocks[change.circuitBlockIndex]
+  const circuitBlockToUpdate = workout.blocks[change.circuitBlockIndex]
   if (circuitBlockToUpdate.type !== "circuit") {
     log.error("Attempted to update an exercise in a non-circuit block", {
       change,
@@ -201,29 +198,25 @@ const applyUpdateCircuitExercise = (
   }
 }
 
-const applyChange = (
-  originalWorkout: Workout,
-  workout: Workout,
-  change: WorkoutChange
-): void => {
+const applyChange = (workout: Workout, change: WorkoutChange): void => {
   switch (change.type) {
     case "add-block":
       applyAddBlock(workout, change)
       break
     case "update-block":
-      applyUpdateBlock(originalWorkout, workout, change)
+      applyUpdateBlock(workout, change)
       break
     case "remove-block":
-      applyRemoveBlock(originalWorkout, workout, change)
+      applyRemoveBlock(workout, change)
       break
     case "add-circuit-exercise":
-      applyAddCircuitExercise(originalWorkout, workout, change)
+      applyAddCircuitExercise(workout, change)
       break
     case "remove-circuit-exercise":
-      applyRemoveCircuitExercise(originalWorkout, workout, change)
+      applyRemoveCircuitExercise(workout, change)
       break
     case "update-circuit-exercise":
-      applyUpdateCircuitExercise(originalWorkout, workout, change)
+      applyUpdateCircuitExercise(workout, change)
       break
     default:
       log.error("Unknown change type", { change })
@@ -244,13 +237,37 @@ export function mergeWorkoutWithProposedChanges(
     workoutIndex
   )
 
-  if (!workoutSpecificChanges.length) return workout
+  // Filter out changes that have already been applied to the current
+  // workout
+  const existingPendingChangeIDs = workout.blocks.flatMap((block) => {
+    if (block.type === "circuit") {
+      const pendingIds: string[] = block.pendingStatus
+        ? [block.pendingStatus.proposalId]
+        : []
+      const exercisePendingIds: string[] = block.circuit.exercises
+        .map((exercise) => exercise.pendingStatus?.proposalId)
+        .filter((id) => id !== undefined)
+      return pendingIds.concat(exercisePendingIds)
+    }
+    if (block.type === "exercise") {
+      if (block.pendingStatus) {
+        return [block.pendingStatus.proposalId]
+      }
+      return []
+    }
+    return []
+  })
+
+  const filteredChanges = workoutSpecificChanges.filter(
+    (change) => !existingPendingChangeIDs.includes(change.id)
+  )
+  if (!filteredChanges.length) return workout
 
   const newWorkout = cloneDeep(workout)
-  const sortedChanges = groupAndSortChanges(workoutSpecificChanges)
+  const sortedChanges = groupAndSortChanges(filteredChanges)
 
   for (const change of sortedChanges) {
-    applyChange(workout, newWorkout, change)
+    applyChange(newWorkout, change)
   }
 
   return newWorkout

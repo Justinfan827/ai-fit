@@ -21,7 +21,7 @@ export class TrainerClientRepo {
   // Fetches all exercises from the database that the trainer
   // can assign to clients. This includes the 'base' list of exercises,
   // as well as any custom exercises the trainer has created.
-  public async getAllExercises(
+  async getAllExercises(
     trainerId: string
   ): Promise<Maybe<{ base: Exercise[]; custom: Exercise[] }>> {
     const sb = await createServerClient()
@@ -65,7 +65,7 @@ export class TrainerClientRepo {
 
   // this method will be used to create a new user
   // in the database
-  public async createClient({
+  async createClient({
     trainerId,
     newClient: { firstName, lastName, email },
   }: {
@@ -119,7 +119,7 @@ export class TrainerClientRepo {
     }
   }
 
-  public async deleteClientDetailById({
+  async deleteClientDetailById({
     clientId,
     detailId,
   }: {
@@ -155,7 +155,7 @@ export class TrainerClientRepo {
     }
   }
 
-  public async updateClientDetails({
+  async updateClientDetails({
     trainerId,
     clientId,
     title,
@@ -200,12 +200,56 @@ export class TrainerClientRepo {
   }
 
   /*
+  List all clients for a trainer, including their details.
+  This is currentlyused to populate the client list in the program editor sidebar.
+  */
+  async fetchAllClientDetails(): Promise<Maybe<ClientHomePage[]>> {
+    const sb = await createServerClient()
+    const { data: userRes, error: getUserError } = await sb.auth.getUser()
+    if (getUserError) {
+      return { data: null, error: getUserError }
+    }
+    const { data: clientsData, error: clientError } = await sb
+      .from("users")
+      .select("*")
+      .eq("trainer_id", userRes.user.id)
+
+    if (clientError) {
+      return { data: null, error: clientError }
+    }
+
+    const clients: ClientHomePage[] = clientsData.map((c) => {
+      const metadata = (c.metadata as any) || {}
+      return {
+        id: c.id,
+        email: c.email || "",
+        firstName: c.first_name || "",
+        lastName: c.last_name || "",
+        programs: [],
+        age: metadata.age || 0,
+        gender: metadata.gender,
+        liftingExperienceMonths: metadata.lifting_experience_months
+          ? metadata.lifting_experience_months
+          : 0,
+        weightKg: metadata.weight_kg || 0,
+        heightCm: metadata.height_cm || 0,
+        details: metadata?.details || [],
+      }
+    })
+
+    return {
+      data: clients,
+      error: null,
+    }
+  }
+
+  /*
    * Fetch the data required for the home page of the client.
    * Includes:
    * - Assigned client programs
    * - Client details e.g. any trainer created notes
    */
-  public async getClientHomePageData(
+  async getClientHomePageData(
     clientId: string
   ): Promise<Maybe<ClientHomePage>> {
     const sb = await createServerClient()

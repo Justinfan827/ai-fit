@@ -12,7 +12,10 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { useZProgramWorkouts } from "@/hooks/zustand/program-editor"
+import {
+  useZProgramWorkouts,
+  useZProposedChanges,
+} from "@/hooks/zustand/program-editor"
 import type { ClientHomePage } from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
 import { cn } from "@/lib/utils"
@@ -54,6 +57,9 @@ export function ProgramEditorSidebar({
   ...props
 }: ProgramEditorSidebarProps) {
   const workouts = useZProgramWorkouts()
+  const proposedChanges = useZProposedChanges()
+  console.log(workouts)
+  console.log(proposedChanges)
   const [exercises, setExercises] = React.useState<Exercise[]>(initialExercises)
   const [contextItems, setContextItems] = React.useState<ContextItem[]>(() => {
     return [

@@ -4,10 +4,7 @@ import { PageLayout } from "@/components/page-layout"
 import { Button } from "@/components/ui/button"
 import type { ClientHomePage } from "@/lib/domain/clients"
 import { createServerClient } from "@/lib/supabase/create-server-client"
-import {
-  getCurrentUser,
-  getCurrentUserClients,
-} from "@/lib/supabase/server/database.operations.queries"
+import { getCurrentUser } from "@/lib/supabase/server/database.operations.queries"
 import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
 import type { NextJSSearchParams } from "@/lib/types/types"
 import ClientPage from "./client-page"
@@ -36,7 +33,7 @@ export default async function Page({
   const [user, exercises, clients] = await Promise.all([
     getCurrentUser(),
     trainerRepo.getAllExercises(sessiondata.session.user.id),
-    getCurrentUserClients(),
+    trainerRepo.fetchAllClientDetails(),
   ])
 
   if (user.error) {
@@ -72,16 +69,7 @@ export default async function Page({
         </Button>
       </div>
       <ClientPage
-        availableClients={clients.data.map((c) => ({
-          ...c,
-          programs: [],
-          age: 0,
-          liftingExperienceMonths: 0,
-          gender: "",
-          weightKg: 0,
-          heightCm: 0,
-          details: [],
-        }))}
+        availableClients={clients.data}
         baseExercises={exercises.data.base}
         clientData={clientData}
         trainerExercises={exercises.data.custom}

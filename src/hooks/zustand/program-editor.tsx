@@ -286,7 +286,9 @@ const EditorProgramProvider = ({
 }) => {
   const program = initialProgram || newTestInitialProgram(exercises)
   const isNewProgram = !initialProgram
-  const sortedProposedChanges = sortProposedChanges(newTestProposedChanges(exercises))  
+  const sortedProposedChanges = sortProposedChanges(
+    newTestProposedChanges(exercises)
+  )
   // const sortedProposedChanges: WorkoutChange[] = []
   // merge proposed changes with workouts
   const mergedWorkouts = program.workouts.map((workout, workoutIndex) => {
@@ -340,10 +342,14 @@ const EditorProgramProvider = ({
           set({ workouts, workoutHistories: updatedHistories })
         },
         addProposedChanges: (changes: WorkoutChange[]) => {
+          log.consoleWithHeader("adding proposed changes", changes)
           const newProposedChanges = sortProposedChanges([
             ...get().proposedChanges,
             ...changes,
           ])
+          log.consoleWithHeader("new proposed changes", newProposedChanges)
+          const existingWorkouts = get().workouts
+          log.consoleWithHeader("existing workouts", existingWorkouts)
           set({ proposedChanges: newProposedChanges })
           // merge the changes with the existing workout
           const updatedWorkouts = get().workouts.map(
@@ -355,6 +361,7 @@ const EditorProgramProvider = ({
               )
             }
           )
+          log.consoleWithHeader("updated workouts", updatedWorkouts)
           set({ workouts: updatedWorkouts })
         },
         setProposedChanges: (changes: WorkoutChange[]) => {
@@ -392,8 +399,11 @@ const EditorProgramProvider = ({
           const { workouts, proposedChanges } = get()
 
           // Find the proposal to determine its type
-          const proposal = proposedChanges.find((p) => p.id === proposalId)
-          if (!proposal) return
+          const proposalIndex = proposedChanges.findIndex(
+            (p) => p.id === proposalId
+          )
+          if (proposalIndex === -1) return
+          const proposal = proposedChanges[proposalIndex]
 
           const updatedWorkouts = workouts.map((workout, workoutIndex) => {
             if (workoutIndex !== proposal.workoutIndex) return workout
@@ -423,20 +433,33 @@ const EditorProgramProvider = ({
             }
           })
 
+          // update the 'next' proposal.
+          if (proposedChanges.length === 1) {
+            set({ currentChangeId: null }) // we're done with proposals
+          } else {
+            const nextProposalIndex =
+              (proposalIndex + 1) % proposedChanges.length
+            set({ currentChangeId: proposedChanges[nextProposalIndex].id })
+          }
+
           // Remove the applied proposal from the proposedChanges array
+          const newProposals = sortProposedChanges(
+            proposedChanges.filter((change) => change.id !== proposalId)
+          )
           set({
             workouts: updatedWorkouts,
-            proposedChanges: proposedChanges.filter(
-              (change) => change.id !== proposalId
-            ),
+            proposedChanges: newProposals,
           })
         },
         rejectPendingProposalById: (proposalId: string) => {
           const { workouts, proposedChanges } = get()
 
           // Find the proposal to reject
-          const proposal = proposedChanges.find((p) => p.id === proposalId)
-          if (!proposal) return
+          const proposalIndex = proposedChanges.findIndex(
+            (p) => p.id === proposalId
+          )
+          if (proposalIndex === -1) return
+          const proposal = proposedChanges[proposalIndex]
 
           log.info("reverting proposal", { proposal, workouts })
           // Revert the change in workouts
@@ -467,11 +490,22 @@ const EditorProgramProvider = ({
             }
           })
 
+          // update the 'next' proposal.
+          if (proposedChanges.length === 1) {
+            set({ currentChangeId: null }) // we're done with proposals
+          } else {
+            const nextProposalIndex =
+              (proposalIndex + 1) % proposedChanges.length
+            set({ currentChangeId: proposedChanges[nextProposalIndex].id })
+          }
+
+          // Remove the applied proposal from the proposedChanges array
+          const newProposals = sortProposedChanges(
+            proposedChanges.filter((change) => change.id !== proposalId)
+          )
           set({
             workouts: updatedWorkouts,
-            proposedChanges: proposedChanges.filter(
-              (change) => change.id !== proposalId
-            ),
+            proposedChanges: newProposals,
           })
         },
 

@@ -710,4 +710,265 @@ describe("mergeWorkoutWithProposedChanges", () => {
       })
     })
   })
+  describe("handling existing workout with pending changes", () => {
+    it("If changes are already applied to the workout, they should not be applied again", () => {
+      const sampleWorkout: Workout[] = [
+        {
+          id: "dd138a40-4a21-482c-aabe-fbcdfe707205",
+          name: "workout 1",
+          program_id: "e9db290e-8068-4b5d-926f-0befce20a3ab",
+          program_order: 0,
+          blocks: [
+            {
+              type: "exercise",
+              exercise: {
+                id: "516e0990-972e-496d-b4d1-4950d4c54451",
+                name: "Leg Extensions",
+                metadata: {
+                  sets: "3",
+                  reps: "12",
+                  weight: "100",
+                  rest: "30s",
+                },
+              },
+              pendingStatus: {
+                type: "adding",
+                proposalId: "5d2f41d7-76fc-47ab-941b-346622a9aeed",
+              },
+            },
+            {
+              type: "exercise",
+              exercise: {
+                id: "43338045-a2de-4f4a-b0f8-4f2d0c50eeaf",
+                name: "Split Squats",
+                metadata: {
+                  sets: "3",
+                  reps: "12",
+                  weight: "100",
+                  rest: "30s",
+                },
+              },
+              pendingStatus: {
+                type: "updating",
+                oldBlock: {
+                  type: "exercise",
+                  exercise: {
+                    id: "381facbb-912c-4212-9842-9d173be77fd0",
+                    name: "Double Leg Calf Raise w/Step",
+                    metadata: {
+                      sets: "3",
+                      reps: "12",
+                      weight: "100",
+                      rest: "30s",
+                    },
+                  },
+                },
+                proposalId: "db3512c7-53c5-4274-bc93-009e135d96f6",
+              },
+            },
+            {
+              type: "exercise",
+              exercise: {
+                id: "5fdd9135-cd45-4695-8968-b62a0f34c757",
+                name: "Single Leg Calf Raise w/Step",
+                metadata: {
+                  sets: "3",
+                  reps: "12",
+                  weight: "100",
+                  rest: "30s",
+                },
+              },
+            },
+            {
+              type: "circuit",
+              circuit: {
+                isDefault: false,
+                name: "Circuit 1",
+                description: "Circuit 1 description",
+                metadata: {
+                  sets: "3",
+                  rest: "30s",
+                  notes: "Circuit 1 notes",
+                },
+                exercises: [
+                  {
+                    type: "exercise",
+                    exercise: {
+                      id: "b4711ec3-d3b5-43ef-a2bd-a29d6bfd4caa",
+                      name: "Calf Raises w/Knees Bent",
+                      metadata: {
+                        sets: "3",
+                        reps: "12",
+                        weight: "100",
+                        rest: "30s",
+                      },
+                    },
+                  },
+                  {
+                    type: "exercise",
+                    exercise: {
+                      id: "149beb8e-245b-434e-81e9-f53507bf2381",
+                      name: "Heel Elevated Squats",
+                      metadata: {
+                        sets: "3",
+                        reps: "12",
+                        weight: "100",
+                        rest: "30s",
+                      },
+                    },
+                  },
+                ],
+              },
+              pendingStatus: {
+                type: "removing",
+                proposalId: "936cb408-82c0-4a6e-b51d-fee9188b8138",
+              },
+            },
+            {
+              type: "circuit",
+              circuit: {
+                isDefault: false,
+                name: "Circuit 2",
+                description: "Circuit 2 description",
+                metadata: {
+                  sets: "3",
+                  rest: "30s",
+                  notes: "Circuit 2 notes",
+                },
+                exercises: [
+                  {
+                    type: "exercise",
+                    exercise: {
+                      id: "516e0990-972e-496d-b4d1-4950d4c54451",
+                      name: "Leg Extensions",
+                      metadata: {
+                        sets: "3",
+                        reps: "12",
+                        weight: "100",
+                        rest: "30s",
+                      },
+                    },
+                    pendingStatus: {
+                      type: "adding",
+                      proposalId: "24246d9c-ccb5-4438-973f-9184edeeb086",
+                    },
+                  },
+                  {
+                    type: "exercise",
+                    exercise: {
+                      id: "fdd06654-a295-4b72-a2fb-b1585fcb3dc5",
+                      name: "Reverse Lunges",
+                      metadata: {
+                        sets: "3",
+                        reps: "12",
+                        weight: "100",
+                        rest: "30s",
+                      },
+                    },
+                    pendingStatus: {
+                      type: "removing",
+                      proposalId: "0a955bae-cdf3-49c1-902f-08a64c082b2a",
+                    },
+                  },
+                  {
+                    type: "exercise",
+                    exercise: {
+                      id: "43338045-a2de-4f4a-b0f8-4f2d0c50eeaf",
+                      name: "Split Squats",
+                      metadata: {
+                        sets: "3",
+                        reps: "12",
+                        weight: "100",
+                        rest: "30s",
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ]
+
+      const proposedChanges: WorkoutChange[] = [
+        {
+          id: "5d2f41d7-76fc-47ab-941b-346622a9aeed",
+          type: "add-block",
+          workoutIndex: 0,
+          blockIndex: 0,
+          block: {
+            type: "exercise",
+            exercise: {
+              id: "516e0990-972e-496d-b4d1-4950d4c54451",
+              name: "Leg Extensions",
+              metadata: {
+                sets: "3",
+                reps: "12",
+                weight: "100",
+                rest: "30s",
+              },
+            },
+          },
+        },
+        {
+          id: "db3512c7-53c5-4274-bc93-009e135d96f6",
+          type: "update-block",
+          workoutIndex: 0,
+          blockIndex: 0,
+          block: {
+            type: "exercise",
+            exercise: {
+              id: "43338045-a2de-4f4a-b0f8-4f2d0c50eeaf",
+              name: "Split Squats",
+              metadata: {
+                sets: "3",
+                reps: "12",
+                weight: "100",
+                rest: "30s",
+              },
+            },
+          },
+        },
+        {
+          id: "936cb408-82c0-4a6e-b51d-fee9188b8138",
+          type: "remove-block",
+          workoutIndex: 0,
+          blockIndex: 2,
+        },
+        {
+          id: "24246d9c-ccb5-4438-973f-9184edeeb086",
+          type: "add-circuit-exercise",
+          workoutIndex: 0,
+          circuitBlockIndex: 3,
+          exerciseIndex: 0,
+          exercise: {
+            type: "exercise",
+            exercise: {
+              id: "516e0990-972e-496d-b4d1-4950d4c54451",
+              name: "Leg Extensions",
+              metadata: {
+                sets: "3",
+                reps: "12",
+                weight: "100",
+                rest: "30s",
+              },
+            },
+          },
+        },
+        {
+          id: "0a955bae-cdf3-49c1-902f-08a64c082b2a",
+          type: "remove-circuit-exercise",
+          workoutIndex: 0,
+          circuitBlockIndex: 3,
+          exerciseIndex: 0,
+        },
+      ]
+      const updatedWorkout = mergeWorkoutWithProposedChanges(
+        sampleWorkout[0],
+        proposedChanges,
+        0
+      )
+      expect(updatedWorkout).toEqual(sampleWorkout[0])
+    })
+  })
 })

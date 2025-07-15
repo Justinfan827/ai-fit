@@ -9,6 +9,7 @@ import {
   useZEditorActions,
   useZProposedChanges,
 } from "@/hooks/zustand/program-editor"
+import log from "@/lib/logger/logger"
 import { cn } from "@/lib/utils"
 
 interface ProposedChangesMenuProps {
@@ -48,28 +49,9 @@ export function ProposedChangesMenu({ className }: ProposedChangesMenuProps) {
 
   const acceptChange = useCallback(
     (changeId: string) => {
-      // Remove the pending status from the workout
       applyPendingProposalById(changeId)
-
-      // Update current change ID
-      if (proposedChanges.length > 0) {
-        // If there are still changes, set the next one as current
-        const nextIndex = Math.min(
-          currentChangeIndex + 1,
-          proposedChanges.length - 1
-        )
-        setCurrentChangeId(proposedChanges[nextIndex].id)
-      } else {
-        // No more changes
-        setCurrentChangeId(null)
-      }
     },
-    [
-      proposedChanges,
-      currentChangeIndex,
-      setCurrentChangeId,
-      applyPendingProposalById,
-    ]
+    [applyPendingProposalById]
   )
 
   const rejectChange = useCallback(

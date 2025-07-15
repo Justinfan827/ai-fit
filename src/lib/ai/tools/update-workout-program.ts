@@ -9,7 +9,6 @@ import { myProvider } from "../providers"
 import { workoutChangeAISchema } from "./diff-schema"
 
 interface UpdateWorkoutProgramArgs {
-  messages: CoreMessage[]
   contextItems: ContextItem[]
   existingWorkouts: Workouts
   dataStream: DataStreamWriter
