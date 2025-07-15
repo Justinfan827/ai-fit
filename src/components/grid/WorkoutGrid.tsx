@@ -26,168 +26,18 @@ import type {
 import log from "@/lib/logger/logger"
 import { cn } from "@/lib/utils"
 import type { Column } from "./columns"
-
-// Utility function for getting row-specific styling
-function getRowStyles(cell: Cell, currentChangeId: string | null) {
-  return {
-    // Circuit header styles
-    circuitHeader: cell.isCircuitHeader,
-    // Circuit exercise styles
-    circuitExercise: cell.isCircuitExercise,
-    // Standalone exercise styles
-    standaloneExercise: !(cell.isCircuitHeader || cell.isCircuitExercise),
-    // Proposed change styles
-    proposedChange: cell.isProposed,
-    // Current change styles (highlighted more prominently)
-    currentChange:
-      cell.isProposed && cell.pendingStatus?.proposalId === currentChangeId,
-  }
-}
-
-// Utility function for getting cell CSS classes
-function getCellClasses(
-  cell: Cell,
-  baseClasses: string,
-  currentChangeId: string | null
-) {
-  const styles = getRowStyles(cell, currentChangeId)
-
-  return cn(
-    baseClasses,
-    // Current change styling (takes highest precedence)
-    styles.currentChange &&
-      cell.proposedChangeType === "adding" &&
-      "border-green-400/70 bg-green-800/50 ring-1 ring-green-400/30",
-    styles.currentChange &&
-      cell.proposedChangeType === "adding" &&
-      cell.colIndex === 0 &&
-      "shadow-[-3px_0_0_0_rgb(34_197_94_/_0.9)]",
-    // Current change removal styling
-    styles.currentChange &&
-      cell.proposedChangeType === "removing" &&
-      "border-red-400/70 bg-red-800/50 opacity-90 ring-1 ring-red-400/30",
-    styles.currentChange &&
-      cell.proposedChangeType === "removing" &&
-      cell.colIndex === 0 &&
-      "shadow-[-3px_0_0_0_rgb(239_68_68_/_0.9)]",
-    // Current change update styling
-    styles.currentChange &&
-      cell.proposedChangeType === "updating" &&
-      "border-blue-400/70 bg-blue-800/50 ring-1 ring-blue-400/30",
-    styles.currentChange &&
-      cell.proposedChangeType === "updating" &&
-      cell.colIndex === 0 &&
-      "shadow-[-3px_0_0_0_rgb(59_130_246_/_0.9)]",
-    // Regular proposed change styling (lower precedence)
-    !styles.currentChange &&
-      styles.proposedChange &&
-      cell.proposedChangeType === "adding" &&
-      "border-green-500/50 bg-green-950/30",
-    !styles.currentChange &&
-      styles.proposedChange &&
-      cell.proposedChangeType === "adding" &&
-      cell.colIndex === 0 &&
-      "shadow-[-2px_0_0_0_rgb(34_197_94_/_0.7)]",
-    // Proposed removal styling
-    !styles.currentChange &&
-      styles.proposedChange &&
-      cell.proposedChangeType === "removing" &&
-      "border-red-500/50 bg-red-950/30 opacity-75",
-    !styles.currentChange &&
-      styles.proposedChange &&
-      cell.proposedChangeType === "removing" &&
-      cell.colIndex === 0 &&
-      "shadow-[-2px_0_0_0_rgb(239_68_68_/_0.7)]",
-    // Proposed update styling
-    !styles.currentChange &&
-      styles.proposedChange &&
-      cell.proposedChangeType === "updating" &&
-      "border-blue-500/50 bg-blue-950/30",
-    !styles.currentChange &&
-      styles.proposedChange &&
-      cell.proposedChangeType === "updating" &&
-      cell.colIndex === 0 &&
-      "shadow-[-2px_0_0_0_rgb(59_130_246_/_0.7)]",
-
-    // Circuit header styling
-    !styles.proposedChange &&
-      styles.circuitHeader &&
-      "bg-neutral-900 font-medium text-orange-400",
-    !styles.proposedChange &&
-      styles.circuitHeader &&
-      cell.colIndex === 0 &&
-      "shadow-[-2px_0_0_0_rgb(251_146_60_/_0.5)]",
-    // Circuit exercise styling - subtle background with left border accent
-    !styles.proposedChange &&
-      styles.circuitExercise &&
-      cell.colIndex === 0 &&
-      "bg-neutral-925 shadow-[-2px_0_0_0_rgb(251_146_60_/_0.5)]",
-    // Standalone exercise styling (default)
-    !styles.proposedChange && styles.standaloneExercise && "bg-neutral-950"
-  )
-}
-
-interface Position {
-  row: number
-  col: number
-}
-
-interface CellChange {
-  type: "cell"
-  cell: Cell
-  oldValue: string
-  newValue: string
-}
-
-interface ExerciseSelection {
-  type: "exercise-selection"
-  cell: Cell
-  exercise: {
-    id: string
-    name: string
-  }
-  oldExercise: {
-    id: string
-    name: string
-  }
-}
-
-type GridChange = CellChange | ExerciseSelection
-
-// Type guard functions
-function isExerciseSelection(change: GridChange): change is ExerciseSelection {
-  return "type" in change && change.type === "exercise-selection"
-}
-
-function isCellChange(change: GridChange): change is CellChange {
-  return "type" in change && change.type === "cell"
-}
-
-interface Cell {
-  type: "input" | "select" | "display"
-  value: string
-  colType: string
-  width: number
-  rowIndex: number
-  colIndex: number
-  isCircuitHeader?: boolean
-  blockType?: "exercise" | "circuit"
-  originalBlockIndex?: number
-  readOnly?: boolean
-  isCircuitExercise?: boolean
-  exerciseIndexInCircuit?: number // Add this property
-  // Proposed change properties
-  isProposed?: boolean
-  proposedChangeIndex?: number
-  proposedChangeType?: "adding" | "removing" | "updating"
-  // Flag to track if this is an individual exercise change (not part of circuit change)
-  isIndividualChange?: boolean
-  // Pending status for proposal management
-  pendingStatus?: {
-    type: "adding" | "removing" | "updating"
-    proposalId: string
-  }
-}
+import type {
+  Cell,
+  CellChange,
+  ExerciseSelection,
+  GridChange,
+  Position,
+} from "./workout-grid-types"
+import {
+  applyIncrementalChange,
+  createGridFromWorkoutWithChanges,
+  getCellClasses,
+} from "./workout-grid-utils"
 
 interface WorkoutGridProps {
   workout: Workout
@@ -202,7 +52,6 @@ export default function WorkoutGrid({
   columns,
   onProposalAction,
 }: WorkoutGridProps) {
-  const [showDebug, setShowDebug] = useState(false)
   const { saveWorkoutToHistory } = useZEditorActions()
 
   // Enable keyboard shortcuts for this workout
@@ -216,13 +65,22 @@ export default function WorkoutGrid({
 
   return (
     <div className="text-sm">
-      <GridHeaderRow columns={columns} />
-      <GridContentRows
+      <WorkoutGridHeaderRow columns={columns} />
+      <WorkoutGridRows
         columns={columns}
         onProposalAction={onProposalAction}
         onWorkoutChange={handleWorkoutChange}
         workout={workout}
       />
+      <DebugWorkoutJSON workout={workout} />
+    </div>
+  )
+}
+
+function DebugWorkoutJSON({ workout }: { workout: Workout }) {
+  const [showDebug, setShowDebug] = useState(false)
+  return (
+    <>
       {showDebug && (
         <div className="mt-4 rounded-lg border border-neutral-800 bg-neutral-950 p-4">
           <h3 className="mb-2 font-medium text-neutral-400 text-sm">
@@ -234,11 +92,11 @@ export default function WorkoutGrid({
         </div>
       )}
       <DebugToggle onToggle={setShowDebug} />
-    </div>
+    </>
   )
 }
 
-function GridHeaderRow({ columns }: { columns: Column[] }) {
+function WorkoutGridHeaderRow({ columns }: { columns: Column[] }) {
   return (
     <div className="flex w-full" id="headers">
       <div className="ml-[48px] flex px-2" id="dummy-action-menu" />
@@ -261,7 +119,18 @@ function GridHeaderRow({ columns }: { columns: Column[] }) {
   )
 }
 
-function GridContentRows({
+/*
+
+WorkoutGridRows is the main component that renders the grid rows. It is responsible for:
+- Rendering the grid rows
+- Handling the active cell
+- Handling the editing value
+- Handling the original value
+- Handling the grid refs
+
+This component holds a ton of client side state. 
+*/
+function WorkoutGridRows({
   columns,
   workout,
   onWorkoutChange,
@@ -272,7 +141,6 @@ function GridContentRows({
   onWorkoutChange: (wrk: Workout) => void
   onProposalAction?: (proposalId: string, action: "accept" | "reject") => void
 }) {
-  // Create grid directly from workout
   const grid = createGridFromWorkoutWithChanges(workout, columns)
   const numRows = grid.length
   const numCols = columns.length
@@ -404,6 +272,8 @@ function GridContentRows({
         case "ArrowRight":
           newCol = Math.min(numCols - 1, col + 1)
           break
+        default:
+          break
       }
 
       gridRefs.current[newRow][newCol]?.focus()
@@ -432,6 +302,10 @@ function GridContentRows({
     row: number,
     col: number
   ) => {
+    if (!activeCell) {
+      log.error("No active cell found", { row, col })
+      return
+    }
     // Get the current exercise data for comparison
     const cell = grid[row][col]
     if (!cell.originalBlockIndex) {
@@ -455,8 +329,141 @@ function GridContentRows({
     }
 
     handleGridChange(change)
-    gridRefs.current[activeCell!.row][activeCell!.col]?.focus()
+    gridRefs.current[activeCell.row][activeCell.col]?.focus()
     setActiveCell(null)
+  }
+
+  // handle adding an exercise within a circuit
+  const handleAddExerciseInCircuit = (rowIndex: number, colIndex: number) => {
+    // Handle adding exercise within a circuit
+    const currentCell = grid[rowIndex]?.[0]
+    if (!currentCell || currentCell.originalBlockIndex === undefined) return
+
+    const newBlocks = [...workout.blocks]
+    const circuitBlockIndex = currentCell.originalBlockIndex
+    const circuitBlock = newBlocks[circuitBlockIndex]
+
+    if (!circuitBlock || circuitBlock.type !== "circuit") return
+
+    // Create new exercise to add to circuit
+    const newExercise: ExerciseBlock = {
+      type: "exercise",
+      exercise: {
+        id: uuidv4(),
+        name: "",
+        metadata: {
+          sets: circuitBlock.circuit.metadata.sets,
+          reps: "",
+          weight: "",
+          rest: circuitBlock.circuit.metadata.rest,
+          notes: "",
+        },
+      },
+    }
+
+    // Get the exercise index from the current cell
+    const exerciseIndexInCircuit = currentCell.exerciseIndexInCircuit
+
+    // Create updated circuit block
+    const updatedCircuitBlock = { ...circuitBlock }
+    updatedCircuitBlock.circuit = { ...updatedCircuitBlock.circuit }
+    const updatedExercises = [...updatedCircuitBlock.circuit.exercises]
+
+    // Insert the new exercise after the current exercise in the circuit
+    const insertIndex =
+      exerciseIndexInCircuit !== undefined && exerciseIndexInCircuit >= 0
+        ? exerciseIndexInCircuit + 1
+        : updatedExercises.length
+    updatedExercises.splice(insertIndex, 0, newExercise)
+
+    updatedCircuitBlock.circuit.exercises = updatedExercises
+    newBlocks[circuitBlockIndex] = updatedCircuitBlock
+
+    const updatedWorkout = { ...workout, blocks: newBlocks }
+    onWorkoutChange(updatedWorkout)
+    setActiveCell({ row: rowIndex + 1, col: colIndex })
+  }
+
+  // Handle adding a regular exercise block
+  const handleAddExercise = (rowIndex: number, colIndex: number) => {
+    const newBlocks = [...workout.blocks]
+    const newBlock: ExerciseBlock = {
+      type: "exercise",
+      exercise: {
+        id: uuidv4(),
+        name: "",
+        metadata: {
+          sets: "",
+          reps: "",
+          weight: "",
+          rest: "",
+          notes: "",
+        },
+      },
+    }
+
+    // Convert grid row index to workout block index
+    const currentCell = grid[rowIndex]?.[0]
+    if (currentCell && currentCell.originalBlockIndex !== undefined) {
+      const blockInsertIndex = currentCell.originalBlockIndex + 1
+      newBlocks.splice(blockInsertIndex, 0, newBlock)
+    } else {
+      // Fallback: add to end if we can't determine position
+      // TODO: LOG ERROR here
+      newBlocks.push(newBlock)
+    }
+
+    const updatedWorkout = { ...workout, blocks: newBlocks }
+    onWorkoutChange(updatedWorkout)
+    setActiveCell({ row: rowIndex + 1, col: colIndex })
+  }
+
+  // Handle adding a circuit block
+  const handleAddCircuit = (rowIndex: number, colIndex: number) => {
+    const newBlocks = [...workout.blocks]
+    const newBlock: CircuitBlock = {
+      type: "circuit",
+      circuit: {
+        isDefault: false,
+        description: "",
+        name: "",
+        metadata: {
+          sets: "",
+          rest: "",
+          notes: "",
+        },
+        exercises: [
+          {
+            type: "exercise",
+            exercise: {
+              id: uuidv4(),
+              name: "",
+              metadata: {
+                sets: "",
+                reps: "",
+                weight: "",
+                rest: "",
+                notes: "",
+              },
+            },
+          },
+        ],
+      },
+    }
+
+    // Convert grid row index to workout block index
+    const currentCell = grid[rowIndex]?.[0]
+    if (currentCell && currentCell.originalBlockIndex !== undefined) {
+      const blockInsertIndex = currentCell.originalBlockIndex + 1
+      newBlocks.splice(blockInsertIndex, 0, newBlock)
+    } else {
+      // Fallback: add to end if we can't determine position
+      newBlocks.push(newBlock)
+    }
+
+    const updatedWorkout = { ...workout, blocks: newBlocks }
+    onWorkoutChange(updatedWorkout)
+    setActiveCell({ row: rowIndex + 1, col: colIndex })
   }
 
   const handleAddRow = (
@@ -465,131 +472,11 @@ function GridContentRows({
     type: "exercise" | "circuit" | "exercise-in-circuit"
   ) => {
     if (type === "exercise-in-circuit") {
-      // Handle adding exercise within a circuit
-      const currentCell = grid[rowIndex]?.[0]
-      if (!currentCell || currentCell.originalBlockIndex === undefined) return
-
-      const newBlocks = [...workout.blocks]
-      const circuitBlockIndex = currentCell.originalBlockIndex
-      const circuitBlock = newBlocks[circuitBlockIndex]
-
-      if (!circuitBlock || circuitBlock.type !== "circuit") return
-
-      // Create new exercise to add to circuit
-      const newExercise: ExerciseBlock = {
-        type: "exercise",
-        exercise: {
-          id: uuidv4(),
-          name: "",
-          metadata: {
-            sets: circuitBlock.circuit.metadata.sets,
-            reps: "",
-            weight: "",
-            rest: circuitBlock.circuit.metadata.rest,
-            notes: "",
-          },
-        },
-      }
-
-      // Get the exercise index from the current cell
-      const exerciseIndexInCircuit = currentCell.exerciseIndexInCircuit
-
-      // Create updated circuit block
-      const updatedCircuitBlock = { ...circuitBlock }
-      updatedCircuitBlock.circuit = { ...updatedCircuitBlock.circuit }
-      const updatedExercises = [...updatedCircuitBlock.circuit.exercises]
-
-      // Insert the new exercise after the current exercise in the circuit
-      const insertIndex =
-        exerciseIndexInCircuit !== undefined && exerciseIndexInCircuit >= 0
-          ? exerciseIndexInCircuit + 1
-          : updatedExercises.length
-      updatedExercises.splice(insertIndex, 0, newExercise)
-
-      updatedCircuitBlock.circuit.exercises = updatedExercises
-      newBlocks[circuitBlockIndex] = updatedCircuitBlock
-
-      const updatedWorkout = { ...workout, blocks: newBlocks }
-      onWorkoutChange(updatedWorkout)
-      setActiveCell({ row: rowIndex + 1, col: colIndex })
+      handleAddExerciseInCircuit(rowIndex, colIndex)
     } else if (type === "exercise") {
-      // Handle adding regular exercise or circuit block
-      const newBlocks = [...workout.blocks]
-      const newBlock: ExerciseBlock = {
-        type: "exercise",
-        exercise: {
-          id: uuidv4(),
-          name: "",
-          metadata: {
-            sets: "",
-            reps: "",
-            weight: "",
-            rest: "",
-            notes: "",
-          },
-        },
-      }
-
-      // Convert grid row index to workout block index
-      const currentCell = grid[rowIndex]?.[0]
-      if (currentCell && currentCell.originalBlockIndex !== undefined) {
-        const blockInsertIndex = currentCell.originalBlockIndex + 1
-        newBlocks.splice(blockInsertIndex, 0, newBlock)
-      } else {
-        // Fallback: add to end if we can't determine position
-        // TODO: LOG ERROR here
-        newBlocks.push(newBlock)
-      }
-
-      const updatedWorkout = { ...workout, blocks: newBlocks }
-      onWorkoutChange(updatedWorkout)
-      setActiveCell({ row: rowIndex + 1, col: colIndex })
+      handleAddExercise(rowIndex, colIndex)
     } else if (type === "circuit") {
-      // Handle adding circuit block
-      const newBlocks = [...workout.blocks]
-      const newBlock: CircuitBlock = {
-        type: "circuit",
-        circuit: {
-          isDefault: false,
-          description: "",
-          name: "",
-          metadata: {
-            sets: "",
-            rest: "",
-            notes: "",
-          },
-          exercises: [
-            {
-              type: "exercise",
-              exercise: {
-                id: uuidv4(),
-                name: "",
-                metadata: {
-                  sets: "",
-                  reps: "",
-                  weight: "",
-                  rest: "",
-                  notes: "",
-                },
-              },
-            },
-          ],
-        },
-      }
-
-      // Convert grid row index to workout block index
-      const currentCell = grid[rowIndex]?.[0]
-      if (currentCell && currentCell.originalBlockIndex !== undefined) {
-        const blockInsertIndex = currentCell.originalBlockIndex + 1
-        newBlocks.splice(blockInsertIndex, 0, newBlock)
-      } else {
-        // Fallback: add to end if we can't determine position
-        newBlocks.push(newBlock)
-      }
-
-      const updatedWorkout = { ...workout, blocks: newBlocks }
-      onWorkoutChange(updatedWorkout)
-      setActiveCell({ row: rowIndex + 1, col: colIndex })
+      handleAddCircuit(rowIndex, colIndex)
     }
   }
 
@@ -615,9 +502,8 @@ function GridContentRows({
     <>
       {grid.map((row: Cell[], rowIndex: number) => {
         return (
-          <GridContentRow
+          <WorkoutGridRow
             activeCell={activeCell}
-            currentChangeId={currentChangeId}
             editingValue={editingValue}
             grid={grid}
             gridRefs={gridRefs}
@@ -672,7 +558,6 @@ type GridRowProps = {
   startEditing: (row: number, col: number, initialValue?: string) => void
   grid: Cell[][]
   workout: Workout
-  currentChangeId: string | null
 }
 
 type RowActionBarProps = {
@@ -784,7 +669,12 @@ function RowActionBar({
   )
 }
 
-function GridContentRow({
+/*
+
+WorkoutGridRow is the main component that renders a row in the workout grid.
+
+*/
+function WorkoutGridRow({
   row,
   numRows,
   numCols,
@@ -802,8 +692,9 @@ function GridContentRow({
   editingValue,
   stopEditing,
   startEditing,
-  currentChangeId,
 }: GridRowProps) {
+  const currentChangeId = useZCurrentChangeId()
+
   return (
     <div className="group flex h-9 w-full" key={`row-${rowIndex}`}>
       <RowActionBar
@@ -816,11 +707,11 @@ function GridContentRow({
         setOpenDropdownRow={setOpenDropdownRow}
       />
       {row.map((cell, colIndex) => (
-        <div
+        <button
           className={getCellClasses(
             cell,
             cn(
-              "relative shrink-0 flex-grow overflow-hidden truncate border-neutral-800 border-r border-b p-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-orange-500 focus-within:ring-inset",
+              "relative shrink-0 flex-grow overflow-hidden truncate border-neutral-800 border-r border-b p-2 text-left focus-within:outline-none focus-within:ring-2 focus-within:ring-orange-500 focus-within:ring-inset",
               rowIndex === 0 && "border-t",
               colIndex === 0 && "border-l",
               rowIndex === numRows - 1 && colIndex === 0 && "rounded-bl-sm",
@@ -844,7 +735,7 @@ function GridContentRow({
           style={{
             flexBasis: cell.width,
           }}
-          tabIndex={0}
+          type="button"
         >
           {activeCell?.row === rowIndex &&
           activeCell?.col === colIndex &&
@@ -875,272 +766,8 @@ function GridContentRow({
           ) : (
             cell?.value
           )}
-        </div>
+        </button>
       ))}
     </div>
   )
 }
-
-// Enhanced workout-to-grid mapping function that includes proposed changes
-function createGridFromWorkoutWithChanges(
-  workout: Workout,
-  columns: Column[]
-): Cell[][] {
-  const grid: Cell[][] = []
-  let currentRowIndex = 0
-
-  // Process each block and check for pending status
-  workout.blocks.forEach((block, blockIndex) => {
-    // Get the pending status for this block
-    const blockPendingStatus = block.pendingStatus
-    const isBlockProposed = blockPendingStatus !== undefined
-    const blockChangeIndex = isBlockProposed ? 0 : undefined
-
-    if (block.type === "exercise") {
-      // Regular exercise row
-      const exerciseRow = columns.map((col, colIndex) => ({
-        type:
-          col.field === "exercise_name"
-            ? ("select" as const)
-            : ("input" as const),
-        value: getValueFromBlock(block, col.field),
-        colType: col.field,
-        width: col.width || 100,
-        rowIndex: currentRowIndex,
-        colIndex,
-        blockType: "exercise" as const,
-        originalBlockIndex: blockIndex,
-        isCircuitExercise: false,
-        // Set proposed change properties based on pendingStatus
-        isProposed: isBlockProposed,
-        proposedChangeIndex: blockChangeIndex,
-        proposedChangeType: blockPendingStatus?.type,
-        // Add the pending status reference for proposal ID access
-        pendingStatus: blockPendingStatus,
-      }))
-      grid.push(exerciseRow)
-      currentRowIndex++
-    } else if (block.type === "circuit") {
-      // Circuit header row (dummy row)
-      const circuitHeaderRow = columns.map((col, colIndex) => ({
-        type: "input" as const,
-        value: getValueFromCircuitBlock(block, col.field),
-        colType: col.field,
-        width: col.width || 100,
-        rowIndex: currentRowIndex,
-        colIndex,
-        isCircuitHeader: true,
-        blockType: "circuit" as const,
-        originalBlockIndex: blockIndex,
-        readOnly: col.field === "reps" || col.field === "weight",
-        isCircuitExercise: false,
-        // Set proposed change properties based on pendingStatus
-        isProposed: isBlockProposed,
-        proposedChangeIndex: blockChangeIndex,
-        proposedChangeType: blockPendingStatus?.type,
-        // Add the pending status reference for proposal ID access
-        pendingStatus: blockPendingStatus,
-      }))
-      grid.push(circuitHeaderRow)
-      currentRowIndex++
-
-      // Circuit exercises
-      block.circuit.exercises.forEach((exerciseBlock, exerciseIndex) => {
-        // Get the pending status for this exercise
-        const exercisePendingStatus = exerciseBlock.pendingStatus
-        const isExerciseProposed = exercisePendingStatus !== undefined
-        const exerciseChangeIndex = isExerciseProposed ? 0 : undefined
-
-        const exerciseRow = columns.map((col, colIndex) => ({
-          type:
-            col.field === "exercise_name"
-              ? ("select" as const)
-              : ("input" as const),
-          value: getValueFromBlock(exerciseBlock, col.field),
-          colType: col.field,
-          width: col.width || 100,
-          rowIndex: currentRowIndex,
-          colIndex,
-          readOnly: col.field === "sets" || col.field === "rest",
-          blockType: "exercise" as const,
-          originalBlockIndex: blockIndex,
-          isCircuitExercise: true,
-          exerciseIndexInCircuit: exerciseIndex, // Store the index
-          // Exercise can be proposed individually or as part of a circuit block
-          isProposed: isBlockProposed || isExerciseProposed,
-          proposedChangeIndex: isExerciseProposed
-            ? exerciseChangeIndex
-            : isBlockProposed
-              ? blockChangeIndex
-              : undefined,
-          proposedChangeType: isExerciseProposed
-            ? exercisePendingStatus?.type
-            : isBlockProposed
-              ? blockPendingStatus?.type
-              : undefined,
-          // Flag to track if this is an individual exercise change (not part of circuit change)
-          isIndividualChange: isExerciseProposed,
-          // Add the pending status reference for proposal ID access
-          pendingStatus: isExerciseProposed
-            ? exercisePendingStatus
-            : isBlockProposed
-              ? blockPendingStatus
-              : undefined,
-        }))
-        grid.push(exerciseRow)
-        currentRowIndex++
-      })
-    }
-  })
-
-  return grid
-}
-
-// Extract value from exercise block based on field
-function getValueFromBlock(block: ExerciseBlock, field: string): string {
-  switch (field) {
-    case "exercise_name":
-      return block.exercise.name
-    case "sets":
-      return block.exercise.metadata.sets
-    case "reps":
-      return block.exercise.metadata.reps
-    case "weight":
-      return block.exercise.metadata.weight
-    case "rest":
-      return block.exercise.metadata.rest
-    case "notes":
-      return block.exercise.metadata.notes || ""
-    default:
-      return ""
-  }
-}
-
-// Extract value from circuit block based on field (for circuit header row)
-function getValueFromCircuitBlock(block: CircuitBlock, field: string): string {
-  switch (field) {
-    case "exercise_name":
-      return block.circuit.name
-    case "sets":
-      return block.circuit.metadata.sets
-    case "reps":
-      return "" // Circuits don't have reps, only exercises within circuits do
-    case "weight":
-      return "" // Circuits don't have weight, only exercises within circuits do
-    case "rest":
-      return block.circuit.metadata.rest
-    case "notes":
-      return block.circuit.metadata.notes || ""
-    default:
-      return ""
-  }
-}
-
-// Incremental update function
-function applyIncrementalChange(change: GridChange, workout: Workout): Workout {
-  const cell = change.cell
-
-  if (!cell) return workout
-
-  const newBlocks = [...workout.blocks]
-  const originalBlockIndex = cell.originalBlockIndex!
-  const blockToUpdate = newBlocks[originalBlockIndex]
-
-  if (!blockToUpdate) return workout
-
-  if (blockToUpdate.type === "exercise") {
-    // Direct exercise block update
-    const updatedBlock = { ...blockToUpdate }
-
-    if (isExerciseSelection(change)) {
-      updatedBlock.exercise = {
-        ...updatedBlock.exercise,
-        id: change.exercise.id,
-        name: change.exercise.name,
-      }
-    } else if (isCellChange(change)) {
-      if (cell.colType === "exercise_name") {
-        updatedBlock.exercise = {
-          ...updatedBlock.exercise,
-          name: change.newValue,
-        }
-      } else {
-        updatedBlock.exercise = {
-          ...updatedBlock.exercise,
-          metadata: {
-            ...updatedBlock.exercise.metadata,
-            [cell.colType]: change.newValue,
-          },
-        }
-      }
-    }
-
-    newBlocks[originalBlockIndex] = updatedBlock
-  } else if (blockToUpdate.type === "circuit") {
-    const updatedBlock = { ...blockToUpdate }
-    updatedBlock.circuit = { ...updatedBlock.circuit }
-
-    if (cell.isCircuitHeader) {
-      // Update circuit metadata
-      if (isCellChange(change)) {
-        if (cell.colType === "exercise_name") {
-          updatedBlock.circuit.name = change.newValue
-        } else if (["rest", "notes"].includes(cell.colType)) {
-          updatedBlock.circuit.metadata = {
-            ...updatedBlock.circuit.metadata,
-            [cell.colType]: change.newValue,
-          }
-        } else if (cell.colType === "sets") {
-          updatedBlock.circuit.metadata.sets = change.newValue
-          updatedBlock.circuit.exercises.forEach((exercise) => {
-            exercise.exercise.metadata.sets = change.newValue
-          })
-        }
-      }
-    } else {
-      // Update exercise within circuit
-      // Use the stored exercise index
-      const exerciseIndexInCircuit = cell.exerciseIndexInCircuit
-
-      if (exerciseIndexInCircuit !== undefined && exerciseIndexInCircuit >= 0) {
-        const updatedExercises = [...updatedBlock.circuit.exercises]
-        const exerciseToUpdate = { ...updatedExercises[exerciseIndexInCircuit] }
-
-        if (isExerciseSelection(change)) {
-          exerciseToUpdate.exercise = {
-            ...exerciseToUpdate.exercise,
-            id: change.exercise.id,
-            name: change.exercise.name,
-          }
-        } else if (isCellChange(change)) {
-          if (cell.colType === "exercise_name") {
-            exerciseToUpdate.exercise = {
-              ...exerciseToUpdate.exercise,
-              name: change.newValue,
-            }
-          } else {
-            exerciseToUpdate.exercise = {
-              ...exerciseToUpdate.exercise,
-              metadata: {
-                ...exerciseToUpdate.exercise.metadata,
-                [cell.colType]: change.newValue,
-              },
-            }
-          }
-        }
-
-        updatedExercises[exerciseIndexInCircuit] = exerciseToUpdate
-        updatedBlock.circuit.exercises = updatedExercises
-      }
-    }
-
-    newBlocks[originalBlockIndex] = updatedBlock
-  }
-
-  return {
-    ...workout,
-    blocks: newBlocks,
-  }
-}
-
-// Helper function removed - exercise index is now stored in cell.exerciseIndexInCircuit
