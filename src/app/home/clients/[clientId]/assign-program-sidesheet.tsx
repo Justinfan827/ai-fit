@@ -56,7 +56,7 @@ export function AssignProgramSidesheet({ clientId, programs }: Props) {
           }}
           variant="outline"
         >
-          Assign Program
+          Assign program
         </LoadingButton>
       </SheetTrigger>
       <SheetContent>

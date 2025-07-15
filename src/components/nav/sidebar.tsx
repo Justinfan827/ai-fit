@@ -1,5 +1,5 @@
 "use client"
-import { Home, User } from "lucide-react"
+import { Home, SquareLibrary, User } from "lucide-react"
 import { usePathname } from "next/navigation"
 import {
   Sidebar,
@@ -10,7 +10,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import type { CurrentUser } from "@/lib/supabase/server/database.operations.queries"
 
 // Menu items.
 const items = [
@@ -35,7 +34,7 @@ const items = [
     title: "Programs",
     url: "/home/programs",
     matchRegex: "^/home/programs",
-    icon: User,
+    icon: SquareLibrary,
   },
 ]
 

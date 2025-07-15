@@ -1,4 +1,8 @@
+import Link from "next/link"
+import { Icons } from "@/components/icons"
 import { PageLayout } from "@/components/page-layout"
+import { Button } from "@/components/ui/button"
+import type { ClientHomePage } from "@/lib/domain/clients"
 import { createServerClient } from "@/lib/supabase/create-server-client"
 import {
   getCurrentUser,
@@ -46,7 +50,7 @@ export default async function Page({
   }
 
   // Optionally get client data if clientId is provided
-  let clientData
+  let clientData: ClientHomePage | undefined
   if (clientId) {
     const clientResult = await trainerRepo.getClientHomePageData(clientId)
     if (clientResult.error) {
@@ -57,6 +61,16 @@ export default async function Page({
 
   return (
     <PageLayout>
+      <div className="absolute top-3 left-3">
+        <Button asChild size="noSize" variant="link">
+          <Link
+            className="flex items-center gap-1 text-muted-foreground text-sm"
+            href="/home/programs"
+          >
+            <Icons.arrowLeft className="h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
       <ClientPage
         availableClients={clients.data.map((c) => ({
           ...c,

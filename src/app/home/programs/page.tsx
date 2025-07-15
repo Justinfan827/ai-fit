@@ -1,6 +1,6 @@
 import dayjs from "dayjs"
 import Link from "next/link"
-import { Logo } from "@/components/icons"
+import { Icons, Logo } from "@/components/icons"
 import { Tp } from "@/components/typography"
 import {
   Breadcrumb,
@@ -46,7 +46,10 @@ export default async function WorkoutsPage() {
           </Tp>
           <div className="flex w-full justify-end">
             <Button asChild>
-              <Link href="/home/programs/new">New program</Link>
+              <Link href={"/home/programs/generate"}>
+                New program
+                <Icons.sparkles className="h-5 w-5" />
+              </Link>
             </Button>
           </div>
         </div>

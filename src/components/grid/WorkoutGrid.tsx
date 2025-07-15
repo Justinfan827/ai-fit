@@ -757,15 +757,6 @@ function RowActionBar({
       )
     }
 
-    // if (firstCell?.isProposed && firstCell?.isCircuitExercise) {
-    //   // For circuit exercises that are part of a proposed change, show empty space to maintain alignment
-    //   return (
-    //     <div className="flex">
-    //       <div className="h-6 w-6" />
-    //       <div className="h-6 w-6" />
-    //     </div>
-    //   )
-    // }
     return (
       <>
         <div className="h-6 w-6" />

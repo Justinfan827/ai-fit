@@ -57,7 +57,7 @@ export default async function ClientPage({
               <AssignProgramSidesheet clientId={clientId} programs={programs} />
               <Button asChild>
                 <Link href={`/home/programs/generate?clientId=${clientId}`}>
-                  Generate
+                  New program
                   <Icons.sparkles className="h-5 w-5" />
                 </Link>
               </Button>
@@ -75,7 +75,7 @@ export default async function ClientPage({
             <Tp variant="h4">Assigned Programs</Tp>
             {clientData.programs.length === 0 ? (
               <EmptyStateCard
-                buttonText="Assign Program"
+                buttonText="Assign program"
                 className="w-full"
                 subtitle="Assign a program to this client to help them reach their goals."
                 title="Assign a program"
