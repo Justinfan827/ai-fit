@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import * as z from "zod"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -55,7 +55,7 @@ export function LoginForm() {
 
   // const searchParams = useSearchParams()
   // const originalPath = searchParams.get('original_path') || ''
-  const onSubmit = async (data: Inputs) => {
+  const onSubmit = (data: Inputs) => {
     startTransition(async () => {
       // const authURL = siteConfig.auth.callbackURL({
       //   query: new URLSearchParams({
@@ -101,7 +101,7 @@ export function LoginForm() {
     })
   }
   return (
-    <Card className="mx-auto max-w-sm">
+    <Card className="w-[400px] py-8">
       <CardHeader>
         <CardTitle className="text-2xl">Login</CardTitle>
         <CardDescription>
@@ -111,8 +111,8 @@ export function LoginForm() {
       <CardContent>
         <Form {...form}>
           <form
-            className="grid gap-4"
-            onSubmit={(...args) => void form.handleSubmit(onSubmit)(...args)}
+            className="grid gap-6"
+            onSubmit={(...args) => form.handleSubmit(onSubmit)(...args)}
           >
             <FormField
               control={form.control}
@@ -147,8 +147,8 @@ export function LoginForm() {
                   className="mr-2 h-4 w-4 animate-spin"
                 />
               )}
-              Sign in
-              <span className="sr-only hidden">Sign in</span>
+              Login
+              <span className="sr-only hidden">Login</span>
             </Button>
           </form>
         </Form>
