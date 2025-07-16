@@ -6,10 +6,6 @@ import {
   type ChangeEvent,
   type ComponentProps,
   type FormEvent,
-  type FormEventHandler,
-  useCallback,
-  useEffect,
-  useRef,
   useState,
 } from "react"
 import { Markdown } from "@/components/markdown"
@@ -52,9 +48,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
-import { ScrollArea } from "./ui/scroll-area"
 import { Separator } from "./ui/separator"
-import { Textarea } from "./ui/textarea"
 
 interface ProgramEditorSidebarProps extends ComponentProps<typeof Sidebar> {
   trainerId: string
@@ -77,7 +71,6 @@ export function ProgramEditorSidebar({
   ...props
 }: ProgramEditorSidebarProps) {
   const workouts = useZProgramWorkouts()
-  const proposedChanges = useZProposedChanges()
   const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
   const [contextItems, setContextItems] = useState<ContextItem[]>(() => {
     return [
@@ -114,24 +107,6 @@ export function ProgramEditorSidebar({
     },
     initialMessages: [],
   })
-
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
-  const bottomRef = useRef<HTMLDivElement>(null)
-
-  // Utility function to scroll to bottom
-  const scrollToBottom = useCallback(() => {
-    if (bottomRef.current) {
-      // Ensure we wait until next paint so DOM is up to date
-      requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "auto" })
-      })
-    }
-  }, [])
-
-  // Auto-scroll to bottom when new messages arrive or when typing
-  useEffect(() => {
-    scrollToBottom()
-  }, [scrollToBottom])
 
   const onAddContext = (payload: ContextAddPayload) => {
     if (payload.type === "client") {

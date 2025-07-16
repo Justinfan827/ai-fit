@@ -1,4 +1,4 @@
-import type { ContextItem } from "@/lib/ai/prompts/prompts"
+import type { ContextItem } from "@/lib/ai/prompts/context-schema"
 import type { Workouts } from "@/lib/domain/workouts"
 
 const testExercises: ContextItem[] = [

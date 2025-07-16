@@ -1,6 +1,6 @@
 // sampleProgramTemplate is the sample
 // denormalized program that we work with in the program editor
-const sampleProgramTemplate = {
+const _sampleProgramTemplate = {
   id: "programID",
   name: "Program Name",
   createdAt: "2021-01-01T00:00:00Z", // created_at

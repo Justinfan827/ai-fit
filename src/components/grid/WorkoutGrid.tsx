@@ -148,7 +148,7 @@ function WorkoutGridRows({
   const [openDropdownRow, setOpenDropdownRow] = useState<number | null>(null)
   const [editingValue, setEditingValue] = useState<string>("")
   const [originalValue, setOriginalValue] = useState<string>("")
-  const gridRefs = useRef<HTMLDivElement[][]>([])
+  const gridRefs = useRef<HTMLButtonElement[][]>([])
   const currentChangeId = useZCurrentChangeId()
 
   // Scroll to current change when it changes
@@ -552,7 +552,7 @@ type GridRowProps = {
   handleKeyDown: (e: KeyboardEvent, row: number, col: number) => void
   setActiveCell: (cell: Position | null) => void
   setOpenDropdownRow: (row: number | null) => void
-  gridRefs: React.RefObject<HTMLDivElement[][]>
+  gridRefs: React.RefObject<HTMLButtonElement[][]>
   editingValue: string
   stopEditing: (row: number, col: number) => void
   startEditing: (row: number, col: number, initialValue?: string) => void

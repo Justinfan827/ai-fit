@@ -9,12 +9,12 @@
     "format:fix": "./node_modules/.bin/prettier --write .",
     "local-types": "npx supabase gen types typescript --local --schema public > ./src/lib/supabase/database.types.ts",
     "dev": "next dev --turbopack",
+    "check-types": "tsc --noEmit",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "openstudio": "open http://localhost:54323",
     "openemail": "open http://localhost:54324",
-    "check-types": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run"
