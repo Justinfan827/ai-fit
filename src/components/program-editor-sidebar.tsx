@@ -28,13 +28,18 @@ import type { ClientHomePage } from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
 import { cn } from "@/lib/utils"
 import {
+  AIConversation,
+  AIConversationContent,
+  AIConversationScrollButton,
+} from "./ai/AIConversation"
+import {
   AIInput,
   AIInputButton,
   AIInputSubmit,
   AIInputTextarea,
   AIInputToolbar,
   AIInputTools,
-} from "./AIInput"
+} from "./ai/AIInput"
 import { DataStreamHandler } from "./DataStreamHandler"
 import { ExerciseSelectionDialog } from "./forms/ExerciseSelectionDialog"
 import { Icons } from "./icons"
@@ -261,88 +266,80 @@ export function ProgramEditorSidebar({
         </div>
       </SidebarHeader>
       <SidebarContent className="flex flex-col">
-        {/* Chat Messages Area */}
         <DataStreamHandler dataStream={dataStream} />
-        <div className="flex min-h-0 flex-1 flex-col">
-          <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
-            <div className="space-y-4 py-4">
-              {messages.map((message) => (
-                <div
-                  className={cn(
-                    "flex gap-3",
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  )}
-                  key={message.id}
-                >
-                  {message.role === "assistant" && (
-                    <Avatar className="size-8 shrink-0">
-                      <AvatarFallback className="border border-input bg-primary-foreground text-primary">
-                        <Icons.sparkles className="size-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
+        <AIConversation className="size-full">
+          <AIConversationContent className="space-y-4">
+            {messages.map((message) => (
+              <div
+                className={cn(
+                  "flex gap-3",
+                  message.role === "user" ? "justify-end" : "justify-start"
+                )}
+                key={message.id}
+              >
+                {message.role === "assistant" && (
+                  <Avatar className="size-8 shrink-0">
+                    <AvatarFallback className="border border-input bg-primary-foreground text-primary">
+                      <Icons.sparkles className="size-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
 
-                  {message.role === "assistant" && (
-                    <div className="flex flex-col gap-2 text-primary text-sm leading-relaxed">
-                      {status === "streaming" && (
-                        <div className="flex animate-pulse items-center gap-2 text-muted-foreground">
-                          <Icons.sparkles className="size-3" />
-                          <span>Thinking...</span>
-                        </div>
-                      )}
-                      {status === "streaming" && message.parts ? (
-                        // Handle streaming parts
-                        message.parts.map((part, index) => {
-                          if (part.type === "tool-invocation") {
-                            const toolInvocation = part.toolInvocation
-                            return (
-                              <div
-                                className="flex animate-pulse items-center gap-2 text-muted-foreground"
-                                key={`tool-${index}`}
-                              >
-                                <Icons.wrench className="size-3" />
-                                <span>
-                                  Running {toolInvocation.toolName}...
-                                </span>
-                              </div>
-                            )
-                          }
-                          if (part.type === "text") {
-                            return (
-                              <Markdown key={`text-${index}`}>
-                                {part.text}
-                              </Markdown>
-                            )
-                          }
-                          return null
-                        })
-                      ) : (
-                        <Markdown>{message.content}</Markdown>
-                      )}
-                    </div>
-                  )}
-
-                  {message.role === "user" && (
-                    <div className="ml-auto max-w-[80%] rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm leading-relaxed">
-                      {message.content}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {status === "submitted" && (
-                <div className="rounded-lg px-3 py-2 text-sm">
-                  <div className="flex animate-pulse items-center gap-2">
-                    <span className="text-muted-foreground">Thinking...</span>
+                {message.role === "assistant" && (
+                  <div className="flex flex-col gap-2 text-primary text-sm leading-relaxed">
+                    {/* {status === "streaming" && (
+                      <div className="flex animate-pulse items-center gap-2 text-muted-foreground">
+                        <Icons.sparkles className="size-3" />
+                        <span>Thinking...</span>
+                      </div>
+                    )} */}
+                    {status === "streaming" && message.parts ? (
+                      // Handle streaming parts
+                      message.parts.map((part, index) => {
+                        if (part.type === "tool-invocation") {
+                          const toolInvocation = part.toolInvocation
+                          return (
+                            <div
+                              className="flex animate-pulse items-center gap-2 text-muted-foreground"
+                              key={`tool-${index}`}
+                            >
+                              <Icons.wrench className="size-3" />
+                              <span>Running {toolInvocation.toolName}...</span>
+                            </div>
+                          )
+                        }
+                        if (part.type === "text") {
+                          return (
+                            <Markdown key={`text-${index}`}>
+                              {part.text}
+                            </Markdown>
+                          )
+                        }
+                        return null
+                      })
+                    ) : (
+                      <Markdown>{message.content}</Markdown>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* bottom sentinel to keep viewport anchored */}
-              <div ref={bottomRef} />
-            </div>
-          </ScrollArea>
-        </div>
+                {message.role === "user" && (
+                  <div className="ml-auto max-w-[80%] rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm leading-relaxed">
+                    {message.content}
+                  </div>
+                )}
+              </div>
+            ))}
+            {status === "submitted" && (
+              <div className="rounded-lg px-3 py-2 text-sm">
+                <div className="flex animate-pulse items-center gap-2">
+                  <span className="text-muted-foreground">Thinking...</span>
+                </div>
+              </div>
+            )}
+          </AIConversationContent>
+          <AIConversationScrollButton />
+        </AIConversation>
       </SidebarContent>
 
       <SidebarFooter>
