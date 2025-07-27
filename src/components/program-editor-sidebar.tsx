@@ -16,10 +16,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import {
-  useZProgramWorkouts,
-  useZProposedChanges,
-} from "@/hooks/zustand/program-editor-state"
+import { useZProgramWorkouts } from "@/hooks/zustand/program-editor-state"
 import type { ClientHomePage } from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
 import { cn } from "@/lib/utils"
@@ -57,12 +54,19 @@ interface ProgramEditorSidebarProps extends ComponentProps<typeof Sidebar> {
   availableClients?: ClientHomePage[] // List of available clients to choose from
 }
 
-interface ContextItem {
-  id: string
-  type: "client" | "exercises"
+type ClientContextItem = {
+  type: "client"
   label: string
-  data: any
+  data: ClientHomePage
 }
+
+type ExercisesContextItem = {
+  type: "exercises"
+  label: string
+  data: Exercise[]
+}
+
+type ContextItem = ClientContextItem | ExercisesContextItem
 
 export function ProgramEditorSidebar({
   exercises: initialExercises,
@@ -117,9 +121,8 @@ export function ProgramEditorSidebar({
   }
   const addClientContext = (selectedClient: ClientHomePage) => {
     const clientItem: ContextItem = {
-      id: `client-${selectedClient.id}`,
       type: "client",
-      label: selectedClient.firstName,
+      label: `${selectedClient.firstName} ${selectedClient.lastName}`,
       data: selectedClient,
     }
     setContextItems((prev) => {
@@ -138,9 +141,8 @@ export function ProgramEditorSidebar({
     setExercises(allExercisesSelected)
 
     const exerciseItem: ContextItem = {
-      id: "exercises-preferred",
       type: "exercises",
-      label: `${allExercisesSelected.length} Preferred Exercises`,
+      label: `Exercises (${allExercisesSelected.length})`,
       data: allExercisesSelected,
     }
 
@@ -168,8 +170,8 @@ export function ProgramEditorSidebar({
     })
   }
 
-  const removeContextItem = (id: string) => {
-    setContextItems((prev) => prev.filter((item) => item.id !== id))
+  const removeContextItem = (label: string) => {
+    setContextItems((prev) => prev.filter((item) => item.label !== label))
   }
 
   const getContextIcon = (type: string) => {
@@ -189,7 +191,7 @@ export function ProgramEditorSidebar({
         <ExerciseSelectionDialog
           allExercises={initialExercises}
           exercises={exercises}
-          key={item.id}
+          key={item.label}
           selectedExercises={exercises}
           setExercises={handleExercisesChange}
         >
@@ -200,7 +202,7 @@ export function ProgramEditorSidebar({
               className="hover:bg-transparent"
               onClick={(e) => {
                 e.stopPropagation()
-                removeContextItem(item.id)
+                removeContextItem(item.label)
               }}
               size="noSize"
               variant="ghost"
@@ -215,13 +217,13 @@ export function ProgramEditorSidebar({
     return (
       <Badge
         className="flex cursor-pointer items-center gap-1 border-input bg-background text-foreground text-xs"
-        key={item.id}
+        key={item.label}
       >
         {getContextIcon(item.type)}
         <span>{item.label}</span>
         <Button
           className="hover:bg-transparent"
-          onClick={() => removeContextItem(item.id)}
+          onClick={() => removeContextItem(item.label)}
           size="noSize"
           variant="ghost"
         >
