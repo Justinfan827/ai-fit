@@ -288,7 +288,8 @@ const EditorProgramProvider = ({
   const program = initialProgram || newTestInitialProgram(exercises)
   const isNewProgram = !initialProgram
   const sortedProposedChanges = sortProposedChanges(
-    newTestProposedChanges(exercises)
+    []
+    // newTestProposedChanges(exercises)
   )
   // const sortedProposedChanges: WorkoutChange[] = []
   // merge proposed changes with workouts
