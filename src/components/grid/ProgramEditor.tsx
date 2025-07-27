@@ -81,7 +81,6 @@ export default function ProgramEditor() {
      *  week, and then program_order, for weekly programs.
      *
      */
-
     if (week === undefined) {
       setWorkouts([
         ...workouts,
