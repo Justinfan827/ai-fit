@@ -38,6 +38,9 @@ export default function ClientListItem({ client }: { client: Client }) {
             {client.firstName} {client.lastName}
           </div>
           <div className="text-muted-foreground text-xs">{client.email}</div>
+          <div className="text-muted-foreground text-xs">
+            {new Date(client.createdAt).toLocaleDateString()}
+          </div>
         </div>
       </div>
     </div>

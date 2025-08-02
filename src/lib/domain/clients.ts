@@ -5,6 +5,7 @@ export interface Client {
   email: string
   firstName: string
   lastName: string
+  createdAt: string
   // TODO: add avatarURL
   avatarURL?: string
 }

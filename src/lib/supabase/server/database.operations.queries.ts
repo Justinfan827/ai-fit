@@ -36,6 +36,7 @@ export async function getCurrentUserClients(): Promise<Maybe<Client[]>> {
       email: c.email || "",
       firstName: c.first_name || "",
       lastName: c.last_name || "",
+      createdAt: c.created_at || "",
     })),
     error: null,
   }

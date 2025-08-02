@@ -1,4 +1,4 @@
-import Link from "next/link"
+import ClientListItem from "@/app/home/clients/client-list-item"
 import ClientButtonNewClient from "@/components/ClientButtonNewClient"
 import { EmptyStateCard } from "@/components/empty-state"
 import { SiteHeader } from "@/components/site-header"
@@ -7,8 +7,6 @@ import {
   getCurrentUser,
   getCurrentUserClients,
 } from "@/lib/supabase/server/database.operations.queries"
-import { cn } from "@/lib/utils"
-import ClientListItem from "./client-list-item"
 
 export default async function ClientsPage() {
   // Get current user and clients data
