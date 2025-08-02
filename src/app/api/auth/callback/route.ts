@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
   if (isClient(data.sbUser)) {
     return NextResponse.redirect(`${origin}/clients/${data.sbUser.id}`)
   }
-  return NextResponse.redirect(`${origin}/home`)
+  return NextResponse.redirect(`${origin}/clients`)
 }
 
 type errorSearchParams = {

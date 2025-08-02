@@ -9,22 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getCurrentUser } from "@/lib/supabase/server/database.operations.queries"
+import type { CurrentUser } from "@/lib/supabase/server/database.operations.queries"
 import { capitalizeFirstLetter } from "@/lib/utils"
 
-export async function Usermenu() {
-  const { data, error } = await getCurrentUser()
-  if (error) {
-    return null
-  }
-  const firstName = data.metadata.firstName || ""
-  const lastName = data.metadata.lastName || ""
-  const firstLetter = (
-    firstName.charAt(0) ||
-    data.sbUser.email?.charAt(0) ||
-    "A"
-  ).toUpperCase()
-  const lastLetter = (lastName.charAt(0) || "").toUpperCase()
+export function UserDropdown({ user }: { user: CurrentUser }) {
+  const firstName = user.metadata.firstName || "Tester"
+  const lastName = user.metadata.lastName || "Dummy"
+  const firstLetter = firstName.charAt(0).toUpperCase()
+  const lastLetter = lastName.charAt(0).toUpperCase()
   return (
     // If modal is not set to false, on some browsers the scrollbar
     // will disappear on pages when the dropdown is opened
@@ -39,6 +31,15 @@ export async function Usermenu() {
               {`${firstLetter}${lastLetter}`}
             </AvatarFallback>
           </Avatar>
+          <div className="flex flex-col">
+            <p className="font-medium text-sm leading-none">
+              {capitalizeFirstLetter(firstName)}{" "}
+              {capitalizeFirstLetter(lastName)}
+            </p>
+            <p className="text-muted-foreground text-xs leading-none">
+              {user.sbUser.email}
+            </p>
+          </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56" forceMount>
@@ -51,7 +52,7 @@ export async function Usermenu() {
               </p>
             )}
             <p className="text-muted-foreground text-xs leading-none">
-              {data.sbUser.email}
+              {user.sbUser.email}
             </p>
           </div>
         </DropdownMenuLabel>

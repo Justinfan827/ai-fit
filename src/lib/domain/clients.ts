@@ -5,6 +5,8 @@ export interface Client {
   email: string
   firstName: string
   lastName: string
+  // TODO: add avatarURL
+  avatarURL?: string
 }
 
 export interface ClientDetail {

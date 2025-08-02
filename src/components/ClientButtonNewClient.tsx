@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Icons } from "./icons"
 
 export default function ClientButtonNewClient() {
   const formName = "new-client-form"
@@ -42,7 +43,10 @@ export default function ClientButtonNewClient() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">New Client</Button>
+        <Button variant="outline">
+          <Icons.plus className="size-4" />
+          New Client
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:min-w-[500px]">
         <DialogHeader>

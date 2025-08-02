@@ -1,20 +1,14 @@
 import Link from "next/link"
 import ClientButtonNewClient from "@/components/ClientButtonNewClient"
 import { EmptyStateCard } from "@/components/empty-state"
-import Header from "@/components/header"
-import { PageHeader } from "@/components/page-header"
-import { PageContent, PageLayout, PageSection } from "@/components/page-layout"
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+import { SiteHeader } from "@/components/site-header"
+import type { Client } from "@/lib/domain/clients"
 import {
   getCurrentUser,
   getCurrentUserClients,
 } from "@/lib/supabase/server/database.operations.queries"
 import { cn } from "@/lib/utils"
+import ClientListItem from "./client-list-item"
 
 export default async function ClientsPage() {
   // Get current user and clients data
@@ -33,56 +27,38 @@ export default async function ClientsPage() {
     return <div>error: {clientsError.message}</div>
   }
 
-  const headerActions = <ClientButtonNewClient />
-
   return (
-    <PageLayout>
-      <Header>
-        <BreadcrumbItem className="hidden md:block">
-          <BreadcrumbLink href="/home">Home</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator className="hidden md:block" />
-        <BreadcrumbItem className="hidden md:block">
-          <BreadcrumbPage>Clients</BreadcrumbPage>
-        </BreadcrumbItem>
-      </Header>
-      <div id="clients content">
-        <PageHeader
-          actions={headerActions}
-          subtitle="Manage your clients and their programs"
-          title="My Clients"
-        />
-        <PageContent>
-          <PageSection>
-            {clientsData.length === 0 ? (
-              <EmptyStateCard
-                buttonHref="/home/clients/new"
-                buttonText="New Client"
-                className="w-full"
-                subtitle="Add a new client to get started with ai powered programming."
-                title="Add a client"
-              />
-            ) : (
-              <div className="flex flex-col">
-                {clientsData.map((client, idx) => (
-                  <Link
-                    className={cn(
-                      "flex border-neutral-700 border-x px-4 py-4",
-                      idx === 0 && "rounded-t-sm border-neutral-700 border-t",
-                      idx === clientsData.length - 1 && "rounded-b-sm",
-                      "border-neutral-700 border-b"
-                    )}
-                    href={`/home/clients/${client.id}`}
-                    key={client.id}
-                  >
-                    {client.firstName} {client.lastName}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </PageSection>
-        </PageContent>
+    <>
+      <SiteHeader left={"Clients"} right={<ClientButtonNewClient />} />
+      <div
+        className="@container/main flex flex-1 flex-col"
+        id="clients content"
+      >
+        <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
+          <ClientsList clients={clientsData} />
+        </div>
       </div>
-    </PageLayout>
+    </>
+  )
+}
+
+function ClientsList({ clients }: { clients: Client[] }) {
+  if (clients.length === 0) {
+    return (
+      <EmptyStateCard
+        buttonHref="/home/clients/new"
+        buttonText="New Client"
+        className="w-full"
+        subtitle="Add a new client to get started with ai powered programming."
+        title="Add a client"
+      />
+    )
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      {clients.map((client) => (
+        <ClientListItem client={client} key={client.id} />
+      ))}
+    </div>
   )
 }
