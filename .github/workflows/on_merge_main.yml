@@ -1,0 +1,54 @@
+name: Tag and release to staging on push to main
+on:
+  push:
+    branches:
+      - 'main'
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+  run-migrations-staging:
+    needs: tag
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.STAGING_SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - run: supabase link --project-ref $SUPABASE_PROJECT_ID
+      - run: supabase db push
+  deploy-staging:
+    needs: run-migrations-staging
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.STAGING_VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      -https://nextjs.org/docs/messages/module-not-found name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      # https://github.com/vercel/next.js/issues/54146
+      # - name: Build Project Artifacts
+      #   run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+      # - name: Deploy Project Artifacts to Vercel
+      #   run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to staging
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
