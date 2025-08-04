@@ -1,12 +1,12 @@
 import { createBrowserClient as createBrowserClientSupabase } from "@supabase/ssr"
+import { getSupabaseConfig } from "../env"
 import type { Database } from "./database.types"
 
 /**
  * Create a supabase DB client from the browser
- **/
+ */
 export function createBrowserClient() {
-  return createBrowserClientSupabase<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const { url, anonKey } = getSupabaseConfig()
+
+  return createBrowserClientSupabase<Database>(url, anonKey)
 }
