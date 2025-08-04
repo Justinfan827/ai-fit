@@ -90,7 +90,7 @@ export function LoginForm() {
         if (isClient(uData.user)) {
           router.push(`/clients/${uData.user.id}`)
         } else {
-          router.push("/home")
+          router.push("/home/clients")
         }
       } catch (error) {
         if (error instanceof Error) {

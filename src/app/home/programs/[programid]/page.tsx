@@ -1,22 +1,14 @@
-import { Logo } from "@/components/icons"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import Link from "next/link"
+import { Icons } from "@/components/icons"
+import { SiteHeader } from "@/components/site-header"
 import { createServerClient } from "@/lib/supabase/create-server-client"
 import {
   getCurrentUser,
-  getExercises,
   getProgramById,
 } from "@/lib/supabase/server/database.operations.queries"
 import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
 import ClientPage from "./client-page"
+import ProgramActions from "./program-edit-actions"
 
 export default async function Page({
   params,
@@ -58,40 +50,36 @@ export default async function Page({
   const programData = program.data
 
   return (
-    <SidebarProvider>
-      <div className="w-full overflow-auto">
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
-          <div className="flex items-center">
-            <Logo />
-            <Separator className="mx-4 h-6" orientation="vertical" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/home">Home</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/home/programs">
-                    Programs
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{programData.name}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+    <>
+      <SiteHeader
+        left={
+          <div className="flex items-center gap-2 leading-none">
+            <Link
+              className="text-muted-foreground hover:text-primary"
+              href="/home/programs"
+            >
+              Programs
+            </Link>
+            <Icons.chevronRight className="size-3 text-muted-foreground" />
+            <p className="capitalize">{programData.name}</p>
           </div>
-          <SidebarTrigger className="-ml-1" />
-        </header>
-        <ClientPage
-          availableClients={clients.data}
-          baseExercises={exercises.data.base}
-          program={programData}
-          trainerExercises={exercises.data.custom}
-          trainerId={user.data.sbUser.id}
-        />
+        }
+        right={<ProgramActions />}
+      />
+      <div
+        className="@container/main flex flex-1 flex-col"
+        id="programs content"
+      >
+        <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
+          <ClientPage
+            availableClients={clients.data}
+            baseExercises={exercises.data.base}
+            program={programData}
+            trainerExercises={exercises.data.custom}
+            trainerId={user.data.sbUser.id}
+          />
+        </div>
       </div>
-    </SidebarProvider>
+    </>
   )
 }

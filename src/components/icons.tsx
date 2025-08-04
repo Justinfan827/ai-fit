@@ -21,6 +21,7 @@ import {
   Download,
   Dumbbell,
   Ellipsis,
+  EllipsisVertical,
   ExternalLink,
   Eye,
   EyeOff,
@@ -35,6 +36,7 @@ import {
   ListFilter,
   Loader2,
   LucideMailbox,
+  LucideTrash,
   LucideTrash2,
   Monitor,
   PauseCircle,
@@ -59,6 +61,7 @@ import {
 
 export const Icons = {
   ellipsis: Ellipsis,
+  ellipsisVertical: EllipsisVertical,
   send: Send,
   chevronUpDown: ChevronsUpDown,
   sparkles: Sparkles,
@@ -105,7 +108,7 @@ export const Icons = {
   search: Search,
   settings: Settings,
   spinner: Loader2,
-  trash: LucideTrash2,
+  trash: LucideTrash,
   warning: AlertTriangle,
   undo: Undo2,
   userPlus: UserPlus,

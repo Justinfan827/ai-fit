@@ -121,3 +121,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .debug {
+    @apply border border-red-500;
+  }
+}

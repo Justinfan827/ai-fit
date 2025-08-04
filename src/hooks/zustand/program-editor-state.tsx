@@ -28,7 +28,7 @@ type ProgramState = {
   created_at: string
   name: string
   // TODO: start with splits for now, skip weekly support atm.
-  type: "weekly" | "splits"
+  type: "splits"
   workouts: Workouts
   proposedChanges: WorkoutChange[]
   currentChangeId: string | null
@@ -43,7 +43,7 @@ interface EditorState extends ProgramState {
 
 type WorkoutActions = {
   search: (query: string) => Exercise[]
-  setProgramType: (pType: "weekly" | "splits") => void
+  setProgramType: (pType: "splits") => void
   setProgramName: (name: string) => void
   setWorkouts: (workouts: Workouts) => void
   // set the proposed changes to a new array
@@ -53,6 +53,9 @@ type WorkoutActions = {
   setCurrentChangeId: (changeId: string | null) => void
   applyPendingProposalById: (proposalId: string) => void
   rejectPendingProposalById: (proposalId: string) => void
+
+  // save the current program to db
+  saveProgram: () => Promise<void>
 
   // History actions
   saveWorkoutToHistory: (workoutId: string, workout: Workout) => void
@@ -375,7 +378,7 @@ const EditorProgramProvider = ({
           set({ currentChangeId: changeId })
         },
 
-        setProgramType: (pType: "weekly" | "splits") => {
+        setProgramType: (pType: "splits") => {
           set({ type: pType })
         },
         setProgramName: (name: string) => {

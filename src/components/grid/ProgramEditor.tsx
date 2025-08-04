@@ -158,8 +158,8 @@ export default function ProgramEditor() {
 
   const handleOnSave = async () => {
     setIsPending(true)
-    const { error } = await apiEditProgram({ body: domainProgram })
-    if (error) {
+    const res = await apiEditProgram({ body: domainProgram })
+    if (res.error) {
       toast.error("Error", {
         description: `Oops! We couldn't save your workout.Please try again`,
       })
@@ -207,17 +207,14 @@ export default function ProgramEditor() {
   )
   return (
     <div className="w-full">
-      <PageHeader
-        actions={headerActions}
-        title={
-          <EditableTypography
-            className="text-2xl"
-            onChange={setProgramName}
-            value={programName}
-          />
-        }
-      />
-      <div className="overflow-x-auto p-4">
+      <div className="px-16">
+        <EditableTypography
+          className="text-2xl"
+          onChange={setProgramName}
+          value={programName}
+        />
+      </div>
+      <div className="overflow-x-auto">
         <div className="flex gap-8">
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
             return (

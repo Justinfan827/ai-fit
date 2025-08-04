@@ -7,7 +7,7 @@ export function SiteHeader({
   right,
 }: {
   left: React.ReactNode
-  right: React.ReactNode
+  right?: React.ReactNode
 }) {
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -18,7 +18,9 @@ export function SiteHeader({
           orientation="vertical"
         />
         {left}
-        <div className="ml-auto flex items-center gap-2">{right}</div>
+        {right && (
+          <div className="ml-auto flex items-center gap-2">{right}</div>
+        )}
       </div>
     </header>
   )
