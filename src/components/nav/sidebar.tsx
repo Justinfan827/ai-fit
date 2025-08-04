@@ -44,7 +44,7 @@ export function AppSidebar({ hideOnURLs = [], user }: AppSidebarProps) {
   const path = usePathname()
   // check if the current path is in the hideOnURLs array
 
-  if (hideOnURLs.includes(path)) {
+  if (hideOnURLs.some((url) => new RegExp(url).test(path))) {
     return null
   }
 

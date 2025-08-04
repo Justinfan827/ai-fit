@@ -1,6 +1,11 @@
 import Link from "next/link"
+import ProgramEditor from "@/components/grid/ProgramEditor"
 import { Icons } from "@/components/icons"
+import { ProgramEditorSidebar } from "@/components/program-editor-sidebar"
 import { SiteHeader } from "@/components/site-header"
+import { Button } from "@/components/ui/button"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { EditorProgramProvider } from "@/hooks/zustand/program-editor-state"
 import { createServerClient } from "@/lib/supabase/create-server-client"
 import {
   getCurrentUser,
@@ -50,36 +55,59 @@ export default async function Page({
   const programData = program.data
 
   return (
-    <>
-      <SiteHeader
-        left={
-          <div className="flex items-center gap-2 leading-none">
-            <Link
-              className="text-muted-foreground hover:text-primary"
-              href="/home/programs"
-            >
-              Programs
-            </Link>
-            <Icons.chevronRight className="size-3 text-muted-foreground" />
-            <p className="capitalize">{programData.name}</p>
-          </div>
-        }
-        right={<ProgramActions />}
-      />
-      <div
-        className="@container/main flex flex-1 flex-col"
-        id="programs content"
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 102)",
+          "--header-height": "calc(var(--spacing) * 16)",
+        } as React.CSSProperties
+      }
+    >
+      <EditorProgramProvider
+        exercises={exercises.data.custom.concat(exercises.data.base)}
+        initialProgram={programData}
       >
-        <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
-          <ClientPage
-            availableClients={clients.data}
-            baseExercises={exercises.data.base}
-            program={programData}
-            trainerExercises={exercises.data.custom}
-            trainerId={user.data.sbUser.id}
+        <SidebarInset>
+          <SiteHeader
+            left={
+              <div className="flex items-center gap-2 leading-none">
+                <Link
+                  className="text-muted-foreground hover:text-primary"
+                  href="/home/programs"
+                >
+                  Programs
+                </Link>
+                <Icons.chevronRight className="size-3 text-muted-foreground" />
+                <p className="capitalize">{programData.name}</p>
+              </div>
+            }
+            right={<ProgramActions />}
+            triggerReplacement={
+              <Button asChild size="icon" variant="ghost">
+                <Link href="/home/programs">
+                  <Icons.arrowLeft className="size-4" />
+                </Link>
+              </Button>
+            }
           />
-        </div>
-      </div>
-    </>
+          <div
+            className="@container/main flex flex-1 flex-col"
+            id="programs content"
+          >
+            <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
+              <div className="w-full overflow-auto">
+                <ProgramEditor />
+              </div>
+            </div>
+          </div>
+        </SidebarInset>
+        <ProgramEditorSidebar
+          availableClients={clients.data}
+          exercises={exercises.data.custom}
+          side="right"
+          trainerId={user.data.sbUser.id}
+        />
+      </EditorProgramProvider>
+    </SidebarProvider>
   )
 }

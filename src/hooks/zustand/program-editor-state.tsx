@@ -1,3 +1,4 @@
+"use client"
 import Fuse from "fuse.js"
 import { createContext, useContext, useEffect, useState } from "react"
 import { create, type StoreApi, type UseBoundStore, useStore } from "zustand"

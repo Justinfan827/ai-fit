@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import LoadingButton from "@/components/loading-button"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 
 export default function ProgramActions() {
   const [isEdited, setIsEdited] = useState(false)
@@ -14,6 +15,7 @@ export default function ProgramActions() {
       >
         Save
       </LoadingButton>
+      <SidebarTrigger />
     </div>
   )
 }

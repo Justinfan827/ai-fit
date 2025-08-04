@@ -234,7 +234,7 @@ export function ProgramEditorSidebar({
   }
 
   return (
-    <Sidebar {...props}>
+    <Sidebar {...props} collapsible="offcanvas" variant="sidebar">
       <SidebarHeader>
         <div className="px-4">
           <h3 className="font-normal text-lg text-muted-foreground uppercase tracking-wide">
