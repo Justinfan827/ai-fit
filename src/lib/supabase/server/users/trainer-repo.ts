@@ -1,7 +1,7 @@
 import "server-only"
 
 import { v4 as uuidv4 } from "uuid"
-import type { ClientHomePage } from "@/lib/domain/clients"
+import type { ClientDetail, ClientHomePage } from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
 import createAdminClient from "@/lib/supabase/create-admin-client"
 import type { Maybe } from "@/lib/types/types"
@@ -119,6 +119,47 @@ export class TrainerClientRepo {
     }
   }
 
+  async deleteClientById({
+    trainerId,
+    clientId,
+  }: {
+    trainerId: string
+    clientId: string
+  }) {
+    const sb = await createServerClient()
+
+    // First, verify that the client belongs to this trainer
+    const { data: client, error: verifyError } = await sb
+      .from("users")
+      .select("trainer_id")
+      .eq("id", clientId)
+      .single()
+
+    if (verifyError) {
+      return { data: null, error: verifyError }
+    }
+
+    if (client.trainer_id !== trainerId) {
+      return {
+        data: null,
+        error: new Error("Client not found or access denied"),
+      }
+    }
+
+    // Soft delete: set trainer_id to null instead of hard deleting the user
+    const { error } = await sb
+      .from("users")
+      .update({ trainer_id: null })
+      .eq("id", clientId)
+      .eq("trainer_id", trainerId) // Extra safety check
+
+    if (error) {
+      return { data: null, error }
+    }
+
+    return { data: undefined, error: null }
+  }
+
   async deleteClientDetailById({
     clientId,
     detailId,
@@ -135,14 +176,14 @@ export class TrainerClientRepo {
     if (error) {
       return { data: null, error }
     }
-    const metadata: any = data.metadata || {}
-    metadata.details = (metadata.details || []).filter(
-      (d: any) => d.id !== detailId
+    const metadata = (data.metadata as Record<string, unknown>) || {}
+    metadata.details = ((metadata.details as ClientDetail[]) || []).filter(
+      (d) => d.id !== detailId
     )
     const { data: user, error: updateErr } = await sb
       .from("users")
       .update({
-        metadata,
+        metadata: metadata as never,
       })
       .eq("id", clientId)
       .select("*")
@@ -156,7 +197,6 @@ export class TrainerClientRepo {
   }
 
   async updateClientDetails({
-    trainerId,
     clientId,
     title,
     description,
@@ -175,18 +215,19 @@ export class TrainerClientRepo {
     if (error) {
       return { data: null, error }
     }
-    const metadata: any = data.metadata || {}
-    metadata.details = metadata.details || []
-    metadata.details.push({
+    const metadata = (data.metadata as Record<string, unknown>) || {}
+    const details = (metadata.details as ClientDetail[]) || []
+    details.push({
       id: uuidv4(),
       title,
       description,
     })
+    metadata.details = details
 
     const { data: user, error: updateErr } = await sb
       .from("users")
       .update({
-        metadata,
+        metadata: metadata as never,
       })
       .eq("id", clientId)
       .select("*")
@@ -219,21 +260,21 @@ export class TrainerClientRepo {
     }
 
     const clients: ClientHomePage[] = clientsData.map((c) => {
-      const metadata = (c.metadata as any) || {}
+      const metadata = (c.metadata as Record<string, unknown>) || {}
       return {
         id: c.id,
         email: c.email || "",
         firstName: c.first_name || "",
         lastName: c.last_name || "",
+        createdAt: c.created_at || "",
         programs: [],
-        age: metadata.age || 0,
-        gender: metadata.gender,
-        liftingExperienceMonths: metadata.lifting_experience_months
-          ? metadata.lifting_experience_months
-          : 0,
-        weightKg: metadata.weight_kg || 0,
-        heightCm: metadata.height_cm || 0,
-        details: metadata?.details || [],
+        age: (metadata.age as number) || 0,
+        gender: (metadata.gender as string) || "",
+        liftingExperienceMonths:
+          (metadata.lifting_experience_months as number) || 0,
+        weightKg: (metadata.weight_kg as number) || 0,
+        heightCm: (metadata.height_cm as number) || 0,
+        details: (metadata?.details as ClientDetail[]) || [],
       }
     })
 
@@ -285,7 +326,7 @@ export class TrainerClientRepo {
       return { data: null, error: progErr }
     }
 
-    const metadata = (client.metadata as any) || {}
+    const metadata = (client.metadata as Record<string, unknown>) || {}
 
     return {
       data: {
@@ -293,15 +334,15 @@ export class TrainerClientRepo {
         email: client.email || "",
         firstName: client.first_name || "",
         lastName: client.last_name || "",
+        createdAt: client.created_at || "",
         programs: progData,
-        age: metadata.age || 0,
-        gender: metadata.gender,
-        liftingExperienceMonths: metadata.lifting_experience_months
-          ? metadata.lifting_experience_months
-          : 0,
-        weightKg: metadata.weight_kg || 0,
-        heightCm: metadata.height_cm || 0,
-        details: metadata?.details || [],
+        age: (metadata.age as number) || 0,
+        gender: (metadata.gender as string) || "",
+        liftingExperienceMonths:
+          (metadata.lifting_experience_months as number) || 0,
+        weightKg: (metadata.weight_kg as number) || 0,
+        heightCm: (metadata.height_cm as number) || 0,
+        details: (metadata?.details as ClientDetail[]) || [],
       },
       error: null,
     }

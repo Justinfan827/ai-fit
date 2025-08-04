@@ -1,8 +1,6 @@
-import ClientListItem from "@/app/home/clients/client-list-item"
+import { ClientsList } from "@/app/home/clients/client-list-item"
 import ClientButtonNewClient from "@/components/ClientButtonNewClient"
-import { EmptyStateCard } from "@/components/empty-state"
 import { SiteHeader } from "@/components/site-header"
-import type { Client } from "@/lib/domain/clients"
 import {
   getCurrentUser,
   getCurrentUserClients,
@@ -15,7 +13,7 @@ export default async function ClientsPage() {
     getCurrentUserClients(),
   ])
 
-  const { data: userData, error: userError } = user
+  const { error: userError } = user
   if (userError) {
     return <div>error: {userError.message}</div>
   }
@@ -37,26 +35,5 @@ export default async function ClientsPage() {
         </div>
       </div>
     </>
-  )
-}
-
-function ClientsList({ clients }: { clients: Client[] }) {
-  if (clients.length === 0) {
-    return (
-      <EmptyStateCard
-        buttonHref="/home/clients/new"
-        buttonText="New Client"
-        className="w-full"
-        subtitle="Add a new client to get started with ai powered programming."
-        title="Add a client"
-      />
-    )
-  }
-  return (
-    <div className="flex flex-col gap-4">
-      {clients.map((client) => (
-        <ClientListItem client={client} key={client.id} />
-      ))}
-    </div>
   )
 }
