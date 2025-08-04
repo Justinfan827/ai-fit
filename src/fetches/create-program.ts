@@ -1,5 +1,4 @@
 import { type Program, programSchema } from "@/lib/domain/workouts"
-import type { APIResponse } from "@/lib/types/apires"
 import { getError } from "@/lib/utils/util"
 
 export default async function apiCreateProgram({

@@ -87,7 +87,7 @@ export default function ProgramEditor() {
         {
           id: uuidv4().toString(),
           program_id: programId,
-          name: `workout ${workouts.length + 1}`,
+          name: `workout ${workouts.length + 2}`,
           program_order: workouts.length,
           week,
           blocks: defaultBlocks,
