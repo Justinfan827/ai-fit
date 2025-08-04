@@ -23,7 +23,7 @@ export function DebugToggle({ onToggle }: DebugToggleProps) {
   }
 
   return (
-    <div className="fixed bottom-1 left-1 z-50">
+    <div className="absolute bottom-2 left-2 z-50">
       <Button
         className="h-8 w-20 font-mono text-xs"
         onClick={handleToggle}

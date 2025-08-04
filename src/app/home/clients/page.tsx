@@ -1,28 +1,10 @@
-import { ClientsList } from "@/app/home/clients/client-list-item"
+import { Suspense } from "react"
 import ClientButtonNewClient from "@/components/ClientButtonNewClient"
 import { SiteHeader } from "@/components/site-header"
-import {
-  getCurrentUser,
-  getCurrentUserClients,
-} from "@/lib/supabase/server/database.operations.queries"
+import { ListSkeleton } from "@/components/skeletons/list-skeleton"
+import ClientsListWithData from "./clients-list-with-data"
 
-export default async function ClientsPage() {
-  // Get current user and clients data
-  const [user, clients] = await Promise.all([
-    getCurrentUser(),
-    getCurrentUserClients(),
-  ])
-
-  const { error: userError } = user
-  if (userError) {
-    return <div>error: {userError.message}</div>
-  }
-
-  const { data: clientsData, error: clientsError } = clients
-  if (clientsError) {
-    return <div>error: {clientsError.message}</div>
-  }
-
+export default function ClientsPage() {
   return (
     <>
       <SiteHeader left={"Clients"} right={<ClientButtonNewClient />} />
@@ -31,7 +13,9 @@ export default async function ClientsPage() {
         id="clients content"
       >
         <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
-          <ClientsList clients={clientsData} />
+          <Suspense fallback={<ListSkeleton />}>
+            <ClientsListWithData />
+          </Suspense>
         </div>
       </div>
     </>

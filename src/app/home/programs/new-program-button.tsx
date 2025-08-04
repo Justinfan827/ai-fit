@@ -3,11 +3,9 @@
 import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 import { toast } from "sonner"
-import { v4 as uuidv4 } from "uuid"
+import { createProgramAction } from "@/actions/create-program"
 import { Icons } from "@/components/icons"
 import LoadingButton from "@/components/loading-button"
-import { Button } from "@/components/ui/button"
-import apiCreateProgram from "@/fetches/create-program"
 import {
   EditorProgramProvider,
   useZProgramWorkouts,
@@ -32,14 +30,11 @@ function NewProgramButtonContent() {
   const [isPending, startTransition] = useTransition()
   const handleOnCreate = () => {
     startTransition(async () => {
-      const { data, error } = await apiCreateProgram({
-        body: {
-          type: "splits",
-          id: uuidv4().toString(),
-          name: "New Program",
-          created_at: new Date().toISOString(),
-          workouts,
-        },
+      const { data, error } = await createProgramAction({
+        type: "splits",
+        name: "New Program",
+        created_at: new Date().toISOString(),
+        workouts,
       })
       if (error) {
         toast.error("Something went wrong", {

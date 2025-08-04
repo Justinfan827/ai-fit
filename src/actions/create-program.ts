@@ -1,24 +1,27 @@
+"use server"
+
 import { revalidatePath } from "next/cache"
+import { v4 as uuidv4 } from "uuid"
+
 import { programSchema } from "@/lib/domain/workouts"
 import { createProgram } from "@/lib/supabase/server/database.operations.mutations"
 import { withActionAuthSchema } from "./middleware/withAuth"
 
+const programSchemaWithoutId = programSchema.omit({ id: true })
+
 export const createProgramAction = withActionAuthSchema(
   {
-    schema: programSchema,
+    schema: programSchemaWithoutId,
   },
   async ({ input, user }) => {
-    const resp = await createProgram(user.id, input)
+    const resp = await createProgram(user.id, {
+      ...input,
+      id: uuidv4().toString(),
+    })
     if (resp.error) {
-      return {
-        data: null,
-        error: resp.error,
-      }
+      throw resp.error
     }
     revalidatePath("/home/programs")
-    return {
-      data: resp.data,
-      error: null,
-    }
+    return resp.data
   }
 )
