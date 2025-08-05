@@ -38,8 +38,7 @@ export default function ProgramEditor() {
   const programName = useZProgramName()
   const programCreatedAt = useZProgramCreatedAt()
   const programId = useZProgramId()
-  const { setProgramName, setWorkouts, setProposedChanges } =
-    useZEditorActions()
+  const { setWorkouts, setProposedChanges } = useZEditorActions()
   const workoutsByWeek = groupWorkoutsByWeek(workouts)
 
   const proposedChanges = useZProposedChanges()
@@ -207,13 +206,6 @@ export default function ProgramEditor() {
   )
   return (
     <div className="flex grow flex-col gap-4">
-      <div className="px-16">
-        <EditableTypography
-          className="text-2xl"
-          onChange={setProgramName}
-          value={programName}
-        />
-      </div>
       <div className="grow overflow-x-auto">
         <div className="flex gap-8">
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
@@ -258,7 +250,7 @@ export default function ProgramEditor() {
                       return (
                         <div className="flex gap-4" key={workout.id}>
                           <div className="grow space-y-4">
-                            <div className="ml-[72px] flex items-center justify-between">
+                            <div className="ml-[64px] flex items-center justify-between">
                               <EditableTypography
                                 onChange={(value) => {
                                   const newWorkouts = workouts.map((w) => {

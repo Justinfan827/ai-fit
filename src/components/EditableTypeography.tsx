@@ -42,7 +42,7 @@ export default function EditableTypography({
           autoFocus
           className={cn(
             "w-[200px] bg-background font-semibold text-lg leading-7 tracking-normal focus:border-0 focus:outline-hidden focus:ring-0 sm:w-[400px]",
-            className && className
+            className
           )}
           onBlur={handleBlur}
           onChange={handleInputChange}

@@ -14,6 +14,7 @@ import {
 import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
 import ClientPage from "./client-page"
 import ProgramActions from "./program-edit-actions"
+import ProgramNameEditButton from "./program-name-edit-button"
 
 export default async function Page({
   params,
@@ -59,7 +60,7 @@ export default async function Page({
       className="flex flex-col"
       style={
         {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--sidebar-width": "calc(var(--spacing) * 102)",
           "--header-height": "calc(var(--spacing) * 16)",
         } as React.CSSProperties
       }
@@ -79,7 +80,7 @@ export default async function Page({
                 Programs
               </Link>
               <Icons.chevronRight className="size-3 text-muted-foreground" />
-              <p className="capitalize">{programData.name}</p>
+              <ProgramNameEditButton />
             </div>
           }
           right={<ProgramActions />}
