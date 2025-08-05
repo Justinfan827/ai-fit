@@ -12,6 +12,7 @@ import {
   getProgramById,
 } from "@/lib/supabase/server/database.operations.queries"
 import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
+import { cn } from "@/lib/utils"
 import ClientPage from "./client-page"
 import ProgramActions from "./program-edit-actions"
 import ProgramNameEditButton from "./program-name-edit-button"
@@ -57,7 +58,7 @@ export default async function Page({
 
   return (
     <SidebarProvider
-      className="flex flex-col"
+      className="isolate flex flex-col"
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 102)",
@@ -92,15 +93,28 @@ export default async function Page({
             </Button>
           }
         />
-        <div className="@container/main flex flex-1">
-          <SidebarInset className="overflow-auto">
-            <ProgramEditor />
-          </SidebarInset>
+        <div className="@container/main flex flex-1 flex-row-reverse">
           <ProgramEditorSidebar
             availableClients={clients.data}
             exercises={exercises.data.custom}
             trainerId={user.data.sbUser.id}
           />
+          {/* 
+          NOTE: If SidebarInset comes before the ProgramEditorSidebar in the DOM. This breaks. CSS peer selectors
+          only work when the peer element (with the peer class) comes before the element that references it.
+
+            */}
+          <SidebarInset
+            className={cn(
+              "overflow-auto",
+              "peer-data-[variant=inset]:peer-data-[state=collapsed]:m-0!",
+              "peer-data-[variant=inset]:peer-data-[state=expanded]:ml-2!",
+              "peer-data-[variant=inset]:peer-data-[state=collapsed]:rounded-none!",
+              "transition-all duration-300 ease-in-out"
+            )}
+          >
+            <ProgramEditor />
+          </SidebarInset>
         </div>
       </EditorProgramProvider>
     </SidebarProvider>

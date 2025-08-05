@@ -237,7 +237,7 @@ export function ProgramEditorSidebar({
       className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
       collapsible="offcanvas"
       side="right"
-      variant="sidebar"
+      variant="inset"
     >
       <SidebarHeader />
       <SidebarContent className="flex flex-col">

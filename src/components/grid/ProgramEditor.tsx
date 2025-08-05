@@ -205,7 +205,7 @@ export default function ProgramEditor() {
     </div>
   )
   return (
-    <div className="flex grow flex-col gap-4">
+    <div className="flex grow flex-col gap-4 overflow-auto px-4">
       <div className="grow overflow-x-auto">
         <div className="flex gap-8">
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
