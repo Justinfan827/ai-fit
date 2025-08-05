@@ -206,7 +206,7 @@ export default function ProgramEditor() {
     </div>
   )
   return (
-    <div className="w-full">
+    <div className="flex grow flex-col gap-4">
       <div className="px-16">
         <EditableTypography
           className="text-2xl"
@@ -214,7 +214,7 @@ export default function ProgramEditor() {
           value={programName}
         />
       </div>
-      <div className="overflow-x-auto">
+      <div className="grow overflow-x-auto">
         <div className="flex gap-8">
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
             return (

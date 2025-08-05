@@ -342,7 +342,6 @@ export function ProgramEditorSidebar({
           />
         </div>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 }
