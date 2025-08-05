@@ -47,7 +47,7 @@ import {
 } from "./ui/dropdown-menu"
 import { Separator } from "./ui/separator"
 
-interface ProgramEditorSidebarProps extends ComponentProps<typeof Sidebar> {
+interface ProgramEditorSidebarProps {
   trainerId: string
   exercises: Exercise[]
   client?: ClientHomePage // Make client optional
@@ -72,7 +72,6 @@ export function ProgramEditorSidebar({
   exercises: initialExercises,
   trainerId,
   availableClients = [],
-  ...props
 }: ProgramEditorSidebarProps) {
   const workouts = useZProgramWorkouts()
   const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
@@ -234,14 +233,13 @@ export function ProgramEditorSidebar({
   }
 
   return (
-    <Sidebar {...props} collapsible="offcanvas" variant="sidebar">
-      <SidebarHeader>
-        <div className="px-4">
-          <h3 className="font-normal text-lg text-muted-foreground uppercase tracking-wide">
-            Chat
-          </h3>
-        </div>
-      </SidebarHeader>
+    <Sidebar
+      className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
+      collapsible="offcanvas"
+      side="right"
+      variant="sidebar"
+    >
+      <SidebarHeader />
       <SidebarContent className="flex flex-col">
         <DataStreamHandler dataStream={dataStream} />
         <AIConversation className="size-full">
@@ -318,7 +316,6 @@ export function ProgramEditorSidebar({
           <AIConversationScrollButton />
         </AIConversation>
       </SidebarContent>
-
       <SidebarFooter>
         <div className="space-y-3 px-4 pb-2">
           <div className="flex items-center gap-2">

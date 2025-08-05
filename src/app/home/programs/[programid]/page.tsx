@@ -56,9 +56,10 @@ export default async function Page({
 
   return (
     <SidebarProvider
+      className="flex flex-col"
       style={
         {
-          "--sidebar-width": "calc(var(--spacing) * 102)",
+          "--sidebar-width": "calc(var(--spacing) * 72)",
           "--header-height": "calc(var(--spacing) * 16)",
         } as React.CSSProperties
       }
@@ -67,46 +68,39 @@ export default async function Page({
         exercises={exercises.data.custom.concat(exercises.data.base)}
         initialProgram={programData}
       >
-        <SidebarInset>
-          <SiteHeader
-            left={
-              <div className="flex items-center gap-2 leading-none">
-                <Link
-                  className="text-muted-foreground hover:text-primary"
-                  href="/home/programs"
-                >
-                  Programs
-                </Link>
-                <Icons.chevronRight className="size-3 text-muted-foreground" />
-                <p className="capitalize">{programData.name}</p>
-              </div>
-            }
-            right={<ProgramActions />}
-            triggerReplacement={
-              <Button asChild size="icon" variant="ghost">
-                <Link href="/home/programs">
-                  <Icons.arrowLeft className="size-4" />
-                </Link>
-              </Button>
-            }
-          />
-          <div
-            className="@container/main flex flex-1 flex-col"
-            id="programs content"
-          >
-            <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
-              <div className="w-full overflow-auto">
-                <ProgramEditor />
-              </div>
+        <SiteHeader
+          className="sticky top-0 z-50 flex w-full flex-shrink-0 items-center border-b bg-background"
+          left={
+            <div className="flex items-center gap-2 leading-none">
+              <Link
+                className="text-muted-foreground hover:text-primary"
+                href="/home/programs"
+              >
+                Programs
+              </Link>
+              <Icons.chevronRight className="size-3 text-muted-foreground" />
+              <p className="capitalize">{programData.name}</p>
             </div>
-          </div>
-        </SidebarInset>
-        <ProgramEditorSidebar
-          availableClients={clients.data}
-          exercises={exercises.data.custom}
-          side="right"
-          trainerId={user.data.sbUser.id}
+          }
+          right={<ProgramActions />}
+          triggerReplacement={
+            <Button asChild size="icon" variant="ghost">
+              <Link href="/home/programs">
+                <Icons.arrowLeft className="size-4" />
+              </Link>
+            </Button>
+          }
         />
+        <div className="@container/main flex flex-1">
+          <SidebarInset className="overflow-auto">
+            <ProgramEditor />
+          </SidebarInset>
+          <ProgramEditorSidebar
+            availableClients={clients.data}
+            exercises={exercises.data.custom}
+            trainerId={user.data.sbUser.id}
+          />
+        </div>
       </EditorProgramProvider>
     </SidebarProvider>
   )
