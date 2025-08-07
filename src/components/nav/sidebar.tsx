@@ -92,9 +92,9 @@ export function AppSidebar({ hideOnURLs = [], user }: AppSidebarProps) {
           <SidebarMenuItem>
             <NavUser
               user={{
-                name: `${user.metadata.firstName} ${user.metadata.lastName}`,
-                email: user.sbUser.email || "",
-                avatarURL: user.sbUser.user_metadata.avatar_url || "",
+                name: `${user.firstName} ${user.lastName}`,
+                email: user.email || "",
+                avatarURL: user.avatarURL || "",
               }}
             />
           </SidebarMenuItem>

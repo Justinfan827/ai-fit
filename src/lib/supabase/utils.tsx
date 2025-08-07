@@ -7,3 +7,11 @@ const CLIENT_KEY_VALUE = "CLIENT"
 export function isClient(user: User | null) {
   return user?.app_metadata?.[USER_ROLE_KEY] === CLIENT_KEY_VALUE
 }
+
+export function getSupabaseURL() {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+}
+
+export function getSupabasePublishableKey() {
+  return process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""
+}

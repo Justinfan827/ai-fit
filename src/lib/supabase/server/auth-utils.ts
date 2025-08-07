@@ -1,13 +1,18 @@
 import "server-only"
 
-import type { User } from "@supabase/supabase-js"
+import type { JwtPayload } from "@supabase/supabase-js"
 import { redirect } from "next/navigation"
 
 import { APIError } from "@/app/api/errors"
 import { createServerClient } from "../create-server-client"
-import { isClient } from "../utils"
 
 type AuthCheck = AuthCheckFailed | AuthCheckSuccess
+
+export type AuthUser = {
+  email: string
+  userId: string
+  sessionId: string
+}
 
 type AuthCheckFailed = {
   error: Error
@@ -16,28 +21,20 @@ type AuthCheckFailed = {
 
 type AuthCheckSuccess = {
   error: null
-  user: User
+  user: AuthUser
 }
 /*
- * checkUserAuth is a utility function to check if a user is authenticated.
+ * getAuthUser is a utility function to fetch the authenticated user.
  * It returns the user and session if they exist.
  *
- * Be careful when protecting pages. The server gets the user session from the cookies, which can be spoofed by anyone.
- * Always use supabase.auth.getUser() to protect pages and user data.
- * Never trust supabase.auth.getSession() inside server code such as middleware. It isn't guaranteed to revalidate the Auth token.
- * It's safe to trust getUser() because it sends a request to the Supabase Auth server every time to revalidate the Auth token.
  **/
-
-export const checkServerUserAuth = async (): Promise<AuthCheck> => {
+export async function getAuthUser(): Promise<AuthCheck> {
   const supabase = await createServerClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  const { data, error } = await supabase.auth.getClaims()
   if (error) {
     return { user: null, error }
   }
-  if (!user) {
+  if (!data?.claims) {
     return {
       user: null,
       error: new APIError({
@@ -46,26 +43,34 @@ export const checkServerUserAuth = async (): Promise<AuthCheck> => {
       }),
     }
   }
-  return { user, error: null }
+  return { user: getUserDetailsFromClaims(data.claims), error: null }
+}
+
+/**
+ * authUserRequest is meant to be used authenticate API requests in
+ * server actions and also in API route handlers. This function throws on
+ * errors
+ */
+export async function authUserRequest() {
+  const { user, error: authError } = await getAuthUser()
+  if (authError) {
+    throw authError
+  }
+  return user
+}
+
+function getUserDetailsFromClaims(claims: JwtPayload): AuthUser {
+  return {
+    userId: claims.sub,
+    sessionId: claims.session_id,
+    email: claims.email as string,
+  }
 }
 
 /**
  * serverRedirectToHomeIfAuthorized can be used in server components
  * to redirect to the users home page if the user is authorized
- **/
-export const serverRedirectToHomeIfAuthorized = async () => {
-  const { user } = await checkServerUserAuth()
-  if (isClient(user)) {
-    redirect(`/clients/${user?.id}`)
-  }
-  if (user) {
-    redirect("/home")
-  }
-}
-
-export const redirectClientHomePage = async () => {
-  const { user } = await checkServerUserAuth()
-  if (user) {
-    redirect(`/clients/${user?.id}/home`)
-  }
+ */
+export const redirectAuthorizedUser = async () => {
+  if (await getAuthUser()) redirect("/home/clients")
 }

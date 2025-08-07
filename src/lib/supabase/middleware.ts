@@ -1,14 +1,12 @@
 import { createServerClient } from "@supabase/ssr"
 import { type NextRequest, NextResponse } from "next/server"
+import { getSupabasePublishableKey, getSupabaseURL } from "./utils"
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
-
+  let supabaseResponse = NextResponse.next({ request })
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+    getSupabaseURL(),
+    getSupabasePublishableKey(),
     {
       cookies: {
         getAll() {
@@ -28,43 +26,20 @@ export async function updateSession(request: NextRequest) {
       },
     }
   )
-
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  // const currentPath = request.nextUrl.pathname
-  // if (
-  //   !user &&
-  //   !currentPath.startsWith('/login') &&
-  //   !currentPath.startsWith('/api/auth/callback') &&
-  //   !currentPath.startsWith('/api/status')
-  // ) {
-  //   const url = new URL(request.nextUrl.origin + `/login`)
-  //   if (request.nextUrl.pathname !== '/') {
-  //     url.searchParams.set(
-  //       'original_path',
-  //       request.nextUrl.pathname + request.nextUrl.search
-  //     )
-  //   }
-  //   return NextResponse.redirect(url)
-  // }
-
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
+  const { data } = await supabase.auth.getClaims()
+  const user = data?.claims
+  const pathName = request.nextUrl.pathname
+  if (
+    pathName !== "/" &&
+    !user &&
+    !pathName.startsWith("/login") &&
+    !pathName.startsWith("/api/auth/callback") &&
+    !pathName.startsWith("/api/status")
+  ) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/login"
+    return NextResponse.redirect(url)
+  }
 
   return supabaseResponse
 }

@@ -6,6 +6,7 @@ import type { Exercise } from "@/lib/domain/workouts"
 import createAdminClient from "@/lib/supabase/create-admin-client"
 import type { Maybe } from "@/lib/types/types"
 import { createServerClient } from "../../create-server-client"
+import { getAuthUser } from "../auth-utils"
 import { resolvePrograms } from "../programs/utils"
 
 /*
@@ -246,14 +247,14 @@ export class TrainerClientRepo {
   */
   async fetchAllClientDetails(): Promise<Maybe<ClientHomePage[]>> {
     const sb = await createServerClient()
-    const { data: userRes, error: getUserError } = await sb.auth.getUser()
-    if (getUserError) {
-      return { data: null, error: getUserError }
+    const { user, error } = await getAuthUser()
+    if (error) {
+      return { data: null, error }
     }
     const { data: clientsData, error: clientError } = await sb
       .from("users")
       .select("*")
-      .eq("trainer_id", userRes.user.id)
+      .eq("trainer_id", user.userId)
 
     if (clientError) {
       return { data: null, error: clientError }
@@ -294,8 +295,7 @@ export class TrainerClientRepo {
     clientId: string
   ): Promise<Maybe<ClientHomePage>> {
     const sb = await createServerClient()
-
-    const { data: userRes, error: getUserError } = await sb.auth.getUser()
+    const { user, error: getUserError } = await getAuthUser()
     if (getUserError) {
       return { data: null, error: getUserError }
     }
@@ -303,7 +303,7 @@ export class TrainerClientRepo {
     const { data: client, error: clientError } = await sb
       .from("users")
       .select("*")
-      .eq("trainer_id", userRes.user.id)
+      .eq("trainer_id", user.userId)
       .eq("id", clientId)
       .single()
 

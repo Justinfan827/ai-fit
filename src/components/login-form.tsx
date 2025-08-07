@@ -83,15 +83,11 @@ export function LoginForm() {
         //     'We sent you an email! Click the link there to sign in. You may close this tab.',
         // })
 
-        const { data: uData, error: uErr } = await client.auth.getUser()
+        const { data: uData, error: uErr } = await client.auth.getClaims()
         if (uErr) {
           throw uErr
         }
-        if (isClient(uData.user)) {
-          router.push(`/clients/${uData.user.id}`)
-        } else {
-          router.push("/home/clients")
-        }
+        router.push("/home/clients")
       } catch (error) {
         if (error instanceof Error) {
           toast("Email sign in failed")

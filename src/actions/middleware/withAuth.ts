@@ -1,6 +1,5 @@
 import type { User } from "@supabase/supabase-js"
 import type { z } from "zod"
-import { authUserRequest } from "@/app/api/auth"
 import { asError } from "@/app/api/error-response"
 import { APIError, type ErrBase } from "@/app/api/errors"
 import type { Maybe } from "@/lib/types/types"

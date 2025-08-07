@@ -2,8 +2,6 @@ import type { EmailOtpType } from "@supabase/supabase-js"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/create-server-client"
-import { getCurrentUser } from "@/lib/supabase/server/database.operations.queries"
-import { isClient } from "@/lib/supabase/utils"
 
 /**
  * This endpoint handles the code exchange in the supabase auth flow:
@@ -24,7 +22,6 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  const original = searchParams.get("original_path")
   const token_hash = searchParams.get("token_hash")
   const type = searchParams.get("type") as EmailOtpType
 
@@ -48,18 +45,6 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  const { data, error: userErr } = await getCurrentUser()
-  if (userErr) {
-    return redirectToSigninWithErrors(request.nextUrl, {
-      errorTitle: "Error fetching user",
-      errorCode: "error_fetching_user",
-      errorDescription: userErr.message,
-    })
-  }
-  // redirect to the appropriate page based on user type
-  if (isClient(data.sbUser)) {
-    return NextResponse.redirect(`${origin}/clients/${data.sbUser.id}`)
-  }
   return NextResponse.redirect(`${origin}/clients`)
 }
 
@@ -76,8 +61,6 @@ function redirectToSigninWithErrors(
   requestUrl.searchParams.set("error", errorTitle)
   requestUrl.searchParams.set("error_code", errorCode)
   requestUrl.searchParams.set("error_description", errorDescription)
-  const redirectErrorURL =
-    `${requestUrl.origin}/signin?` + requestUrl.searchParams
-
+  const redirectErrorURL = `${requestUrl.origin}/signin?${requestUrl.searchParams}`
   return NextResponse.redirect(redirectErrorURL)
 }

@@ -73,7 +73,7 @@ export default async function Page({
         baseExercises={exercises.data.base}
         clientData={clientData}
         trainerExercises={exercises.data.custom}
-        trainerId={user.data.sbUser.id} // Convert Client[] to ClientHomePage[]
+        trainerId={user.data.id} // Convert Client[] to ClientHomePage[]
       />
     </PageLayout>
   )

@@ -97,7 +97,7 @@ export default async function Page({
           <ProgramEditorSidebar
             availableClients={clients.data}
             exercises={exercises.data.custom}
-            trainerId={user.data.sbUser.id}
+            trainerId={user.data.id}
           />
           {/* 
           NOTE: If SidebarInset comes before the ProgramEditorSidebar in the DOM. This breaks. CSS peer selectors

@@ -13,8 +13,8 @@ import type { CurrentUser } from "@/lib/supabase/server/database.operations.quer
 import { capitalizeFirstLetter } from "@/lib/utils"
 
 export function UserDropdown({ user }: { user: CurrentUser }) {
-  const firstName = user.metadata.firstName || "Tester"
-  const lastName = user.metadata.lastName || "Dummy"
+  const firstName = user.firstName || "Tester"
+  const lastName = user.lastName || "Dummy"
   const firstLetter = firstName.charAt(0).toUpperCase()
   const lastLetter = lastName.charAt(0).toUpperCase()
   return (
@@ -37,7 +37,7 @@ export function UserDropdown({ user }: { user: CurrentUser }) {
               {capitalizeFirstLetter(lastName)}
             </p>
             <p className="text-muted-foreground text-xs leading-none">
-              {user.sbUser.email}
+              {user.email}
             </p>
           </div>
         </Button>
@@ -52,7 +52,7 @@ export function UserDropdown({ user }: { user: CurrentUser }) {
               </p>
             )}
             <p className="text-muted-foreground text-xs leading-none">
-              {user.sbUser.email}
+              {user.email}
             </p>
           </div>
         </DropdownMenuLabel>

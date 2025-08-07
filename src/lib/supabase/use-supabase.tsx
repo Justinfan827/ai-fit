@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { createContext, useContext, useEffect, useState } from "react"
 import { createBrowserClient } from "./create-browser-client"
 import type { Database } from "./database.types"
+import type { CurrentUser } from "./server/database.operations.queries"
 
 type MaybeUser = User | null
 
@@ -22,13 +23,12 @@ const Context = createContext<SupabaseContext | undefined>(undefined)
 
 /**
  * SupabaseProvider is how we expose the supabase client in client components
- **/
+ */
 export default function SupabaseProvider({
   children,
 }: {
   children: React.ReactNode
-
-  user?: MaybeUser
+  user: CurrentUser
 }) {
   const router = useRouter()
   const [user, setUser] = useState<MaybeUser>(null)
@@ -46,9 +46,7 @@ export default function SupabaseProvider({
     }
   }, [supabase, router])
   return (
-    <Context.Provider value={{ supabase, user }}>
-      <>{children}</>
-    </Context.Provider>
+    <Context.Provider value={{ supabase, user }}>{children}</Context.Provider>
   )
 }
 export const useSupabase = () => {

@@ -1,7 +1,11 @@
-import type { User } from "@supabase/supabase-js"
+import "server-only"
+
 import type { NextRequest, NextResponse } from "next/server"
 import type { infer as ZodInfer, ZodObject, ZodRawShape } from "zod"
-import { authUserRequest } from "../auth"
+import {
+  type AuthUser,
+  authUserRequest,
+} from "@/lib/supabase/server/auth-utils"
 import { handleAPIResponse } from "../error-response"
 import { APIError } from "../errors"
 
@@ -15,12 +19,13 @@ type withAuthHandler = ({
   req,
 }: {
   req: NextRequest
-  user: User
+  user: AuthUser
 }) => Promise<NextResponse>
-type withAuthBodyHandler = (params: {
+
+type withAuthBodyHandler<T> = (params: {
   req: NextRequest
-  user: User
-  body: any
+  user: AuthUser
+  body: T
 }) => Promise<NextResponse>
 
 export const withPublic = (handler: withPublicHandler) => {
@@ -47,7 +52,7 @@ export const withAuth = (handler: withAuthHandler) => {
   }
 }
 
-export const withAuthBody = (handler: withAuthBodyHandler) => {
+export const withAuthBody = <T>(handler: withAuthBodyHandler<T>) => {
   return async (req: NextRequest) => {
     try {
       const user = await authUserRequest()
@@ -69,15 +74,13 @@ export const withAuthBody = (handler: withAuthBodyHandler) => {
   }
 }
 
-type WithAuthBodyHandler<T> = (params: {
-  req: NextRequest
-  user: User
-  body: T
-}) => Promise<NextResponse>
-
+/**
+ * API route handler helper to handle auth, and also parsing the
+ * response body into an expected schema.
+ */
 export const withAuthBodySchema = <T extends ZodRawShape>(
   { schema }: { schema: ZodObject<T> },
-  handler: WithAuthBodyHandler<ZodInfer<ZodObject<T>>>
+  handler: withAuthBodyHandler<ZodInfer<ZodObject<T>>>
 ) => {
   return async (req: NextRequest) => {
     try {

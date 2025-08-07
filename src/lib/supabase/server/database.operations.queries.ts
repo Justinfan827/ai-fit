@@ -1,31 +1,28 @@
 import "server-only"
 
-import type { User } from "@supabase/supabase-js"
-
 import type { Client } from "@/lib/domain/clients"
 import {
   type Blocks,
   type Program,
   type Workout,
-  type WorkoutInstance,
   workoutSchema,
 } from "@/lib/domain/workouts"
 import type { Maybe } from "@/lib/types/types"
 import { createServerClient } from "../create-server-client"
-import { isClient } from "../utils"
+import { getAuthUser } from "./auth-utils"
 import { resolveProgram, resolvePrograms } from "./programs/utils"
 
 export async function getCurrentUserClients(): Promise<Maybe<Client[]>> {
   const client = await createServerClient()
 
-  const { data: userRes, error: getUserError } = await client.auth.getUser()
+  const { user, error: getUserError } = await getAuthUser()
   if (getUserError) {
     return { data: null, error: getUserError }
   }
   const { data: clients, error: clientError } = await client
     .from("users")
     .select("*")
-    .eq("trainer_id", userRes.user.id)
+    .eq("trainer_id", user.userId)
 
   if (clientError) {
     return { data: null, error: clientError }
@@ -43,38 +40,35 @@ export async function getCurrentUserClients(): Promise<Maybe<Client[]>> {
 }
 
 export interface CurrentUser {
-  sbUser: User
-  metadata: {
-    firstName: string
-    lastName: string
-    role: "trainer" | "client"
-  }
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  role: "trainer"
+  avatarURL?: string
 }
 export async function getCurrentUser(): Promise<Maybe<CurrentUser>> {
   const client = await createServerClient()
-  const { data: userRes, error: getUserError } = await client.auth.getUser()
+  const { user, error: getUserError } = await getAuthUser()
   if (getUserError) {
     return { data: null, error: getUserError }
   }
-
   const { data: dbUser, error: dbErr } = await client
     .from("users")
     .select("*")
-    .eq("id", userRes.user.id)
+    .eq("id", user.userId)
     .single()
   if (dbErr) {
     return { data: null, error: dbErr }
   }
-  const { user: sbUser } = userRes
   return {
     data: {
-      sbUser,
-      metadata: {
-        firstName: dbUser.first_name || "",
-        lastName: dbUser.last_name || "",
-        // @ts-expect-error TODO: fix type
-        role: isClient(userRes) ? "client" : "trainer",
-      },
+      id: user.userId,
+      firstName: dbUser.first_name || "",
+      lastName: dbUser.last_name || "",
+      email: user.email,
+      // TODO: support clients
+      role: "trainer",
     },
     error: null,
   }
@@ -84,14 +78,14 @@ export async function getUserWorkout(
   workoutid: string
 ): Promise<Maybe<Workout>> {
   const client = await createServerClient()
-  const { data, error } = await client.auth.getUser()
+  const { user, error } = await getAuthUser()
   if (error) {
     return { data: null, error }
   }
   const { data: pData, error: pErr } = await client
     .from("workouts")
     .select("*")
-    .eq("user_id", data.user.id)
+    .eq("user_id", user.userId)
     .eq("id", workoutid)
     .single()
 
@@ -139,14 +133,14 @@ export async function getProgramById(
 
 export async function getUserPrograms(): Promise<Maybe<Program[]>> {
   const client = await createServerClient()
-  const { data, error } = await client.auth.getUser()
+  const { user, error } = await getAuthUser()
   if (error) {
     return { data: null, error }
   }
   const { data: pData, error: pErr } = await client
     .from("programs")
     .select("*")
-    .eq("user_id", data.user.id)
+    .eq("user_id", user.userId)
     .order("created_at", { ascending: false })
 
   if (pErr) {
@@ -170,7 +164,7 @@ export async function getAllCurrentUserUnassignedPrograms(): Promise<
   Maybe<Program[]>
 > {
   const sb = await createServerClient()
-  const { data: userRes, error: getUserError } = await sb.auth.getUser()
+  const { user, error: getUserError } = await getAuthUser()
   if (getUserError) {
     return { data: null, error: getUserError }
   }
@@ -179,7 +173,7 @@ export async function getAllCurrentUserUnassignedPrograms(): Promise<
     .from("programs")
     .select("*")
     .order("created_at", { ascending: false })
-    .eq("user_id", userRes.user.id)
+    .eq("user_id", user.userId)
   if (wErr) {
     return { data: null, error: wErr }
   }
@@ -194,14 +188,14 @@ export async function getClientActiveProgram(): Promise<
   Maybe<Program | undefined | null>
 > {
   const client = await createServerClient()
-  const { data, error } = await client.auth.getUser()
+  const { user, error } = await getAuthUser()
   if (error) {
     return { data: null, error }
   }
   const { data: pData, error: pErr } = await client
     .from("programs")
     .select("*")
-    .eq("user_id", data.user.id)
+    .eq("user_id", user.userId)
     .order("created_at", { ascending: false })
     .limit(1) // get the latest program
 

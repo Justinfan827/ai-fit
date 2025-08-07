@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { getCurrentUser } from "@/lib/supabase/server/database.operations.queries"
 import SupabaseProvider from "@/lib/supabase/use-supabase"
 
@@ -20,27 +19,25 @@ export default async function HomeLayout({
 
   if (error) {
     return (
-      <SupabaseProvider user={user}>
-        <main>
-          <section className="flex h-screen items-start justify-center pt-10">
-            <div className="p-4 sm:max-w-[600px]">
-              <Card className="p-4">
-                <CardHeader className="">
-                  <CardTitle className="pb-4 text-2xl">WOOPS</CardTitle>
-                  <CardDescription>
-                    Looks like you&apos;re an invalid user or your session has
-                    expired.
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="flex justify-end">
-                  <SignOutButton variant="default">Sign Out</SignOutButton>
-                </CardFooter>
-              </Card>
-            </div>
-          </section>
-        </main>
-      </SupabaseProvider>
+      <main>
+        <section className="flex h-screen items-start justify-center pt-10">
+          <div className="p-4 sm:max-w-[600px]">
+            <Card className="p-4">
+              <CardHeader className="">
+                <CardTitle className="pb-4 text-2xl">WOOPS</CardTitle>
+                <CardDescription>
+                  Looks like you&apos;re an invalid user or your session has
+                  expired.
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="flex justify-end">
+                <SignOutButton variant="default">Sign Out</SignOutButton>
+              </CardFooter>
+            </Card>
+          </div>
+        </section>
+      </main>
     )
   }
-  return <SupabaseProvider user={user.sbUser}>{children}</SupabaseProvider>
+  return <SupabaseProvider user={user}>{children}</SupabaseProvider>
 }
