@@ -1,4 +1,3 @@
-import { AppSidebar } from "@/components/nav/sidebar"
 import SignOutButton from "@/components/sign-out-button"
 import {
   Card,

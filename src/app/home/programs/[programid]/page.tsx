@@ -13,7 +13,6 @@ import {
 } from "@/lib/supabase/server/database.operations.queries"
 import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
 import { cn } from "@/lib/utils"
-import ClientPage from "./client-page"
 import ProgramActions from "./program-edit-actions"
 import ProgramNameEditButton from "./program-name-edit-button"
 

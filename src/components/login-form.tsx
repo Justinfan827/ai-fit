@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { createBrowserClient } from "@/lib/supabase/create-browser-client"
-import { isClient } from "@/lib/supabase/utils"
 import { isLive } from "@/lib/utils"
 import { Icons } from "./icons"
 import { PasswordInput } from "./password-input"
@@ -57,16 +56,20 @@ export function LoginForm() {
   // const originalPath = searchParams.get('original_path') || ''
   const onSubmit = (data: Inputs) => {
     startTransition(async () => {
-      // const authURL = siteConfig.auth.callbackURL({
-      //   query: new URLSearchParams({
-      //     // original_path: originalPath,
-      //   }),
-      // })
       try {
         const { error } = await client.auth.signInWithPassword({
           email: data.email,
           password: data.password,
         })
+        if (error) {
+          throw error
+        }
+        // TODO: support email sign up flow.
+        // const authURL = siteConfig.auth.callbackURL({
+        //   query: new URLSearchParams({
+        //     // original_path: originalPath,
+        //   }),
+        // })
         // const { error } = await client.auth.signInWithOtp({
         //   email: data.email,
         //   options: {
@@ -74,19 +77,11 @@ export function LoginForm() {
         //     emailRedirectTo: authURL,
         //   },
         // })
-        if (error) {
-          throw error
-        }
         // toast({
         //   title: 'Check your email',
         //   description:
         //     'We sent you an email! Click the link there to sign in. You may close this tab.',
         // })
-
-        const { data: uData, error: uErr } = await client.auth.getClaims()
-        if (uErr) {
-          throw uErr
-        }
         router.push("/home/clients")
       } catch (error) {
         if (error instanceof Error) {

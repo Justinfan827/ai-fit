@@ -1,90 +1,72 @@
-import type { User } from "@supabase/supabase-js"
 import type { z } from "zod"
 import { asError } from "@/app/api/error-response"
-import { APIError, type ErrBase } from "@/app/api/errors"
-import type { Maybe } from "@/lib/types/types"
+import {
+  type AuthUser,
+  authUserRequest,
+} from "@/lib/supabase/server/auth-utils"
 
 interface BaseArgs {
-  user: User
+  user: AuthUser
 }
-
 interface ArgsWithInput<TInput> extends BaseArgs {
   input: TInput
 }
-
-// Internal utility function to handle common authentication and error handling logic
-async function withAuthUtils<TInput, TResult>(options: {
-  input?: TInput
-  inputSchema?: z.Schema<TInput>
-  handler: (args: ArgsWithInput<TInput>) => Promise<TResult>
-}): Promise<Maybe<TResult, ErrBase>> {
-  try {
-    const { input, inputSchema, handler } = options
-
-    const user = await authUserRequest()
-
-    const handlerArgs: any = {
-      user,
-    }
-
-    if (inputSchema) {
-      if (input === undefined || input === null) {
-        throw new APIError({
-          code: "bad_request",
-          message: "input is required",
-        })
-      }
-      const parsedInput = inputSchema.safeParse(input)
-      if (!parsedInput.success) {
-        throw parsedInput.error
-      }
-      handlerArgs.input = parsedInput.data
-    }
-
-    const result = await handler(handlerArgs)
-    return {
-      data: result,
-      error: null,
-    }
-  } catch (e) {
-    return {
-      ...asError(e),
-      data: null,
-    }
-  }
-}
-
-// Handler type definitions
 type WithAuthHandler<TResult> = (args: BaseArgs) => Promise<TResult>
-
 type WithAuthInputHandler<TInput, TResult> = (
   args: ArgsWithInput<TInput>
 ) => Promise<TResult>
 
-// Basic auth wrapper - just provides user
+/**
+ * Auth guard for server actions
+ */
 const withAuth = <TResult>(handler: WithAuthHandler<TResult>) => {
   return async () => {
-    return await withAuthUtils({
-      handler,
-    })
+    try {
+      const user = await authUserRequest()
+      const result = await handler({ user })
+      return {
+        data: result,
+        error: null,
+      }
+    } catch (e) {
+      return {
+        ...asError(e),
+        data: null,
+      }
+    }
   }
 }
 
-// Auth with input validation
+/**
+ * Server action auth guard with input validation using a zod schema
+ */
 const withAuthInput = <TInput, TResult>(
   { schema }: { schema: z.Schema<TInput> },
   handler: WithAuthInputHandler<TInput, TResult>
 ) => {
   return async (input: TInput) => {
-    return await withAuthUtils({
-      input,
-      inputSchema: schema,
-      handler,
-    })
+    try {
+      const user = await authUserRequest()
+      const parsedInput = schema.safeParse(input)
+      if (!parsedInput.success) {
+        throw parsedInput.error
+      }
+
+      const result = await handler({
+        user,
+        input: parsedInput.data,
+      })
+      return {
+        data: result,
+        error: null,
+      }
+    } catch (e) {
+      return {
+        ...asError(e),
+        data: null,
+      }
+    }
   }
 }
 
-// Legacy compatibility - keep the old function name
-const withActionAuthSchema = withAuthInput
-
-export { withActionAuthSchema, withAuth, withAuthInput }
+export { withAuth, withAuthInput }

@@ -3,20 +3,20 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { deleteProgramById } from "@/lib/supabase/server/programs/mutations"
-import { withActionAuthSchema } from "./middleware/withAuth"
+import { withAuthInput } from "./middleware/withAuth"
 
 // This schema is used to validate input from client.
 const schema = z.object({
   programId: z.string(),
 })
 
-export const deleteProgramAction = withActionAuthSchema(
+export const deleteProgramAction = withAuthInput(
   {
     schema,
   },
   async ({ input, user }) => {
     const { data: userData, error } = await deleteProgramById({
-      ownerId: user.id,
+      ownerId: user.userId,
       programId: input.programId,
     })
     if (error) {

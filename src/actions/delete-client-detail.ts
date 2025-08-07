@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
-import { withActionAuthSchema } from "./middleware/withAuth"
+import { withAuthInput } from "./middleware/withAuth"
 
 // This schema is used to validate input from client.
 const schema = z.object({
@@ -11,7 +11,7 @@ const schema = z.object({
   clientId: z.string(),
 })
 
-export const deleteClientDetailAction = withActionAuthSchema(
+export const deleteClientDetailAction = withAuthInput(
   {
     schema,
   },

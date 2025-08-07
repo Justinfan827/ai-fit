@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
-import { withActionAuthSchema } from "./middleware/withAuth"
+import { withAuthInput } from "./middleware/withAuth"
 
 // This schema is used to validate input from client.
 const schema = z.object({
@@ -16,13 +16,13 @@ const schema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
 })
 
-export const createClientAction = withActionAuthSchema(
+export const createClientAction = withAuthInput(
   {
     schema,
   },
   async ({ input, user }) => {
     const { data: userData, error } = await newTrainerRepo().createClient({
-      trainerId: user.id,
+      trainerId: user.userId,
       newClient: input,
     })
     if (error) {
