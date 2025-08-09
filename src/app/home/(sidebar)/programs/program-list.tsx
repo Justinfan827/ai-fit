@@ -2,9 +2,13 @@
 
 import dayjs from "dayjs"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useOptimistic, useState, useTransition } from "react"
 import { toast } from "sonner"
+import { v4 as uuidv4 } from "uuid"
+import { createProgramAction } from "@/actions/create-program"
 import { deleteProgramAction } from "@/actions/delete-program"
+import { EmptyStateCard } from "@/components/empty-state"
 import { Icons } from "@/components/icons"
 import { Tp } from "@/components/typography"
 import { Button } from "@/components/ui/button"
@@ -34,7 +38,8 @@ export function ProgramsList({ programs }: { programs: Program[] }) {
       return state.filter((program) => program.id !== programId)
     }
   )
-  const [_isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
   const onDelete = (programId: string) => {
     startTransition(async () => {
       try {
@@ -54,13 +59,31 @@ export function ProgramsList({ programs }: { programs: Program[] }) {
       }
     })
   }
+  const handleNewProgram = () => {
+    startTransition(async () => {
+      const { data, error } = await createProgramAction({
+        created_at: new Date().toISOString(),
+        name: "New Program",
+        type: "weekly",
+        workouts: [],
+      })
+      if (error) {
+        toast.error("Failed to create program")
+      } else {
+        router.push(`/home/studio/${data.id}`)
+      }
+    })
+  }
   if (optimisticPrograms.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Tp className="text-muted-foreground" variant="p">
-          No programs found. Create your first program to get started.
-        </Tp>
-      </div>
+      <EmptyStateCard
+        buttonAction={handleNewProgram}
+        buttonText="New Program"
+        className="w-full"
+        isActionPending={isPending}
+        subtitle="Add a new program to get started with ai powered programming."
+        title="Add a program"
+      />
     )
   }
 

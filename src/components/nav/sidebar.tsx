@@ -1,6 +1,8 @@
 "use client"
-import { SquareLibrary, User } from "lucide-react"
-import { usePathname } from "next/navigation"
+import { ChevronLeft, Settings, SquareLibrary, User } from "lucide-react"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -13,15 +15,9 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import type { CurrentUser } from "@/lib/supabase/server/database.operations.queries"
-import { NavUser } from "../nav-user"
 
 // Menu items.
-const items = [
-  // {
-  //   title: 'Search',
-  //   url: '#',
-  //   icon: Search,
-  // },
+const mainItems = [
   {
     title: "Clients",
     url: "/home/clients",
@@ -36,18 +32,39 @@ const items = [
   },
 ]
 
+const settingsItems = [
+  {
+    title: "General",
+    url: "/home/settings/general",
+    matchRegex: "^/home/settings/general",
+    icon: Settings,
+  },
+  {
+    title: "Exercises",
+    url: "/home/settings/exercises",
+    matchRegex: "^/home/settings/exercises",
+    icon: SquareLibrary,
+  },
+]
+
 type AppSidebarProps = {
   hideOnURLs?: string[]
   user: CurrentUser
 }
-const userSettingsRegex = /\/settings\//
+const userSettingsRegex = /\/settings(\/|$)/
 export function AppSidebar({ hideOnURLs = [], user }: AppSidebarProps) {
   const path = usePathname()
+  const router = useRouter()
 
   if (hideOnURLs.some((url) => new RegExp(url).test(path))) {
     return null
   }
   const isUserSettingsPage = userSettingsRegex.test(path)
+
+  const handleBackClick = () => {
+    router.push("/home/clients")
+  }
+
   return (
     <Sidebar collapsible="offcanvas" variant="inset">
       <SidebarHeader>
@@ -65,27 +82,74 @@ export function AppSidebar({ hideOnURLs = [], user }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => {
-                // check if path matches the item url
-                // if it does, set the item to active
-                const isActive = new RegExp(item.matchRegex).test(path)
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive}>
-                      <a href={item.url}>
-                        <item.icon className="text-sidebar-accent-foreground/70 transition-colors duration-100 ease-linear group-hover/menu-item:text-sidebar-accent-foreground group-has-data-[active=true]/menu-item:font-medium group-has-data-[active=true]/menu-item:text-sidebar-accent-foreground" />
-                        <span>{item.title}</span>
-                      </a>
+        <div className="relative h-full overflow-hidden">
+          {/* Main sidebar content */}
+          <div
+            className={`absolute inset-0 transition-transform duration-300 ease-in-out ${
+              isUserSettingsPage ? "-translate-x-full" : "translate-x-0"
+            }`}
+          >
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {mainItems.map((item) => {
+                    const isActive = new RegExp(item.matchRegex).test(path)
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild isActive={isActive}>
+                          <a href={item.url}>
+                            <item.icon className="text-sidebar-accent-foreground/70 transition-colors duration-100 ease-linear group-hover/menu-item:text-sidebar-accent-foreground group-has-data-[active=true]/menu-item:font-medium group-has-data-[active=true]/menu-item:text-sidebar-accent-foreground" />
+                            <span>{item.title}</span>
+                          </a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
+
+          {/* Settings sidebar content */}
+          <div
+            className={`absolute inset-0 transition-transform duration-300 ease-in-out ${
+              isUserSettingsPage ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <button
+                        aria-label="Back"
+                        className=""
+                        onClick={handleBackClick}
+                        type="button"
+                      >
+                        <ChevronLeft className="text-sidebar-accent-foreground/70 transition-colors duration-100 ease-linear group-hover/menu-item:text-sidebar-accent-foreground" />
+                        <span>Back</span>
+                      </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                  {settingsItems.map((item) => {
+                    const isActive = new RegExp(item.matchRegex).test(path)
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild isActive={isActive}>
+                          <Link href={item.url}>
+                            <item.icon className="text-sidebar-accent-foreground/70 transition-colors duration-100 ease-linear group-hover/menu-item:text-sidebar-accent-foreground group-has-data-[active=true]/menu-item:font-medium group-has-data-[active=true]/menu-item:text-sidebar-accent-foreground" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
+        </div>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

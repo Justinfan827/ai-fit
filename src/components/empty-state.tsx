@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import { Logo } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import LoadingButton from "./loading-button"
 
 // Type definitions
 interface EmptyStateCardProps {
@@ -11,6 +12,8 @@ interface EmptyStateCardProps {
   subtitle: string
   buttonText?: string
   buttonHref?: string
+  buttonAction?: () => void
+  isActionPending?: boolean
 }
 
 interface EmptyStateTextProps {
@@ -32,6 +35,8 @@ function EmptyStateCard({
   subtitle,
   buttonText,
   buttonHref,
+  buttonAction,
+  isActionPending,
   className,
   ...props
 }: EmptyStateCardProps & React.HTMLAttributes<HTMLDivElement>) {
@@ -53,12 +58,22 @@ function EmptyStateCard({
           <p className="text-neutral-400 text-sm">{subtitle}</p>
         </div>
       </div>
-      {buttonText && buttonHref && (
+
+      {buttonHref && buttonText && (
         <div className="flex w-full justify-center pt-2">
           <Button asChild variant="outline">
             <Link href={buttonHref}>{buttonText}</Link>
           </Button>
         </div>
+      )}
+      {buttonAction && buttonText && (
+        <LoadingButton
+          isLoading={!!isActionPending}
+          onClick={buttonAction}
+          variant="outline"
+        >
+          {buttonText}
+        </LoadingButton>
       )}
     </div>
   )
