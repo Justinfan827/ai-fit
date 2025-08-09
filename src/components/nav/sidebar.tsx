@@ -40,14 +40,14 @@ type AppSidebarProps = {
   hideOnURLs?: string[]
   user: CurrentUser
 }
+const userSettingsRegex = /\/settings\//
 export function AppSidebar({ hideOnURLs = [], user }: AppSidebarProps) {
   const path = usePathname()
-  // check if the current path is in the hideOnURLs array
 
   if (hideOnURLs.some((url) => new RegExp(url).test(path))) {
     return null
   }
-
+  const isUserSettingsPage = userSettingsRegex.test(path)
   return (
     <Sidebar collapsible="offcanvas" variant="inset">
       <SidebarHeader>

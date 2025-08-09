@@ -1,13 +1,13 @@
 import { AppSidebar } from "@/components/nav/sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { getCurrentUser } from "@/lib/supabase/server/database.operations.queries"
+import { getCachedUserT } from "@/lib/supabase/server/database.operations.queries"
 
 export default async function ClientsLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { data: user } = await getCurrentUser()
+  const user = await getCachedUserT()
   return (
     <SidebarProvider
       defaultOpen={true}
@@ -18,7 +18,7 @@ export default async function ClientsLayout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar user={user!} />
+      <AppSidebar user={user} />
       <SidebarInset> {children} </SidebarInset>
     </SidebarProvider>
   )

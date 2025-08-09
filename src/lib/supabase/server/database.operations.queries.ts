@@ -1,5 +1,6 @@
 import "server-only"
 
+import { cache } from "react"
 import type { Client } from "@/lib/domain/clients"
 import {
   type Blocks,
@@ -47,6 +48,15 @@ export interface CurrentUser {
   role: "trainer"
   avatarURL?: string
 }
+
+export const getCachedUserT = cache(async (): Promise<CurrentUser> => {
+  const { data: user, error } = await getCurrentUser()
+  if (error || !user) {
+    throw new Error("Auth'd user not found")
+  }
+  return user
+})
+
 export async function getCurrentUser(): Promise<Maybe<CurrentUser>> {
   const client = await createServerClient()
   const { user, error: getUserError } = await getAuthUser()
