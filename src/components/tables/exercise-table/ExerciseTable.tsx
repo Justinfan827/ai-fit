@@ -62,8 +62,9 @@ function ExerciseTableActionBar({
   onChangeType: (value: string) => void
 }) {
   return (
-    <div className="flex items-center gap-3 py-4">
-      <div className="flex items-center gap-2">
+    <div className="sticky top-2 isolate z-10 flex items-center gap-3 bg-background py-4">
+      <div className="-mx-4 -mt-2 absolute inset-0 bg-background" />
+      <div className="z-10 flex items-center gap-2">
         <Label className="sr-only" htmlFor="exercise-search">
           Search exercises
         </Label>
@@ -77,7 +78,7 @@ function ExerciseTableActionBar({
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
         />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="z-10 flex items-center gap-2">
         <Label className="sr-only" htmlFor="muscle-group-filter">
           Muscle Group
         </Label>
@@ -101,7 +102,7 @@ function ExerciseTableActionBar({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="z-10 flex items-center gap-2">
         <Label className="sr-only" htmlFor="type-filter">
           Type
         </Label>
@@ -160,7 +161,7 @@ export function ExerciseTable({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     isCustom: false,
   })
-  const [pagination] = useState({ pageIndex: 0, pageSize: 25 })
+  const [pagination] = useState({ pageIndex: 0, pageSize: 20 })
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("all")
   const [selectedType, setSelectedType] = useState<string>("all")
 
@@ -208,7 +209,7 @@ export function ExerciseTable({
   }, [data])
 
   return (
-    <div className="">
+    <div className="isolate">
       <ExerciseTableActionBar
         muscleGroupOptions={muscleGroupOptions}
         onChangeMuscleGroup={setSelectedMuscleGroup}

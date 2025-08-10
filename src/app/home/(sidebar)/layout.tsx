@@ -17,6 +17,7 @@ export default async function HomeLayout({
           {
             "--sidebar-width": "calc(var(--spacing) * 72)",
             "--header-height": "calc(var(--spacing) * 16)",
+            "--inset-height": "calc(var(--spacing) * 2)",
           } as React.CSSProperties
         }
       >

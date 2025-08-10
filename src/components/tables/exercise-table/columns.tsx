@@ -82,6 +82,18 @@ export const columns: ColumnDef<TableExercise>[] = [
     },
   },
   {
+    //  invisible column, just needs to present for filtering to work.
+    id: "isCustom",
+    header: "Custom",
+    enableHiding: false,
+    cell: () => null,
+    filterFn: (row, id, value) => {
+      if (!value || value === "all") return true
+      const v = row.getValue(id) as boolean
+      return v === value
+    },
+  },
+  {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {

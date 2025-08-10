@@ -10,10 +10,10 @@ export default async function SettingsExercisesPage() {
     <>
       <SiteHeader left={"Exercises"} />
       <div
-        className="@container/main flex flex-1 flex-col"
-        id="exercises_content"
+        className="@container/main h-[calc(100svh-var(--header-height)-2*var(--inset-height))] overflow-y-auto"
+        id="exercises content"
       >
-        <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
+        <div className="flex flex-col gap-4 bg-background pb-4 md:gap-6 md:px-4 md:py-2">
           <ClientExercisesPage exercisesPromise={exercises} />
         </div>
       </div>
