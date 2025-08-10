@@ -12,3 +12,7 @@ export function capitalizeFirstLetter(str: string) {
 export function isLive() {
   return process.env.NODE_ENV === "production"
 }
+
+export function isDefined<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined
+}

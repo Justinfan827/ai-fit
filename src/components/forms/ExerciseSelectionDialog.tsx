@@ -1,4 +1,4 @@
-import * as React from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/dialog"
 
 import type { Exercise } from "@/lib/domain/workouts"
-import { ExerciseTable } from "./ExerciseTable"
+import { ExerciseTable } from "../tables/exercise-table/ExerciseTable"
 
 export function ExerciseSelectionDialog({
-  exercises,
+  exercises: _exercises,
   setExercises,
   selectedExercises,
   allExercises,
@@ -26,22 +26,22 @@ export function ExerciseSelectionDialog({
   allExercises: Exercise[]
   children: React.ReactNode
 }) {
-  const [selectedExerciseIds, setSelectedExerciseIds] = React.useState<
+  const [selectedExerciseIds, setSelectedExerciseIds] = useState<
     Record<string, boolean>
   >(() => {
     const initial: Record<string, boolean> = {}
-    selectedExercises.forEach((e) => {
+    for (const e of selectedExercises) {
       initial[e.id] = true
-    })
+    }
     return initial
   })
 
   // Sync local selection state if selectedExercises prop changes
-  React.useEffect(() => {
+  useEffect(() => {
     const updated: Record<string, boolean> = {}
-    selectedExercises.forEach((e) => {
+    for (const e of selectedExercises) {
       updated[e.id] = true
-    })
+    }
     setSelectedExerciseIds(updated)
   }, [selectedExercises])
 
@@ -71,6 +71,11 @@ export function ExerciseSelectionDialog({
               name: e.name,
               muscleGroup: e.muscleGroup,
               isCustom: e.ownerId !== null,
+              muscleGroups: [e.muscleGroup].filter(Boolean),
+              tags: [],
+              notes: "",
+              imageURL: "",
+              videoURL: "",
             }))}
             onSelectionChange={handleSelectionChange}
             selectedRows={selectedExerciseIds}

@@ -2,7 +2,7 @@ import "server-only"
 
 import type { JwtPayload } from "@supabase/supabase-js"
 import { redirect } from "next/navigation"
-
+import { cache } from "react"
 import { APIError } from "@/app/api/errors"
 import { createServerClient } from "../create-server-client"
 
@@ -23,10 +23,18 @@ type AuthCheckSuccess = {
   error: null
   user: AuthUser
 }
+
+export const getCachedAuthUserT = cache(async (): Promise<AuthUser> => {
+  const { user, error } = await getAuthUser()
+  if (error) {
+    throw error
+  }
+  return user
+})
+
 /*
  * getAuthUser is a utility function to fetch the authenticated user.
  * It returns the user and session if they exist.
- *
  **/
 export async function getAuthUser(): Promise<AuthCheck> {
   const supabase = await createServerClient()

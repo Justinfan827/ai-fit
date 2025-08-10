@@ -125,6 +125,16 @@ export async function getExercises() {
   return client.from("exercises").select("*")
 }
 
+export const getCachedProgramByIdT = cache(
+  async (programId: string): Promise<Program> => {
+    const { data, error } = await getProgramById(programId)
+    if (error) {
+      throw error
+    }
+    return data
+  }
+)
+
 export async function getProgramById(
   programId: string
 ): Promise<Maybe<Program>> {

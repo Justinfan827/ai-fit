@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
+import { createClient } from "@/lib/supabase/server/users/trainer-repo"
 import { withAuthInput } from "./middleware/withAuth"
 
 // This schema is used to validate input from client.
@@ -21,7 +21,7 @@ export const createClientAction = withAuthInput(
     schema,
   },
   async ({ input, user }) => {
-    const { data: userData, error } = await newTrainerRepo().createClient({
+    const { data: userData, error } = await createClient({
       trainerId: user.userId,
       newClient: input,
     })

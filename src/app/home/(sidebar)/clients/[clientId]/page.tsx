@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { getAllCurrentUserUnassignedPrograms } from "@/lib/supabase/server/database.operations.queries"
-import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
+import { getClientHomePageData } from "@/lib/supabase/server/users/trainer-repo"
 import { cn } from "@/lib/utils"
 import { AssignProgramSidesheet } from "./assign-program-sidesheet"
 import { ClientDetailsPageSection } from "./details"
@@ -27,8 +27,7 @@ export default async function ClientPage({
   params: Promise<{ clientId: string }>
 }) {
   const clientId = (await params).clientId
-  const { data: clientData, error } =
-    await newTrainerRepo().getClientHomePageData(clientId)
+  const { data: clientData, error } = await getClientHomePageData(clientId)
   if (error) {
     return <div>error: {error.message}</div>
   }

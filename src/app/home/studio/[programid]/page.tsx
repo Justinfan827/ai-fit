@@ -6,12 +6,15 @@ import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { EditorProgramProvider } from "@/hooks/zustand/program-editor-state"
-import { createServerClient } from "@/lib/supabase/create-server-client"
+import { getCachedAuthUserT } from "@/lib/supabase/server/auth-utils"
 import {
-  getCurrentUser,
-  getProgramById,
+  getCachedProgramByIdT,
+  getCachedUserT,
 } from "@/lib/supabase/server/database.operations.queries"
-import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
+import {
+  getCachedAllClientDetailsT,
+  getCachedAllExercisesT,
+} from "@/lib/supabase/server/users/trainer-repo"
 import { cn } from "@/lib/utils"
 import ProgramActions from "./program-edit-actions"
 import ProgramNameEditButton from "./program-name-edit-button"
@@ -22,38 +25,13 @@ export default async function Page({
   params: Promise<{ programid: string }>
 }) {
   const programid = (await params).programid
-  const trainerRepo = newTrainerRepo()
-  const serverClient = await createServerClient()
-  const { data: sessiondata, error } = await serverClient.auth.getSession()
-  if (error) {
-    return <div>error: {error.message}</div>
-  }
-  if (sessiondata.session === null) {
-    return <div>error: no session</div>
-  }
-
-  // First get the required data
+  const authUser = await getCachedAuthUserT()
   const [user, exercises, clients, program] = await Promise.all([
-    getCurrentUser(),
-    trainerRepo.getAllExercises(sessiondata.session.user.id),
-    trainerRepo.fetchAllClientDetails(),
-    getProgramById(programid),
+    getCachedUserT(),
+    getCachedAllExercisesT(authUser.userId),
+    getCachedAllClientDetailsT(),
+    getCachedProgramByIdT(programid),
   ])
-
-  if (user.error) {
-    return <div>error: {user.error.message}</div>
-  }
-  if (exercises.error) {
-    return <div>error: {exercises.error.message}</div>
-  }
-  if (clients.error) {
-    return <div>error: {clients.error.message}</div>
-  }
-  if (program.error) {
-    return <div>error: {program.error.message}</div>
-  }
-
-  const programData = program.data
 
   return (
     <SidebarProvider
@@ -66,8 +44,8 @@ export default async function Page({
       }
     >
       <EditorProgramProvider
-        exercises={exercises.data.custom.concat(exercises.data.base)}
-        initialProgram={programData}
+        exercises={exercises.custom.concat(exercises.base)}
+        initialProgram={program}
       >
         <SiteHeader
           className="sticky top-0 z-50 flex w-full flex-shrink-0 items-center border-b bg-background"
@@ -94,9 +72,9 @@ export default async function Page({
         />
         <div className="@container/main flex flex-1 flex-row-reverse">
           <ProgramEditorSidebar
-            availableClients={clients.data}
-            exercises={exercises.data.custom}
-            trainerId={user.data.id}
+            availableClients={clients}
+            exercises={exercises.custom}
+            trainerId={user.id}
           />
           {/* 
           NOTE: If SidebarInset comes before the ProgramEditorSidebar in the DOM. This breaks. CSS peer selectors

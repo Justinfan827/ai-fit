@@ -1,5 +1,5 @@
 import { createServerClient } from "@/lib/supabase/create-server-client"
-import newTrainerRepo from "@/lib/supabase/server/users/trainer-repo"
+import { getAllExercises } from "@/lib/supabase/server/users/trainer-repo"
 import NewProgramButton from "./new-program-button"
 
 export default async function NewProgramButtonWithData() {
@@ -14,10 +14,7 @@ export default async function NewProgramButtonWithData() {
     return <div>Error: no session</div>
   }
 
-  const trainerRepo = newTrainerRepo()
-  const exercises = await trainerRepo.getAllExercises(
-    sessiondata.session.user.id
-  )
+  const exercises = await getAllExercises(sessiondata.session.user.id)
 
   if (exercises.error) {
     return <div>Error: {exercises.error.message}</div>

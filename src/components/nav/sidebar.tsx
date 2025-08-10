@@ -33,12 +33,13 @@ const mainItems = [
 ]
 
 const settingsItems = [
-  {
-    title: "General",
-    url: "/home/settings/general",
-    matchRegex: "^/home/settings/general",
-    icon: Settings,
-  },
+  // TODO: Create general settings page
+  // {
+  //   title: "General",
+  //   url: "/home/settings/general",
+  //   matchRegex: "^/home/settings/general",
+  //   icon: Settings,
+  // },
   {
     title: "Exercises",
     url: "/home/settings/exercises",
