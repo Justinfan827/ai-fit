@@ -5,12 +5,10 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useOptimistic, useState, useTransition } from "react"
 import { toast } from "sonner"
-import { v4 as uuidv4 } from "uuid"
 import { createProgramAction } from "@/actions/create-program"
 import { deleteProgramAction } from "@/actions/delete-program"
 import { EmptyStateCard } from "@/components/empty-state"
 import { Icons } from "@/components/icons"
-import { Tp } from "@/components/typography"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,

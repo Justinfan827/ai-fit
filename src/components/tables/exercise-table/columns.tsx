@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -11,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { fuzzyFilter } from "./fuzzy-search"
 import type { TableExercise } from "./types"
 
 export const columns: ColumnDef<TableExercise>[] = [
@@ -38,6 +38,7 @@ export const columns: ColumnDef<TableExercise>[] = [
   },
   {
     accessorKey: "name",
+    filterFn: fuzzyFilter,
     header: ({ column }) => {
       return (
         <Button
