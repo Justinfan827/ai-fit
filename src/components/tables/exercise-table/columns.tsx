@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -48,33 +49,35 @@ export const columns: ColumnDef<TableExercise>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => (
-      <div className="capitalize">
-        <div>{row.getValue("name")}</div>
-        {row.original.isCustom && (
-          <div className="inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-muted-foreground text-xs uppercase tracking-wider transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2">
-            Custom
-          </div>
-        )}
-      </div>
-    ),
+    cell: ({ row }) => {
+      return (
+        <div className="capitalize">
+          <div>{row.getValue("name")}</div>
+          {row.original.isCustom && (
+            <div className="inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-muted-foreground text-xs uppercase tracking-wider transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2">
+              Custom
+            </div>
+          )}
+        </div>
+      )
+    },
     enableHiding: false,
   },
   {
-    accessorKey: "muscleGroup",
+    accessorKey: "muscleGroups",
     header: ({ column }) => {
       return (
         <Button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           variant="ghost"
         >
-          Muscle Group
+          Muscle Groups
           <ArrowUpDown />
         </Button>
       )
     },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("muscleGroup")}</div>
+      <div className="capitalize">{row.getValue("muscleGroups")}</div>
     ),
     filterFn: (row, id, value) => {
       if (!value || value === "all") return true

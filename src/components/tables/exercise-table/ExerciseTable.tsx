@@ -12,7 +12,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table"
 import { ChevronDown } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -37,6 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import useDebouncedValue from "@/hooks/use-debounce"
 import { columns } from "./columns"
 import type { TableExercise } from "./types"
 
@@ -61,6 +62,13 @@ function ExerciseTableActionBar({
   selectedType: string
   onChangeType: (value: string) => void
 }) {
+  const [searchValue, setSearchValue] = useState("")
+  const debouncedSearchValue = useDebouncedValue(searchValue, 80)
+
+  // Update table filter when debounced value changes
+  useEffect(() => {
+    table.getColumn("name")?.setFilterValue(debouncedSearchValue)
+  }, [debouncedSearchValue, table])
   return (
     <div className="sticky top-0 isolate z-10 flex items-center justify-between gap-3 bg-background pt-2 pb-6">
       <div className="-mx-4 -mt-4 absolute inset-0 bg-background" />
@@ -72,11 +80,9 @@ function ExerciseTableActionBar({
           <Input
             className="w-64 lg:w-96"
             id="exercise-search"
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
+            onChange={(event) => setSearchValue(event.target.value)}
             placeholder="Search exercises..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            value={searchValue}
           />
         </div>
         <div className="z-10 hidden items-center gap-2 md:flex">
@@ -86,7 +92,7 @@ function ExerciseTableActionBar({
           <Select
             onValueChange={(value) => {
               onChangeMuscleGroup(value)
-              table.getColumn("muscleGroup")?.setFilterValue(value)
+              table.getColumn("muscleGroups")?.setFilterValue(value)
             }}
             value={selectedMuscleGroup}
           >
@@ -207,7 +213,6 @@ export function ExerciseTable({
   const muscleGroupOptions = useMemo(() => {
     const set = new Set<string>()
     for (const ex of data) {
-      if (ex.muscleGroup) set.add(ex.muscleGroup)
       for (const mg of ex.muscleGroups || []) {
         if (mg) set.add(mg)
       }

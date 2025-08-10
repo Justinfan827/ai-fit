@@ -44,8 +44,8 @@ export default function ClientButtonNewClient() {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <Icons.plus className="size-4" />
           New Client
+          <Icons.plus className="size-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:min-w-[500px]">

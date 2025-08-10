@@ -22,7 +22,7 @@ export default async function HomeLayout({
         }
       >
         <AppSidebar user={user} />
-        <SidebarInset> {children} </SidebarInset>
+        <SidebarInset>{children}</SidebarInset>
       </SidebarProvider>
     </SupabaseProvider>
   )

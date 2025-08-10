@@ -116,7 +116,7 @@ function ProgramListItem({
     >
       <Link
         className="absolute inset-0 z-10"
-        href={`/home/programs/${program.id}`}
+        href={`/home/studio/${program.id}`}
       />
       <div className="flex items-center gap-4">
         <div className="flex size-8 items-center justify-center rounded-lg bg-muted transition-all duration-200 ease-in-out group-hover:size-8.5">

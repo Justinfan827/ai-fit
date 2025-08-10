@@ -14,8 +14,7 @@ export function ClientExercisesPage({
   const tableExercises = allExercises.map((exercise) => ({
     id: exercise.id,
     name: exercise.name,
-    muscleGroup: exercise.muscleGroup,
-    muscleGroups: [exercise.muscleGroup].filter(Boolean),
+    muscleGroups: [exercise.muscleGroup],
     isCustom: exercise.ownerId !== null,
     // TODO: Add these fields
     tags: [],
