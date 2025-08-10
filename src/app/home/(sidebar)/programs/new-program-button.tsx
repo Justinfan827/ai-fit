@@ -42,7 +42,7 @@ function NewProgramButtonContent() {
         })
         return
       }
-      router.push(`/home/programs/${data.id}`)
+      router.push(`/home/studio/${data.id}`)
       toast("Success", {
         description: "Program created",
       })

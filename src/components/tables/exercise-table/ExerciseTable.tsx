@@ -152,7 +152,7 @@ function ExerciseTableActionBar({
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === "muscleGroups" ? "Muscle Groups" : column.id}
                   </DropdownMenuCheckboxItem>
                 )
               })}

@@ -317,7 +317,7 @@ export function ProgramEditorSidebar({
         </AIConversation>
       </SidebarContent>
       <SidebarFooter>
-        <div className="space-y-3 px-4 pb-2">
+        <div className="space-y-3">
           <div className="flex items-center gap-2">
             {/* Context Items */}
             {contextItems.length > 0 && (
