@@ -58,6 +58,7 @@ export const columns: ColumnDef<TableExercise>[] = [
         )}
       </div>
     ),
+    enableHiding: false,
   },
   {
     accessorKey: "muscleGroup",

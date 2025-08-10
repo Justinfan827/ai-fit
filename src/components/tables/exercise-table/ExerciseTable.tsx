@@ -62,91 +62,97 @@ function ExerciseTableActionBar({
   onChangeType: (value: string) => void
 }) {
   return (
-    <div className="sticky top-2 isolate z-10 flex items-center gap-3 bg-background py-4">
-      <div className="-mx-4 -mt-2 absolute inset-0 bg-background" />
-      <div className="z-10 flex items-center gap-2">
-        <Label className="sr-only" htmlFor="exercise-search">
-          Search exercises
-        </Label>
-        <Input
-          className="max-w-sm"
-          id="exercise-search"
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          placeholder="Search exercises..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-        />
+    <div className="sticky top-0 isolate z-10 flex items-center justify-between gap-3 bg-background pt-2 pb-6">
+      <div className="-mx-4 -mt-4 absolute inset-0 bg-background" />
+      <div className="z-10 flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Label className="sr-only" htmlFor="exercise-search">
+            Search exercises
+          </Label>
+          <Input
+            className="w-64 lg:w-96"
+            id="exercise-search"
+            onChange={(event) =>
+              table.getColumn("name")?.setFilterValue(event.target.value)
+            }
+            placeholder="Search exercises..."
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          />
+        </div>
+        <div className="z-10 hidden items-center gap-2 md:flex">
+          <Label className="sr-only" htmlFor="muscle-group-filter">
+            Muscle Group
+          </Label>
+          <Select
+            onValueChange={(value) => {
+              onChangeMuscleGroup(value)
+              table.getColumn("muscleGroup")?.setFilterValue(value)
+            }}
+            value={selectedMuscleGroup}
+          >
+            <SelectTrigger className="w-44" id="muscle-group-filter">
+              <SelectValue placeholder="All muscle groups" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All muscle groups</SelectItem>
+              {muscleGroupOptions.map((mg) => (
+                <SelectItem key={mg} value={mg}>
+                  {mg}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="z-10 hidden items-center gap-2 md:flex">
+          <Label className="sr-only" htmlFor="type-filter">
+            Type
+          </Label>
+          <Select
+            onValueChange={(value) => {
+              onChangeType(value)
+              table.getColumn("isCustom")?.setFilterValue(value)
+            }}
+            value={selectedType}
+          >
+            <SelectTrigger className="w-32" id="type-filter">
+              <SelectValue placeholder="All types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All types</SelectItem>
+              <SelectItem value="custom">Custom</SelectItem>
+              <SelectItem value="base">Base</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="z-10 flex items-center gap-2">
-        <Label className="sr-only" htmlFor="muscle-group-filter">
-          Muscle Group
-        </Label>
-        <Select
-          onValueChange={(value) => {
-            onChangeMuscleGroup(value)
-            table.getColumn("muscleGroup")?.setFilterValue(value)
-          }}
-          value={selectedMuscleGroup}
-        >
-          <SelectTrigger className="w-44" id="muscle-group-filter">
-            <SelectValue placeholder="All muscle groups" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All muscle groups</SelectItem>
-            {muscleGroupOptions.map((mg) => (
-              <SelectItem key={mg} value={mg}>
-                {mg}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="z-10 ml-auto" variant="outline">
+              Columns <ChevronDown />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    checked={column.getIsVisible()}
+                    className="capitalize"
+                    key={column.id}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                )
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <div className="z-10 flex items-center gap-2">
-        <Label className="sr-only" htmlFor="type-filter">
-          Type
-        </Label>
-        <Select
-          onValueChange={(value) => {
-            onChangeType(value)
-            table.getColumn("isCustom")?.setFilterValue(value)
-          }}
-          value={selectedType}
-        >
-          <SelectTrigger className="w-32" id="type-filter">
-            <SelectValue placeholder="All types" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-            <SelectItem value="custom">Custom</SelectItem>
-            <SelectItem value="base">Base</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button className="ml-auto" variant="outline">
-            Columns <ChevronDown />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {table
-            .getAllColumns()
-            .filter((column) => column.getCanHide())
-            .map((column) => {
-              return (
-                <DropdownMenuCheckboxItem
-                  checked={column.getIsVisible()}
-                  className="capitalize"
-                  key={column.id}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {column.id}
-                </DropdownMenuCheckboxItem>
-              )
-            })}
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   )
 }
@@ -161,7 +167,7 @@ export function ExerciseTable({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     isCustom: false,
   })
-  const [pagination] = useState({ pageIndex: 0, pageSize: 20 })
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("all")
   const [selectedType, setSelectedType] = useState<string>("all")
 
@@ -181,6 +187,7 @@ export function ExerciseTable({
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
