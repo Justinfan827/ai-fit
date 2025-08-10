@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ExerciseActionDropdown } from "./ExerciseActionDropdown"
 import { fuzzyFilter } from "./fuzzy-search"
 import type { TableExercise } from "./types"
 
@@ -102,27 +103,13 @@ export const columns: ColumnDef<TableExercise>[] = [
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const exercise = row.original
-
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="h-8 w-8 p-0" variant="ghost">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(exercise.id)}
-            >
-              Remove Exercise
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View exercise details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ExerciseActionDropdown
+          exercise={{
+            id: row.original.id,
+            name: row.original.name,
+          }}
+        />
       )
     },
   },
