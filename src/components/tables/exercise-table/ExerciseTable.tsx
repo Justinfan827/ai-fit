@@ -41,10 +41,11 @@ import useDebouncedValue from "@/hooks/use-debounce"
 import { columns } from "./columns"
 import type { TableExercise } from "./types"
 
-type Props = {
+type ExerciseTableActionBarProps = {
   data: TableExercise[]
   selectedRows: RowSelectionState
   onSelectionChange: (selectedIds: RowSelectionState) => void
+  onDeleteExercise: (exerciseId: string) => void
 }
 
 function ExerciseTableActionBar({
@@ -167,7 +168,8 @@ export function ExerciseTable({
   data,
   selectedRows,
   onSelectionChange,
-}: Props) {
+  onDeleteExercise,
+}: ExerciseTableActionBarProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
@@ -187,10 +189,9 @@ export function ExerciseTable({
       onSelectionChange(updaterOrValue as RowSelectionState)
     }
   }
-
   const table = useReactTable({
     data,
-    columns,
+    columns: columns(onDeleteExercise),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
@@ -271,7 +272,7 @@ export function ExerciseTable({
               <TableRow>
                 <TableCell
                   className="h-24 text-center"
-                  colSpan={columns.length}
+                  colSpan={table.getAllLeafColumns().length}
                 >
                   No results.
                 </TableCell>

@@ -1,20 +1,14 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { ExerciseActionDropdown } from "./ExerciseActionDropdown"
 import { fuzzyFilter } from "./fuzzy-search"
 import type { TableExercise } from "./types"
 
-export const columns: ColumnDef<TableExercise>[] = [
+export const columns = (
+  onDeleteExercise: (exerciseId: string) => void
+): ColumnDef<TableExercise>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -89,14 +83,17 @@ export const columns: ColumnDef<TableExercise>[] = [
   },
   {
     //  invisible column, just needs to present for filtering to work.
+    accessorKey: "isCustom",
     id: "isCustom",
     header: "Custom",
     enableHiding: false,
     cell: () => null,
     filterFn: (row, id, value) => {
       if (!value || value === "all") return true
-      const v = row.getValue(id) as boolean
-      return v === value
+      const isCustom = row.getValue(id) as boolean
+      if (value === "custom") return isCustom === true
+      if (value === "base") return isCustom === false
+      return true
     },
   },
   {
@@ -109,6 +106,7 @@ export const columns: ColumnDef<TableExercise>[] = [
             id: row.original.id,
             name: row.original.name,
           }}
+          onDelete={onDeleteExercise}
         />
       )
     },

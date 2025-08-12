@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,6 +22,7 @@ import {
 
 interface Props {
   exercise: Exercise
+  onDelete: (exerciseId: string) => void
 }
 
 type Exercise = {
@@ -29,10 +30,12 @@ type Exercise = {
   name: string
 }
 
-export function ExerciseActionDropdown({ exercise }: Props) {
+export function ExerciseActionDropdown({ exercise, onDelete }: Props) {
   const [isOpen, setIsOpen] = useState(false)
-  const [isPending, startTransition] = useTransition()
-  const handleOnDelete = () => {}
+  const handleOnDelete = () => {
+    onDelete(exercise.id)
+    setIsOpen(false)
+  }
   return (
     <Dialog onOpenChange={setIsOpen} open={isOpen}>
       <DropdownMenu>

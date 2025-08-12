@@ -80,5 +80,6 @@ function getUserDetailsFromClaims(claims: JwtPayload): AuthUser {
  * to redirect to the users home page if the user is authorized
  */
 export const redirectAuthorizedUser = async () => {
-  if (await getAuthUser()) redirect("/home/clients")
+  const authUser = await getAuthUser()
+  if (authUser.user) redirect("/home/clients")
 }
