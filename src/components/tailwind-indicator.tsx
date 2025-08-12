@@ -19,7 +19,7 @@ export function TailwindIndicator() {
     }
   }, [])
   return (
-    <div className="fixed right-1 bottom-1 z-50 flex h-6 w-auto items-center justify-center gap-1 rounded-full px-3 py-2 font-mono text-white text-xs transition-all duration-300 ease-in-out">
+    <div className="fixed bottom-1 left-1 z-50 flex h-6 w-auto items-center justify-center gap-1 rounded-full px-3 py-2 font-mono text-white text-xs transition-all duration-300 ease-in-out">
       <div className="block rounded-full bg-red-600 px-2 py-1 transition-all duration-300 sm:hidden">
         <div className="flex items-center gap-1">
           <Icons.smartphone className="h-3 w-3" />

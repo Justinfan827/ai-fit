@@ -97,11 +97,11 @@ function ExerciseTableActionBar({
             value={searchValue}
           />
         </div>
-        <div className="z-10 hidden items-center gap-2 md:flex">
+        <div className="z-10 hidden items-center gap-2 lg:flex">
           <Label className="sr-only" htmlFor="muscle-group-filter">
             Muscle Groups
           </Label>
-          <Tags className="w-80">
+          <Tags className="w-50 lg:w-70">
             <PopoverTrigger asChild>
               <Button
                 className="h-auto w-full justify-between p-2"
@@ -169,7 +169,7 @@ function ExerciseTableActionBar({
             </PopoverTrigger>
             <TagsContent>
               <TagsInput placeholder="" />
-              <TagsList>
+              <TagsList className="scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
                 <TagsEmpty>No muscle groups found.</TagsEmpty>
                 <TagsGroup>
                   {muscleGroupOptions.map((mg) => (
@@ -203,7 +203,7 @@ function ExerciseTableActionBar({
             </TagsContent>
           </Tags>
         </div>
-        <div className="z-10 hidden items-center gap-2 md:flex">
+        <div className="z-10 hidden items-center gap-2 lg:flex">
           <Label className="sr-only" htmlFor="type-filter">
             Type
           </Label>

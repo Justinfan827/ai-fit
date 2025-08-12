@@ -119,6 +119,7 @@
     "server-only": "^0.0.1",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
+    "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "4.1.10",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.19.2",

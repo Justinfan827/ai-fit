@@ -10,7 +10,8 @@ export default async function SettingsExercisesPage() {
     <>
       <SiteHeader left={"Exercises"} />
       <div
-        className="@container/main h-[calc(100svh-var(--header-height)-2*var(--inset-height))] overflow-y-auto rounded-xl py-4"
+        // NOTE: This is the full height minus the header and the inset height.
+        className="@container/main scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent h-[calc(100svh-var(--header-height)-2*var(--inset-height))] overflow-y-auto rounded-xl py-4"
         id="exercises content"
       >
         <div className="flex flex-col gap-4 bg-background pb-4 md:gap-6 md:px-4">
