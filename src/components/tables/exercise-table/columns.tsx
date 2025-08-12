@@ -76,9 +76,15 @@ export const columns = (
       <div className="capitalize">{row.getValue("muscleGroups")}</div>
     ),
     filterFn: (row, id, value) => {
-      if (!value || value === "all") return true
-      const v = row.getValue(id) as string
-      return v === value
+      if (!value || value.length === 0) return true
+      const muscleGroups = row.getValue(id) as string[]
+      if (!muscleGroups || muscleGroups.length === 0) return false
+      // Return true if any of the selected muscle groups match any of the exercise's muscle groups
+      return value.some((selectedGroup: string) =>
+        muscleGroups.some((exerciseGroup: string) =>
+          exerciseGroup.toLowerCase().includes(selectedGroup.toLowerCase())
+        )
+      )
     },
   },
   {

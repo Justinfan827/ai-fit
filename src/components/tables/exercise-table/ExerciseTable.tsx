@@ -11,7 +11,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { ChevronDown } from "lucide-react"
+import { CheckIcon, ChevronDown } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,7 +21,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import {
+  Tags,
+  TagsContent,
+  TagsEmpty,
+  TagsGroup,
+  TagsInput,
+  TagsItem,
+  TagsList,
+  TagsValue,
+} from "@/components/ui/kibo-ui/tags"
 import { Label } from "@/components/ui/label"
+import { PopoverTrigger } from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -51,15 +62,15 @@ type ExerciseTableActionBarProps = {
 function ExerciseTableActionBar({
   table,
   muscleGroupOptions,
-  selectedMuscleGroup,
-  onChangeMuscleGroup,
+  selectedMuscleGroups,
+  onChangeMuscleGroups,
   selectedType,
   onChangeType,
 }: {
   table: ReactTableType<TableExercise>
   muscleGroupOptions: string[]
-  selectedMuscleGroup: string
-  onChangeMuscleGroup: (value: string) => void
+  selectedMuscleGroups: string[]
+  onChangeMuscleGroups: (value: string[]) => void
   selectedType: string
   onChangeType: (value: string) => void
 }) {
@@ -88,27 +99,109 @@ function ExerciseTableActionBar({
         </div>
         <div className="z-10 hidden items-center gap-2 md:flex">
           <Label className="sr-only" htmlFor="muscle-group-filter">
-            Muscle Group
+            Muscle Groups
           </Label>
-          <Select
-            onValueChange={(value) => {
-              onChangeMuscleGroup(value)
-              table.getColumn("muscleGroups")?.setFilterValue(value)
-            }}
-            value={selectedMuscleGroup}
-          >
-            <SelectTrigger className="w-44" id="muscle-group-filter">
-              <SelectValue placeholder="All muscle groups" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All muscle groups</SelectItem>
-              {muscleGroupOptions.map((mg) => (
-                <SelectItem key={mg} value={mg}>
-                  {mg}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Tags className="w-80">
+            <PopoverTrigger asChild>
+              <Button
+                className="h-auto w-full justify-between p-2"
+                id="muscle-group-filter"
+                variant="outline"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+                  {(() => {
+                    if (selectedMuscleGroups.length === 0) {
+                      return (
+                        <span className="px-2 py-px text-muted-foreground">
+                          Filter muscle groups...
+                        </span>
+                      )
+                    }
+
+                    if (selectedMuscleGroups.length <= 3) {
+                      return selectedMuscleGroups.map((mg: string) => (
+                        <TagsValue
+                          className="max-w-30 shrink-0"
+                          key={mg}
+                          onRemove={() => {
+                            const newSelected = selectedMuscleGroups.filter(
+                              (item: string) => item !== mg
+                            )
+                            onChangeMuscleGroups(newSelected)
+                            table
+                              .getColumn("muscleGroups")
+                              ?.setFilterValue(newSelected)
+                          }}
+                        >
+                          <span className="truncate">{mg}</span>
+                        </TagsValue>
+                      ))
+                    }
+
+                    return (
+                      <div className="flex min-w-0 items-center gap-1">
+                        <TagsValue
+                          className="max-w-30 shrink-0"
+                          key={selectedMuscleGroups[0]}
+                          onRemove={() => {
+                            const newSelected = selectedMuscleGroups.filter(
+                              (item: string) => item !== selectedMuscleGroups[0]
+                            )
+                            onChangeMuscleGroups(newSelected)
+                            table
+                              .getColumn("muscleGroups")
+                              ?.setFilterValue(newSelected)
+                          }}
+                        >
+                          <span className="truncate">
+                            {selectedMuscleGroups[0]}
+                          </span>
+                        </TagsValue>
+                        <span className="truncate px-2 py-1 text-muted-foreground text-xs">
+                          +{selectedMuscleGroups.length - 1} more
+                        </span>
+                      </div>
+                    )
+                  })()}
+                </div>
+                <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <TagsContent>
+              <TagsInput placeholder="" />
+              <TagsList>
+                <TagsEmpty>No muscle groups found.</TagsEmpty>
+                <TagsGroup>
+                  {muscleGroupOptions.map((mg) => (
+                    <TagsItem
+                      key={mg}
+                      onSelect={(value: string) => {
+                        const isSelected = selectedMuscleGroups.includes(value)
+                        const newSelected = isSelected
+                          ? selectedMuscleGroups.filter(
+                              (item: string) => item !== value
+                            )
+                          : [...selectedMuscleGroups, value]
+                        onChangeMuscleGroups(newSelected)
+                        table
+                          .getColumn("muscleGroups")
+                          ?.setFilterValue(newSelected)
+                      }}
+                      value={mg}
+                    >
+                      {mg}
+                      {selectedMuscleGroups.includes(mg) && (
+                        <CheckIcon
+                          className="text-muted-foreground"
+                          size={14}
+                        />
+                      )}
+                    </TagsItem>
+                  ))}
+                </TagsGroup>
+              </TagsList>
+            </TagsContent>
+          </Tags>
         </div>
         <div className="z-10 hidden items-center gap-2 md:flex">
           <Label className="sr-only" htmlFor="type-filter">
@@ -176,7 +269,7 @@ export function ExerciseTable({
     isCustom: false,
   })
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("all")
+  const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([])
   const [selectedType, setSelectedType] = useState<string>("all")
 
   const handleSelectionChange = (updaterOrValue: unknown) => {
@@ -225,9 +318,9 @@ export function ExerciseTable({
     <div className="isolate">
       <ExerciseTableActionBar
         muscleGroupOptions={muscleGroupOptions}
-        onChangeMuscleGroup={setSelectedMuscleGroup}
+        onChangeMuscleGroups={setSelectedMuscleGroups}
         onChangeType={setSelectedType}
-        selectedMuscleGroup={selectedMuscleGroup}
+        selectedMuscleGroups={selectedMuscleGroups}
         selectedType={selectedType}
         table={table}
       />
