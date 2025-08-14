@@ -77,13 +77,17 @@ export function ExerciseSelectionDialog({
               imageURL: "",
               videoURL: "",
             }))}
+            onDeleteExercise={() => {
+              // No-op: deletion is not allowed in selection dialog
+            }}
             onSelectionChange={handleSelectionChange}
             selectedRows={selectedExerciseIds}
           />
         </div>
         <DialogFooter>
           <Button onClick={handleSave}>
-            Select {Object.keys(selectedExerciseIds).length} Exercises
+            Select {Object.values(selectedExerciseIds).filter(Boolean).length}{" "}
+            Exercises
           </Button>
         </DialogFooter>
       </DialogContent>

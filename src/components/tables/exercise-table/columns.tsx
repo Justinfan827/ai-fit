@@ -1,39 +1,38 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { ExerciseActionDropdown } from "./ExerciseActionDropdown"
-import { fuzzyFilter } from "./fuzzy-search"
+import { getFuzzyScore } from "./fuzzy-search"
 import type { TableExercise } from "./types"
 
 export const columns = (
   onDeleteExercise: (exerciseId: string) => void
 ): ColumnDef<TableExercise>[] => [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        aria-label="Select all"
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        aria-label="Select row"
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+  // TODO: support selection
+  // {
+  //   id: "select",
+  //   header: ({ table }) => (
+  //     <Checkbox
+  //       aria-label="Select all"
+  //       checked={
+  //         table.getIsAllPageRowsSelected() ||
+  //         (table.getIsSomePageRowsSelected() && "indeterminate")
+  //       }
+  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+  //     />
+  //   ),
+  //   cell: ({ row }) => (
+  //     <Checkbox
+  //       aria-label="Select row"
+  //       checked={row.getIsSelected()}
+  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+  //     />
+  //   ),
+  //   enableSorting: false,
+  //   enableHiding: false,
+  // },
   {
     accessorKey: "name",
-    filterFn: fuzzyFilter,
     header: ({ column }) => {
       return (
         <Button
@@ -103,15 +102,21 @@ export const columns = (
     },
   },
   {
+    id: "__fuzzyScore__",
+    // TODO: revist how to sort without using global map
+    accessorFn: (row) => getFuzzyScore(row.id),
+    enableHiding: true,
+    enableSorting: true,
+    header: () => null,
+    cell: () => null,
+  },
+  {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
       return (
         <ExerciseActionDropdown
-          exercise={{
-            id: row.original.id,
-            name: row.original.name,
-          }}
+          exercise={row.original}
           onDelete={onDeleteExercise}
         />
       )

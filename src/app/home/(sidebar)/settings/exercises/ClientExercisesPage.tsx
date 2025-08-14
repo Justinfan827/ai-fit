@@ -29,6 +29,8 @@ export function ClientExercisesPage({
     }))
   })
 
+  const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({})
+
   const [optimisticExercises, deleteOptimisticExercise] = useOptimistic(
     baseExercises,
     (state, exerciseId: string) => {
@@ -62,10 +64,11 @@ export function ClientExercisesPage({
     <ExerciseTable
       data={optimisticExercises}
       onDeleteExercise={handleDeleteExercise}
-      onSelectionChange={(selectedRows) => {
-        logger.info("onSelectionChange", selectedRows)
+      onSelectionChange={(newSelectedRows) => {
+        logger.info("onSelectionChange", newSelectedRows)
+        setSelectedRows(newSelectedRows)
       }}
-      selectedRows={{}}
+      selectedRows={selectedRows}
     />
   )
 }

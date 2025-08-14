@@ -35,28 +35,34 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          notes: string | null
           owner_id: string | null
           primary_benefit: string | null
           primary_trained_colloquial: string | null
           skill_requirement: string | null
+          video_url: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
+          notes?: string | null
           owner_id?: string | null
           primary_benefit?: string | null
           primary_trained_colloquial?: string | null
           skill_requirement?: string | null
+          video_url?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
+          notes?: string | null
           owner_id?: string | null
           primary_benefit?: string | null
           primary_trained_colloquial?: string | null
           skill_requirement?: string | null
+          video_url?: string | null
         }
         Relationships: [
           {

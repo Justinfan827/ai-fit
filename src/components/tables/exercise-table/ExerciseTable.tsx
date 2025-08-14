@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/table"
 import useDebouncedValue from "@/hooks/use-debounce"
 import { columns } from "./columns"
+import { fuzzyFilter } from "./fuzzy-search"
 import type { TableExercise } from "./types"
 
 type ExerciseTableActionBarProps = {
@@ -77,9 +78,9 @@ function ExerciseTableActionBar({
   const [searchValue, setSearchValue] = useState("")
   const debouncedSearchValue = useDebouncedValue(searchValue, 80)
 
-  // Update table filter when debounced value changes
+  // Update global filter when debounced value changes
   useEffect(() => {
-    table.getColumn("name")?.setFilterValue(debouncedSearchValue)
+    table.setGlobalFilter(debouncedSearchValue)
   }, [debouncedSearchValue, table])
   return (
     <div className="sticky top-0 isolate z-10 flex items-center justify-between gap-3 bg-background pt-2 pb-6">
@@ -265,12 +266,25 @@ export function ExerciseTable({
 }: ExerciseTableActionBarProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [globalFilter, setGlobalFilter] = useState<string>("")
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     isCustom: false,
+    __fuzzyScore__: false, // Hide the fuzzy score column
   })
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([])
   const [selectedType, setSelectedType] = useState<string>("all")
+
+  // Auto-sort by fuzzy score when global filter is active
+  useEffect(() => {
+    if (globalFilter?.trim()) {
+      // When searching, sort by fuzzy score (highest first)
+      setSorting([{ id: "__fuzzyScore__", desc: true }])
+    } else {
+      // When not searching, clear the fuzzy score sorting
+      setSorting((prev) => prev.filter((sort) => sort.id !== "__fuzzyScore__"))
+    }
+  }, [globalFilter])
 
   const handleSelectionChange = (updaterOrValue: unknown) => {
     if (typeof updaterOrValue === "function") {
@@ -287,6 +301,7 @@ export function ExerciseTable({
     columns: columns(onDeleteExercise),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -295,9 +310,16 @@ export function ExerciseTable({
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: handleSelectionChange,
     enableRowSelection: true,
+    globalFilterFn: fuzzyFilter,
+    filterFns: {
+      fuzzy: fuzzyFilter,
+    },
+
+    getRowId: (row) => row.id,
     state: {
       sorting,
       columnFilters,
+      globalFilter,
       columnVisibility,
       rowSelection: selectedRows,
       pagination,
@@ -375,10 +397,11 @@ export function ExerciseTable({
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-muted-foreground text-sm">
+        {/* TODO: add row selection count */}
+        {/* <div className="flex-1 text-muted-foreground text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
+        </div> */}
         <div className="space-x-2">
           <Button
             disabled={!table.getCanPreviousPage()}

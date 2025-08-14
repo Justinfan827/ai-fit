@@ -249,6 +249,9 @@ dependencies:
   lucide-react:
     specifier: ^0.454.0
     version: 0.454.0(react@19.1.0)
+  media-chrome:
+    specifier: ^4.12.0
+    version: 4.12.0(react@19.1.0)
   next:
     specifier: 15.4.4
     version: 15.4.4(react-dom@19.1.0)(react@19.1.0)
@@ -336,6 +339,9 @@ dependencies:
   web-push:
     specifier: ^3.6.7
     version: 3.6.7
+  youtube-video-element:
+    specifier: ^1.6.2
+    version: 1.6.2
   zod:
     specifier: ^3.25.76
     version: 3.25.76
@@ -5280,6 +5286,14 @@ packages:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
     dev: false
 
+  /ce-la-react@0.3.1(react@19.1.0):
+    resolution: {integrity: sha512-g0YwpZDPIwTwFumGTzNHcgJA6VhFfFCJkSNdUdC04br2UfU+56JDrJrJva3FZ7MToB4NDHAFBiPE/PZdNl1mQA==}
+    peerDependencies:
+      react: '>=17.0.0'
+    dependencies:
+      react: 19.1.0
+    dev: false
+
   /chai@5.2.0:
     resolution: {integrity: sha512-mCuXncKXk5iCLhfhwTc0izo0gtEmpz5CtG2y8GiOINBlMVS6v8TMRc5TaLWKS6692m9+dVVfzgeVxR5UxWHTYw==}
     engines: {node: '>=12'}
@@ -7490,6 +7504,14 @@ packages:
 
   /mdurl@2.0.0:
     resolution: {integrity: sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w==}
+    dev: false
+
+  /media-chrome@4.12.0(react@19.1.0):
+    resolution: {integrity: sha512-leItqyy2jn1nk66KGmzeH0z6JXeVUvK95O7ouQTSVdvrTXB/8jtLEI964eXlq5oCZfyPLnPUiuosKrDEfmWDqQ==}
+    dependencies:
+      ce-la-react: 0.3.1(react@19.1.0)
+    transitivePeerDependencies:
+      - react
     dev: false
 
   /merge2@1.4.1:
@@ -10124,6 +10146,10 @@ packages:
   /yoctocolors@2.1.1:
     resolution: {integrity: sha512-GQHQqAopRhwU8Kt1DDM8NjibDXHC8eoh1erhGAJPEyveY9qqVeXvVikNKrDz69sHowPMorbPUrH/mx8c50eiBQ==}
     engines: {node: '>=18'}
+    dev: false
+
+  /youtube-video-element@1.6.2:
+    resolution: {integrity: sha512-YHDIOAqgRpfl1Ois9HcB8UFtWOxK8KJrV5TXpImj4BKYP1rWT04f/fMM9tQ9SYZlBKukT7NR+9wcI3UpB5BMDQ==}
     dev: false
 
   /zod-error@1.5.0:
