@@ -7,6 +7,7 @@ import {
 import log from "@/lib/logger/logger"
 import { getError } from "@/lib/utils/util"
 import runUserCreation from "./cmd-create-user"
+import { seedExercises } from "./seed-exercises"
 import { testExercises, testWorkouts } from "./testdata"
 import { errorLog, requireEnvVars, successLog } from "./utils"
 
@@ -86,6 +87,18 @@ program
       "Update workout program prompt",
       updateWorkoutProgramPrompt
     )
+  })
+
+program
+  .command("seed-exercises")
+  .description("Seed exercises")
+  .action(async () => {
+    const { SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_URL } =
+      requireEnvVars("SUPABASE_SERVICE_ROLE_KEY", "NEXT_PUBLIC_SUPABASE_URL")
+    await seedExercises({
+      supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY!,
+      supabaseURL: NEXT_PUBLIC_SUPABASE_URL!,
+    })
   })
 
 program.parse(process.argv)

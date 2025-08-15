@@ -80,7 +80,7 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link href="/home/settings/exercises">
+                <Link href="/home/settings/exercises/library">
                   <IconUserCircle />
                   Account
                 </Link>

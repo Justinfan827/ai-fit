@@ -105,7 +105,7 @@ export const columns = (
     id: "__fuzzyScore__",
     // TODO: revist how to sort without using global map
     accessorFn: (row) => getFuzzyScore(row.id),
-    enableHiding: true,
+    enableHiding: false,
     enableSorting: true,
     header: () => null,
     cell: () => null,
