@@ -11,3 +11,6 @@ export type Tables<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"]
 
 export type DBClient = SupabaseClient<Database>
+
+export type Category = Tables<"categories">
+export type CategoryValue = Tables<"category_values">

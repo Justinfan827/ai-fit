@@ -8,8 +8,10 @@ import {
   type Workout,
   workoutSchema,
 } from "@/lib/domain/workouts"
+import type { CategoryWithValues } from "@/lib/types/categories"
 import type { Maybe } from "@/lib/types/types"
 import { createServerClient } from "../create-server-client"
+import type { Category } from "../types"
 import { getAuthUser } from "./auth-utils"
 import { resolveProgram, resolvePrograms } from "./programs/utils"
 
@@ -226,4 +228,60 @@ export async function getClientActiveProgram(): Promise<
     return { data: undefined, error: null }
   }
   return resolveProgram(pData[0])
+}
+
+export async function getUserCategories(): Promise<
+  Maybe<CategoryWithValues[]>
+> {
+  const client = await createServerClient()
+  const { user, error: getUserError } = await getAuthUser()
+  if (getUserError) {
+    return { data: null, error: getUserError }
+  }
+
+  try {
+    // Get categories first using any cast to bypass type checking
+    const { data: categoriesData, error: categoriesError } = await client
+      .from("categories")
+      .select("*")
+      .eq("user_id", user.userId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true })
+
+    if (categoriesError) {
+      return { data: null, error: categoriesError }
+    }
+
+    // TODO: fix types here to use camelCase
+    const categoriesWithValues: CategoryWithValues[] = []
+    const categories: Category[] = categoriesData || []
+    const valuesPromises = categories.map((category) =>
+      client
+        .from("category_values")
+        .select("*")
+        .eq("category_id", category.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: true })
+    )
+
+    const valuesResults = await Promise.all(valuesPromises)
+
+    for (let i = 0; i < (categories || []).length; i++) {
+      const { data: values, error: valuesError } = valuesResults[i]
+      if (valuesError) {
+        return { data: null, error: valuesError }
+      }
+      categoriesWithValues.push({
+        ...categories[i],
+        values: values || [],
+      })
+    }
+
+    return {
+      data: categoriesWithValues,
+      error: null,
+    }
+  } catch (error) {
+    return { data: null, error: error as Error }
+  }
 }
