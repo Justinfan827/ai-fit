@@ -1,8 +1,10 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { createServerClient } from "@/lib/supabase/create-server-client"
 import type { DBClient } from "@/lib/supabase/types"
+import type { Maybe } from "@/lib/types/types"
 import { withAuthInput } from "./middleware/withAuth"
 
 // Base schemas for common fields
@@ -228,7 +230,7 @@ export const manageCategoriesAction = withAuthInput(
   {
     schema: manageCategoriesSchema,
   },
-  async ({ input, user }) => {
+  async ({ input, user }): Promise<Maybe<{ success: boolean }>> => {
     const supabase = await createServerClient()
 
     // Process each category in parallel
@@ -238,6 +240,7 @@ export const manageCategoriesAction = withAuthInput(
       )
     )
 
-    return { success: true }
+    revalidatePath("/home/settings/exercises/categories")
+    return { data: { success: true }, error: null }
   }
 )
