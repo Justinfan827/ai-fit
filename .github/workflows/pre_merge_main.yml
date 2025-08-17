@@ -1,0 +1,77 @@
+name: Pre-Merge Checks
+
+on:
+  pull_request:
+    branches:
+      - '**'
+
+# Add concurrency configuration to cancel in-flight jobs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Run Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run linting
+        run: pnpm lint
+
+  types:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run type checking
+        run: pnpm check-types
+
+  # format:
+  #   name: Check Formatting
+  #   runs-on: ubuntu-22.04-8core
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup Biome
+  #       uses: biomejs/setup-biome@v2
+  #       with:
+  #         version: latest
+  #     - name: Run Biome
+  #       run: biome ci .
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    # needs: [lint, types, format]
+    needs: [lint, types]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run tests
+        run: pnpm test
