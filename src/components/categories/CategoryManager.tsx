@@ -5,6 +5,7 @@ import { Edit2, Plus, Save, Trash2, X } from "lucide-react"
 import { useState, useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
+import { v4 as uuidv4 } from "uuid"
 import { z } from "zod"
 import {
   type CategoryOperation,
@@ -82,8 +83,6 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const [isPending, startTransition] = useTransition()
   const [isEditing, setIsEditing] = useState(false)
 
-  const generateTempId = () => `temp_${Date.now()}_${Math.random()}`
-
   // Initialize form with current categories
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categoriesFormSchema),
@@ -95,7 +94,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const categories = form.watch("categories")
 
   const handleAddCategory = () => {
-    const tempId = generateTempId()
+    const tempId = uuidv4()
     const newCategory: UICategory = {
       id: tempId,
       name: "",
@@ -126,7 +125,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   }
 
   const handleAddValue = (categoryId: string) => {
-    const tempId = generateTempId()
+    const tempId = uuidv4()
     const newValue: UICategoryValue = {
       id: tempId,
       name: "",

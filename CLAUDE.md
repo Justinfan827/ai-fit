@@ -19,51 +19,65 @@ pnpm check-types  # TypeScript type checking
 pnpm format:fix   # Format code with Prettier
 ```
 
+### Testing
+
+```bash
+pnpm test         # Run Vitest tests
+pnpm test:ui      # Run tests with UI
+pnpm test:run     # Run tests once (CI mode)
+```
+
 ### Database Operations
 
 ```bash
 pnpm staging-types  # Generate Supabase types from staging
 pnpm local-types    # Generate Supabase types from local
-pnpm openstudio     # Open Supabase Studio locally
-pnpm openemail      # Open local email service
-make reset-db       # Reset local database with seed data
+pnpm openstudio     # Open Supabase Studio locally (http://localhost:54323)
+pnpm openemail      # Open local email service (http://localhost:54324)
+make dev-fresh-db   # Reset local database with fresh seed data
+make dump-exercises # Dump exercises into local seed file
 ```
 
 ### Custom Tooling
 
 ```bash
 pnpm ctl           # Custom development CLI tool
+pnpm ctl-prod      # Production version of custom CLI tool
 ```
 
 ## Architecture
 
 ### Tech Stack
 
-- **Framework**: Next.js 15.3.3 with App Router
+- **Framework**: Next.js 15.4.4 with App Router and Turbopack
 - **Database**: Supabase (PostgreSQL) with type-safe operations
-- **AI**: OpenAI API for workout generation
+- **AI**: OpenAI API for workout generation (via @ai-sdk/openai)
 - **Styling**: Tailwind CSS + shadcn/ui (New York style)
 - **State**: Zustand stores + Server Actions
-- **Forms**: React Hook Form + Zod validation
-- **Auth**: Supabase Auth
+- **Forms**: React Hook Form + Zod validation with next-safe-action
+- **Auth**: Supabase Auth with SSR support
+- **Testing**: Vitest with UI testing capabilities
+- **UI**: Radix UI primitives + custom components
 
 ### Directory Structure
 
-- `app/` - Next.js App Router with route groups (`/home`, `/clients`, `/auth`)
-- `components/` - Reusable UI components using shadcn/ui
-- `lib/` - Utilities, database operations, AI logic
+- `src/app/` - Next.js App Router with route groups (`/home`, `/clients`, `/auth`)
+- `src/components/` - Reusable UI components using shadcn/ui
+- `src/lib/` - Core utilities, database operations, AI logic
+  - `supabase/` - Database client and server operations
+  - `ai/` - OpenAI integration and workout prompts
+  - `types/` - TypeScript type definitions
 - `supabase/` - Database schema, migrations, and seed data
-- `types/` - TypeScript type definitions
 
 ### Key Patterns
 
-**Database Layer**: All database operations use type-safe Supabase client with generated types. Server Actions handle mutations while Server Components fetch data directly.
+**Database Layer**: All database operations use type-safe Supabase client with generated types. Server Actions handle mutations while Server Components fetch data directly. Use `pnpm local-types` to regenerate types after schema changes.
 
 **AI Integration**: OpenAI calls are centralized in `lib/ai/` with structured prompts for fitness expertise. Workout generation considers client profiles, goals, and exercise preferences.
 
-**Component Architecture**: Uses shadcn/ui design system with custom components in `components/ui/`. Form components integrate React Hook Form with Zod validation schemas.
+**Component Architecture**: Uses shadcn/ui design system (New York style) with custom components in `components/ui/`. Form components integrate React Hook Form with Zod validation schemas and next-safe-action.
 
-**Routing**: App Router structure with dynamic segments `[clientId]`, `[programId]`, `[workoutId]` for nested resource management.
+**Routing**: App Router structure with dynamic segments `[clientId]`, `[programId]`, `[workoutId]` for nested resource management. Route groups organize different sections (`home/(sidebar)`, `clients/`, etc.).
 
 ## Important Files
 
@@ -118,9 +132,32 @@ npx supabase db reset  # Test locally
 
 ## Code Conventions
 
+### Core Principles
 - Use Server Actions for mutations, not API routes
 - Import server-only modules with `server-only` package
 - Follow shadcn/ui component patterns for consistency
 - Use Zod schemas for all form validation
 - Keep AI prompts in dedicated files for maintainability
 - Database queries use the generated types from Supabase
+
+### Component Development
+- Use `const` instead of `function` declarations for components
+- Event handlers should be prefixed with "handle" (e.g., `handleClick`, `handleKeyDown`)
+- Use descriptive variable and function names
+- Implement accessibility features on interactive elements
+- Use Tailwind classes exclusively for styling; avoid CSS or style tags
+- Use early returns to improve code readability
+
+### Accessibility Requirements
+- Add `tabindex="0"` to interactive non-button elements
+- Include `aria-label` attributes where appropriate
+- Pair `onClick` with `onKeyDown`/`onKeyUp` handlers
+- Accompany `onMouseOver`/`onMouseOut` with `onFocus`/`onBlur`
+- Ensure proper heading hierarchy and semantic HTML
+
+### TypeScript Standards
+- Define types for all component props and function parameters
+- Use `export type` for type-only exports
+- Avoid `any` type; use proper typing
+- Don't use TypeScript enums; prefer const objects or union types
+- Use `as const` for immutable data structures

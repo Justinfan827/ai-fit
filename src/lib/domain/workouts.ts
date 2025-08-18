@@ -1,11 +1,23 @@
 import { z } from "zod"
 
+export const categoryValuesSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+})
+
+export const categoriesSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  values: categoryValuesSchema,
+})
+
 // exercises that are stored in the DB
 export const exerciseSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string
   name: z.string(),
-  muscleGroup: z.string(),
   ownerId: z.string().uuid().nullable(),
+  description: z.string().optional(),
+  categories: z.array(categoriesSchema),
 })
 
 export const exercisesSchema = z.array(exerciseSchema)

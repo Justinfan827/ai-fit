@@ -233,7 +233,6 @@ export const manageCategoriesAction = withAuthInput(
   async ({ input, user }): Promise<Maybe<{ success: boolean }>> => {
     const supabase = await createServerClient()
 
-    // Process each category in parallel
     await Promise.all(
       input.categories.map((category) =>
         processCategory(supabase, category, user.userId)

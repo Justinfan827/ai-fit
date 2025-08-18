@@ -257,8 +257,8 @@ CREATE TABLE public.categories (
     deleted_at timestamp with time zone DEFAULT NULL
 );
 
--- Unique constraint: no duplicate categories per user
-ALTER TABLE ONLY public.categories ADD CONSTRAINT categories_name_user_unique UNIQUE (name, user_id);
+-- Unique constraint: no duplicate categories per user (only for non-deleted records)
+CREATE UNIQUE INDEX categories_name_user_unique ON public.categories (name, user_id) WHERE deleted_at IS NULL;
 
 -- ============================================================================
 -- CATEGORY VALUES TABLE
@@ -275,10 +275,8 @@ CREATE TABLE public.category_values (
     deleted_at timestamp with time zone DEFAULT NULL
 );
 
--- Unique constraint: no duplicate values per category
-ALTER TABLE ONLY public.category_values
-    ADD CONSTRAINT category_values_name_category_unique 
-    UNIQUE (name, category_id);
+-- Unique constraint: no duplicate values per category (only for non-deleted records)
+CREATE UNIQUE INDEX category_values_name_category_unique ON public.category_values (name, category_id) WHERE deleted_at IS NULL;
 
 -- ============================================================================
 -- EXERCISE CATEGORY ASSIGNMENTS TABLE
