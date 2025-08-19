@@ -156,7 +156,6 @@ export type Database = {
           name: string
           notes: string | null
           owner_id: string | null
-          tags: string | null
           video_url: string | null
         }
         Insert: {
@@ -165,7 +164,6 @@ export type Database = {
           name: string
           notes?: string | null
           owner_id?: string | null
-          tags?: string | null
           video_url?: string | null
         }
         Update: {
@@ -174,7 +172,6 @@ export type Database = {
           name?: string
           notes?: string | null
           owner_id?: string | null
-          tags?: string | null
           video_url?: string | null
         }
         Relationships: [

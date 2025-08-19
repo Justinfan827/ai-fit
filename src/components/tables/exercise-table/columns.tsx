@@ -59,34 +59,6 @@ export const columns = (
     enableHiding: false,
   },
   {
-    accessorKey: "muscleGroups",
-    header: ({ column }) => {
-      return (
-        <Button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          variant="ghost"
-        >
-          Muscle Groups
-          <ArrowUpDown />
-        </Button>
-      )
-    },
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("muscleGroups")}</div>
-    ),
-    filterFn: (row, id, value) => {
-      if (!value || value.length === 0) return true
-      const muscleGroups = row.getValue(id) as string[]
-      if (!muscleGroups || muscleGroups.length === 0) return false
-      // Return true if any of the selected muscle groups match any of the exercise's muscle groups
-      return value.some((selectedGroup: string) =>
-        muscleGroups.some((exerciseGroup: string) =>
-          exerciseGroup.toLowerCase().includes(selectedGroup.toLowerCase())
-        )
-      )
-    },
-  },
-  {
     //  invisible column, just needs to present for filtering to work.
     accessorKey: "isCustom",
     id: "isCustom",

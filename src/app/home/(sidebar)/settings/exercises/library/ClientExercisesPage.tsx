@@ -19,10 +19,8 @@ export function ClientExercisesPage({
     return allExercises.map((exercise) => ({
       id: exercise.id,
       name: exercise.name,
-      muscleGroups: [exercise.muscleGroup],
       isCustom: exercise.ownerId !== null,
       // TODO: Add these fields
-      tags: [],
       notes: "",
       imageURL: "",
       videoURL: "",

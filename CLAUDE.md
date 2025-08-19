@@ -34,15 +34,12 @@ pnpm staging-types  # Generate Supabase types from staging
 pnpm local-types    # Generate Supabase types from local
 pnpm openstudio     # Open Supabase Studio locally (http://localhost:54323)
 pnpm openemail      # Open local email service (http://localhost:54324)
-make dev-fresh-db   # Reset local database with fresh seed data
-make dump-exercises # Dump exercises into local seed file
 ```
 
 ### Custom Tooling
 
 ```bash
 pnpm ctl           # Custom development CLI tool
-pnpm ctl-prod      # Production version of custom CLI tool
 ```
 
 ## Architecture
@@ -57,11 +54,12 @@ pnpm ctl-prod      # Production version of custom CLI tool
 - **Forms**: React Hook Form + Zod validation with next-safe-action
 - **Auth**: Supabase Auth with SSR support
 - **Testing**: Vitest with UI testing capabilities
-- **UI**: Radix UI primitives + custom components
+- **UI**: shadcn/ui with Radix UI primitives + custom components
 
 ### Directory Structure
 
 - `src/app/` - Next.js App Router with route groups (`/home`, `/clients`, `/auth`)
+- `src/actions/` - React Server functions to handle API requests.
 - `src/components/` - Reusable UI components using shadcn/ui
 - `src/lib/` - Core utilities, database operations, AI logic
   - `supabase/` - Database client and server operations
@@ -71,45 +69,26 @@ pnpm ctl-prod      # Production version of custom CLI tool
 
 ### Key Patterns
 
-**Database Layer**: All database operations use type-safe Supabase client with generated types. Server Actions handle mutations while Server Components fetch data directly. Use `pnpm local-types` to regenerate types after schema changes.
+**Database Layer**: All database operations use type-safe Supabase client with generated types. Server Actions handle mutations while Server Components fetch data directly. Use `pnpm staging-types` to regenerate types after schema changes.
 
 **AI Integration**: OpenAI calls are centralized in `lib/ai/` with structured prompts for fitness expertise. Workout generation considers client profiles, goals, and exercise preferences.
 
-**Component Architecture**: Uses shadcn/ui design system (New York style) with custom components in `components/ui/`. Form components integrate React Hook Form with Zod validation schemas and next-safe-action.
+**Component Architecture**: Uses shadcn/ui design system (New York style) with custom components in `components/ui/`. Form components integrate React Hook Form with Zod validation schemas.
 
-**Routing**: App Router structure with dynamic segments `[clientId]`, `[programId]`, `[workoutId]` for nested resource management. Route groups organize different sections (`home/(sidebar)`, `clients/`, etc.).
+**Routing**: Next.js App router routing.
 
 ## Important Files
 
 ### Configuration
 
-- `next.config.js` - Security headers, PWA setup
+- `next.config.js` - Next.js configuration.
 - `tailwind.config.js` - Design tokens, custom animations
 - `components.json` - shadcn/ui configuration
-- `supabase/config.toml` - Local Supabase settings
-
-### Core Modules
-
-- `lib/supabase/` - Database client and server-side operations
-- `lib/ai/` - OpenAI integration and workout generation
-- `lib/stores/` - Zustand state management
-- `lib/validations/` - Zod schemas for forms and data
-
-### Database
-
-- `supabase/migrations/` - Database schema changes
-- `supabase/seed.sql` - Development data
-- Run `make reset-db` to reset local database with fresh seed data
 
 ## Development Workflows
 
-### Adding New Features
-
-1. Update database schema in `supabase/migrations/` if needed
-2. Regenerate types with `pnpm local-types`
-3. Create Zod schemas in `lib/validations/`
-4. Build Server Actions for mutations
-5. Create UI components following shadcn/ui patterns
+### Making a DB schema change
+1. Make changes to `20230727214151_db_schema_initial.sql`.
 
 ### Working with AI Features
 
@@ -133,6 +112,7 @@ npx supabase db reset  # Test locally
 ## Code Conventions
 
 ### Core Principles
+
 - Use Server Actions for mutations, not API routes
 - Import server-only modules with `server-only` package
 - Follow shadcn/ui component patterns for consistency
@@ -141,6 +121,7 @@ npx supabase db reset  # Test locally
 - Database queries use the generated types from Supabase
 
 ### Component Development
+
 - Use `const` instead of `function` declarations for components
 - Event handlers should be prefixed with "handle" (e.g., `handleClick`, `handleKeyDown`)
 - Use descriptive variable and function names
@@ -149,6 +130,7 @@ npx supabase db reset  # Test locally
 - Use early returns to improve code readability
 
 ### Accessibility Requirements
+
 - Add `tabindex="0"` to interactive non-button elements
 - Include `aria-label` attributes where appropriate
 - Pair `onClick` with `onKeyDown`/`onKeyUp` handlers
@@ -156,6 +138,7 @@ npx supabase db reset  # Test locally
 - Ensure proper heading hierarchy and semantic HTML
 
 ### TypeScript Standards
+
 - Define types for all component props and function parameters
 - Use `export type` for type-only exports
 - Avoid `any` type; use proper typing

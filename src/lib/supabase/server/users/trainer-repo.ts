@@ -27,10 +27,49 @@ const getCachedAllExercisesT = cache(
 
 async function getAllExercises(trainerId: string): Promise<Maybe<DBExercises>> {
   const sb = await createServerClient()
-  const [base, custom] = await Promise.all([
-    sb.from("exercises").select("*").is("owner_id", null),
-    sb.from("exercises").select("*").eq("owner_id", trainerId),
-  ])
+
+  // Query for base exercises with categories
+  const baseQuery = sb
+    .from("exercises")
+    .select(`
+      id,
+      name,
+      owner_id,
+      category_assignments (
+        category_values (
+          id,
+          name,
+          categories (
+            id,
+            name
+          )
+        )
+      )
+    `)
+    .is("owner_id", null)
+
+  // Query for custom exercises with categories
+  const customQuery = sb
+    .from("exercises")
+    .select(`
+      id,
+      name,
+      owner_id,
+      category_assignments (
+        category_values (
+          id,
+          name,
+          categories (
+            id,
+            name
+          )
+        )
+      )
+    `)
+    .eq("owner_id", trainerId)
+
+  const [base, custom] = await Promise.all([baseQuery, customQuery])
+
   if (base.error) {
     return {
       data: null,
@@ -44,18 +83,45 @@ async function getAllExercises(trainerId: string): Promise<Maybe<DBExercises>> {
     }
   }
 
-  const baseData = base.data.map((e) => ({
-    id: e.id,
-    name: e.name,
-    muscleGroup: e.primary_trained_colloquial || "",
-    ownerId: e.owner_id,
-  }))
-  const customData = custom.data.map((e) => ({
-    id: e.id,
-    name: e.name,
-    muscleGroup: e.primary_trained_colloquial || "",
-    ownerId: e.owner_id,
-  }))
+  // Transform the data to match exerciseSchema
+  const transformExerciseData = (exercises: any[]) => {
+    return exercises.map((e) => {
+      // Group category values by category
+      const categoriesMap = new Map()
+
+      e.category_assignments?.forEach((assignment: any) => {
+        const categoryValue = assignment.category_values
+        const category = categoryValue?.categories
+
+        if (category && categoryValue) {
+          if (!categoriesMap.has(category.id)) {
+            categoriesMap.set(category.id, {
+              id: category.id,
+              name: category.name,
+              values: [],
+            })
+          }
+          categoriesMap.get(category.id).values.push({
+            id: categoryValue.id,
+            name: categoryValue.name,
+          })
+        }
+      })
+
+      return {
+        id: e.id,
+        name: e.name,
+        ownerId: e.owner_id,
+        categories: Array.from(categoriesMap.values()),
+      }
+    })
+  }
+
+  const baseData = transformExerciseData(base.data)
+  const customData = transformExerciseData(custom.data)
+  console.log(customData)
+  console.log(baseData)
+
   return {
     data: {
       base: baseData,
@@ -74,7 +140,7 @@ async function createClient({
   trainerId: string
   newClient: { firstName: string; lastName: string; email: string }
 }) {
-  const sb = await createAdminClient()
+  const sb = createAdminClient()
   const { data, error } = await sb.auth.admin.createUser({
     email,
     password: email,

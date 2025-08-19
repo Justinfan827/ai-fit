@@ -7,7 +7,7 @@ import {
 import log from "@/lib/logger/logger"
 import { getError } from "@/lib/utils/util"
 import runUserCreation from "./cmd-create-user"
-import { seedExercises } from "./seed-exercises"
+import { seedExercises } from "./seed-platform-exercises"
 import { testExercises, testWorkouts } from "./testdata"
 import { errorLog, requireEnvVars, successLog } from "./utils"
 
@@ -95,7 +95,14 @@ program
   .action(async () => {
     const { SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_URL } =
       requireEnvVars("SUPABASE_SERVICE_ROLE_KEY", "NEXT_PUBLIC_SUPABASE_URL")
+
+    const userId = await input({ message: "User ID to seed exercises for?" })
+    if (!userId) {
+      errorLog("User ID is required")
+      process.exit(1)
+    }
     await seedExercises({
+      userId,
       supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY!,
       supabaseURL: NEXT_PUBLIC_SUPABASE_URL!,
     })

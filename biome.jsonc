@@ -11,6 +11,9 @@
     "rules": {
       "style": {
         "useBlockStatements": "off"
+      },
+      "suspicious": {
+        "noConsole": "off"
       }
     }
   }

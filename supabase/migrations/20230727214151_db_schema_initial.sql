@@ -225,10 +225,6 @@ CREATE TABLE public.exercises (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     name text NOT NULL,
     owner_id uuid,
-    -- Custom tags attached to the exercise. Comma separated list of tags.
-    -- Characterizes the properties of the exercise e.g.
-    -- "rehab", "compound", "isolated", "unilateral" etc.
-    tags text,
     -- Custom notes attached to the exercise.
     notes text,
     -- Video URL for the exercise.

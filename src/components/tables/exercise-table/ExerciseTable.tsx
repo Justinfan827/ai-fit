@@ -98,7 +98,7 @@ function ExerciseTableActionBar({
             value={searchValue}
           />
         </div>
-        <div className="z-10 hidden items-center gap-2 lg:flex">
+        {/* <div className="z-10 hidden items-center gap-2 lg:flex">
           <Label className="sr-only" htmlFor="muscle-group-filter">
             Muscle Groups
           </Label>
@@ -203,8 +203,8 @@ function ExerciseTableActionBar({
               </TagsList>
             </TagsContent>
           </Tags>
-        </div>
-        <div className="z-10 hidden items-center gap-2 lg:flex">
+        </div> */}
+        {/* <div className="z-10 hidden items-center gap-2 lg:flex">
           <Label className="sr-only" htmlFor="type-filter">
             Type
           </Label>
@@ -224,9 +224,9 @@ function ExerciseTableActionBar({
               <SelectItem value="base">Base</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
       </div>
-      <div className="z-10 flex items-center gap-2">
+      {/* <div className="z-10 flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button className="z-10 ml-auto" variant="outline">
@@ -253,7 +253,7 @@ function ExerciseTableActionBar({
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </div> */}
     </div>
   )
 }
