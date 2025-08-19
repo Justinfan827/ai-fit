@@ -1,4 +1,14 @@
+import z from "zod"
 import type { Program } from "./workouts"
+
+export const basicClientSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+})
+
+export type ClientBasic = z.infer<typeof basicClientSchema>
 
 export interface Client {
   id: string

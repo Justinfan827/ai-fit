@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ExerciseDetailsModal } from "@/components/forms/ExerciseDetailsModal"
+import { ExerciseDetailsSidesheet } from "@/components/forms/ExerciseDetailsSidesheet"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,18 +20,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import type { Exercise } from "@/lib/domain/workouts"
+import type { CategoryWithValues } from "@/lib/types/categories"
 import type { TableExercise } from "./types"
 
 interface Props {
   exercise: TableExercise
+  categories: CategoryWithValues[]
   onDelete: (exerciseId: string) => void
-  onExerciseUpdated?: () => void
+  onUpdate: (ex: TableExercise) => void
 }
 
 export function ExerciseActionDropdown({
   exercise,
+  categories,
   onDelete,
-  onExerciseUpdated,
+  onUpdate,
 }: Props) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
@@ -86,9 +90,10 @@ export function ExerciseActionDropdown({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <ExerciseDetailsModal
+      <ExerciseDetailsSidesheet
+        categories={categories}
         exercise={exercise}
-        onExerciseUpdated={onExerciseUpdated}
+        onExerciseUpdated={onUpdate}
         onOpenChange={setIsDetailsModalOpen}
         open={isDetailsModalOpen}
       />

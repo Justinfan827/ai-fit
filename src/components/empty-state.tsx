@@ -14,6 +14,7 @@ interface EmptyStateCardProps {
   buttonHref?: string
   buttonAction?: () => void
   isActionPending?: boolean
+  actionComponent?: ReactNode
 }
 
 interface EmptyStateTextProps {
@@ -36,6 +37,7 @@ function EmptyStateCard({
   buttonText,
   buttonHref,
   buttonAction,
+  actionComponent,
   isActionPending,
   className,
   ...props
@@ -75,6 +77,7 @@ function EmptyStateCard({
           {buttonText}
         </LoadingButton>
       )}
+      {actionComponent && actionComponent}
     </div>
   )
 }

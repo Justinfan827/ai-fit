@@ -77,6 +77,7 @@ export function ExerciseSelectionDialog({
               imageURL: "",
               videoURL: "",
             }))}
+            categories={[]}
             onDeleteExercise={() => {
               // No-op: deletion is not allowed in selection dialog
             }}

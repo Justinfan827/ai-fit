@@ -230,6 +230,15 @@ export async function getClientActiveProgram(): Promise<
   return resolveProgram(pData[0])
 }
 
+export const getCachedUserCategoriesT = cache(
+  async (): Promise<CategoryWithValues[]> => {
+    const { data, error } = await getUserCategories()
+    if (error) {
+      throw error
+    }
+    return data
+  }
+)
 export async function getUserCategories(): Promise<
   Maybe<CategoryWithValues[]>
 > {
@@ -239,49 +248,57 @@ export async function getUserCategories(): Promise<
     return { data: null, error: getUserError }
   }
 
-  try {
-    // Get categories first using any cast to bypass type checking
-    const { data: categoriesData, error: categoriesError } = await client
-      .from("categories")
+  const { data: categoriesData, error: categoriesError } = await client
+    .from("categories")
+    .select("*")
+    .eq("user_id", user.userId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true })
+
+  if (categoriesError) {
+    return { data: null, error: categoriesError }
+  }
+
+  const categoriesWithValues: CategoryWithValues[] = []
+  const categories: Category[] = categoriesData || []
+  const valuesPromises = categories.map((category) =>
+    client
+      .from("category_values")
       .select("*")
-      .eq("user_id", user.userId)
+      .eq("category_id", category.id)
       .is("deleted_at", null)
       .order("created_at", { ascending: true })
+  )
 
-    if (categoriesError) {
-      return { data: null, error: categoriesError }
+  const valuesResults = await Promise.all(valuesPromises)
+
+  for (let i = 0; i < (categories || []).length; i++) {
+    const { data: values, error: valuesError } = valuesResults[i]
+    if (valuesError) {
+      return { data: null, error: valuesError }
     }
+    categoriesWithValues.push({
+      id: categories[i].id,
+      name: categories[i].name,
+      description: categories[i].description,
+      userId: categories[i].user_id,
+      createdAt: categories[i].created_at,
+      updatedAt: categories[i].updated_at,
+      deletedAt: categories[i].deleted_at,
+      values: (values || []).map((value) => ({
+        id: value.id,
+        categoryId: value.category_id,
+        name: value.name,
+        description: value.description,
+        createdAt: value.created_at,
+        updatedAt: value.updated_at,
+        deletedAt: value.deleted_at,
+      })),
+    })
+  }
 
-    // TODO: fix types here to use camelCase
-    const categoriesWithValues: CategoryWithValues[] = []
-    const categories: Category[] = categoriesData || []
-    const valuesPromises = categories.map((category) =>
-      client
-        .from("category_values")
-        .select("*")
-        .eq("category_id", category.id)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: true })
-    )
-
-    const valuesResults = await Promise.all(valuesPromises)
-
-    for (let i = 0; i < (categories || []).length; i++) {
-      const { data: values, error: valuesError } = valuesResults[i]
-      if (valuesError) {
-        return { data: null, error: valuesError }
-      }
-      categoriesWithValues.push({
-        ...categories[i],
-        values: values || [],
-      })
-    }
-
-    return {
-      data: categoriesWithValues,
-      error: null,
-    }
-  } catch (error) {
-    return { data: null, error: error as Error }
+  return {
+    data: categoriesWithValues,
+    error: null,
   }
 }

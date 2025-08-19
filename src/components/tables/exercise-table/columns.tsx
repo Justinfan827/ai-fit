@@ -1,13 +1,22 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import type { CategoryWithValues } from "@/lib/types/categories"
 import { ExerciseActionDropdown } from "./ExerciseActionDropdown"
 import { getFuzzyScore } from "./fuzzy-search"
 import type { TableExercise } from "./types"
 
-export const columns = (
+type ColumnProps = {
+  onUpdateExercise: (exercise: TableExercise) => void
   onDeleteExercise: (exerciseId: string) => void
-): ColumnDef<TableExercise>[] => [
+  categories: CategoryWithValues[]
+}
+
+export const columns = ({
+  onUpdateExercise,
+  onDeleteExercise,
+  categories = [],
+}: ColumnProps): ColumnDef<TableExercise>[] => [
   // TODO: support selection
   // {
   //   id: "select",
@@ -88,8 +97,10 @@ export const columns = (
     cell: ({ row }) => {
       return (
         <ExerciseActionDropdown
+          categories={categories}
           exercise={row.original}
           onDelete={onDeleteExercise}
+          onUpdate={onUpdateExercise}
         />
       )
     },

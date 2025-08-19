@@ -1,24 +1,14 @@
 import Link from "next/link"
-import ClientButtonNewClient from "@/components/ClientButtonNewClient"
 import { EmptyStateCard } from "@/components/empty-state"
-import Header from "@/components/header"
 import { Icons } from "@/components/icons"
-import { PageHeader } from "@/components/page-header"
-import { PageContent, PageLayout, PageSection } from "@/components/page-layout"
+import { PageLayout } from "@/components/page-layout"
 import { SiteHeader } from "@/components/site-header"
 import { Tp } from "@/components/typography"
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { getAllCurrentUserUnassignedPrograms } from "@/lib/supabase/server/database.operations.queries"
 import { getClientHomePageData } from "@/lib/supabase/server/users/trainer-repo"
 import { cn } from "@/lib/utils"
-import { AssignProgramSidesheet } from "./assign-program-sidesheet"
+import AssignProgramButton from "./assign-program-button"
 import { ClientDetailsPageSection } from "./details"
 
 export default async function ClientPage({
@@ -56,7 +46,6 @@ export default async function ClientPage({
         }
         right={
           <div className="flex gap-4">
-            <AssignProgramSidesheet clientId={clientId} programs={programs} />
             <Button asChild>
               <Link href={`/home/programs/generate?clientId=${clientId}`}>
                 New program
@@ -80,6 +69,9 @@ export default async function ClientPage({
           <Tp variant="h4">Assigned Programs</Tp>
           {clientData.programs.length === 0 ? (
             <EmptyStateCard
+              actionComponent={
+                <AssignProgramButton clientId={clientId} programs={programs} />
+              }
               buttonText="Assign program"
               className="w-full"
               subtitle="Assign a program to this client to help them reach their goals."

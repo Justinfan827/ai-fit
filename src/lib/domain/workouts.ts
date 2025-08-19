@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const categoryValuesSchema = z.object({
+export const categoryValueSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
 })
@@ -8,7 +8,7 @@ export const categoryValuesSchema = z.object({
 export const categoriesSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  values: categoryValuesSchema,
+  values: z.array(categoryValueSchema),
 })
 
 // exercises that are stored in the DB
@@ -16,7 +16,8 @@ export const exerciseSchema = z.object({
   id: z.string().uuid(), // Validates a UUID string
   name: z.string(),
   ownerId: z.string().uuid().nullable(),
-  description: z.string().optional(),
+  videoURL: z.string(),
+  description: z.string(),
   categories: z.array(categoriesSchema),
 })
 

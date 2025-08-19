@@ -1,11 +1,16 @@
 import { SiteHeader } from "@/components/site-header"
 import { getCachedAuthUserT } from "@/lib/supabase/server/auth-utils"
+import { getCachedUserCategoriesT } from "@/lib/supabase/server/database.operations.queries"
 import { getCachedAllExercisesT } from "@/lib/supabase/server/users/trainer-repo"
 import { ClientExercisesPage } from "./ClientExercisesPage"
 
 export default async function SettingsExercisesPage() {
   const authUser = await getCachedAuthUserT()
-  const exercises = getCachedAllExercisesT(authUser.userId)
+
+  // Fetch exercises and categories in parallel
+  const exercisesP = getCachedAllExercisesT(authUser.userId)
+  const categoriesP = getCachedUserCategoriesT()
+
   return (
     <>
       <SiteHeader left={"Exercises"} />
@@ -15,7 +20,10 @@ export default async function SettingsExercisesPage() {
         id="exercises content"
       >
         <div className="flex flex-col gap-4 bg-background pb-4 md:gap-6 md:px-4">
-          <ClientExercisesPage exercisesPromise={exercises} />
+          <ClientExercisesPage
+            categoriesPromise={categoriesP}
+            exercisesPromise={exercisesP}
+          />
         </div>
       </div>
     </>

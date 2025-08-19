@@ -1,5 +1,6 @@
 "use client"
 
+import { useTransition } from "react"
 import { toast } from "sonner"
 import { createClientAction } from "@/actions/create-client"
 import {
@@ -17,27 +18,22 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Icons } from "./icons"
+import LoadingButton from "./loading-button"
+import { useRouter } from "next/navigation"
 
 export default function ClientButtonNewClient() {
   const formName = "new-client-form"
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
 
-  const onSubmit = async (data: CreateClientFormType) => {
-    const { error } = await createClientAction(data)
-    if (error) {
-      return toast("Error", {
-        description: (
-          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-            <code className="text-white">{JSON.stringify(error, null, 2)}</code>
-          </pre>
-        ),
-      })
-    }
-    toast("You submitted", {
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
+  const onSubmit = (data: CreateClientFormType) => {
+    startTransition(async () => {
+      const { error, data: client } = await createClientAction(data)
+      if (error) {
+        toast.error("Something went wrong. Please try again later.")
+        return
+      }
+      router.push(`/home/clients/${client}`)
     })
   }
   return (
@@ -51,17 +47,17 @@ export default function ClientButtonNewClient() {
       <DialogContent className="sm:min-w-[500px]">
         <DialogHeader>
           <DialogTitle>New Client</DialogTitle>
-          <DialogDescription className="sr-only">
-            Add a new client
+          <DialogDescription className="">
+            Create a new client profile
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <NewClientForm formName={formName} onSubmit={onSubmit} />
         </div>
         <DialogFooter>
-          <Button form={formName} type="submit">
-            Create New Client
-          </Button>
+          <LoadingButton form={formName} isLoading={isPending} type="submit">
+            Create
+          </LoadingButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

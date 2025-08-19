@@ -49,15 +49,18 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import useDebouncedValue from "@/hooks/use-debounce"
+import type { CategoryWithValues } from "@/lib/types/categories"
 import { columns } from "./columns"
 import { fuzzyFilter } from "./fuzzy-search"
 import type { TableExercise } from "./types"
 
 type ExerciseTableActionBarProps = {
   data: TableExercise[]
+  categories: CategoryWithValues[]
   selectedRows: RowSelectionState
   onSelectionChange: (selectedIds: RowSelectionState) => void
   onDeleteExercise: (exerciseId: string) => void
+  onUpdateExercise: (exercise: TableExercise) => void
 }
 
 function ExerciseTableActionBar({
@@ -260,9 +263,11 @@ function ExerciseTableActionBar({
 
 export function ExerciseTable({
   data,
+  categories,
   selectedRows,
   onSelectionChange,
   onDeleteExercise,
+  onUpdateExercise,
 }: ExerciseTableActionBarProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -298,7 +303,7 @@ export function ExerciseTable({
   }
   const table = useReactTable({
     data,
-    columns: columns(onDeleteExercise),
+    columns: columns({ onDeleteExercise, categories, onUpdateExercise }),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,

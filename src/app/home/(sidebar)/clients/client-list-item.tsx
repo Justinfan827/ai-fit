@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useOptimistic, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { deleteClientAction } from "@/actions/delete-client"
+import ClientButtonNewClient from "@/components/ClientButtonNewClient"
 import { EmptyStateCard } from "@/components/empty-state"
 import { Icons } from "@/components/icons"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -60,8 +61,6 @@ export function ClientsList({ clients }: { clients: Client[] }) {
   if (optimisticClients.length === 0) {
     return (
       <EmptyStateCard
-        buttonHref="/home/clients/new"
-        buttonText="New Client"
         className="w-full"
         subtitle="Add a new client to get started with ai powered programming."
         title="Add a client"

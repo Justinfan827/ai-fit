@@ -2,7 +2,11 @@ import "server-only"
 
 import { cache } from "react"
 import { v4 as uuidv4 } from "uuid"
-import type { ClientDetail, ClientHomePage } from "@/lib/domain/clients"
+import type {
+  ClientBasic,
+  ClientDetail,
+  ClientHomePage,
+} from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
 import createAdminClient from "@/lib/supabase/create-admin-client"
 import type { Maybe } from "@/lib/types/types"
@@ -34,7 +38,9 @@ async function getAllExercises(trainerId: string): Promise<Maybe<DBExercises>> {
     .select(`
       id,
       name,
+      video_url,
       owner_id,
+      notes,
       category_assignments (
         category_values (
           id,
@@ -54,7 +60,9 @@ async function getAllExercises(trainerId: string): Promise<Maybe<DBExercises>> {
     .select(`
       id,
       name,
+      video_url,
       owner_id,
+      notes,
       category_assignments (
         category_values (
           id,
@@ -84,12 +92,12 @@ async function getAllExercises(trainerId: string): Promise<Maybe<DBExercises>> {
   }
 
   // Transform the data to match exerciseSchema
-  const transformExerciseData = (exercises: any[]) => {
-    return exercises.map((e) => {
+  const transformExerciseData = (exercises: any[]): Exercise[] => {
+    return exercises.map((e): Exercise => {
       // Group category values by category
       const categoriesMap = new Map()
 
-      e.category_assignments?.forEach((assignment: any) => {
+      for (const assignment of e.category_assignments) {
         const categoryValue = assignment.category_values
         const category = categoryValue?.categories
 
@@ -106,12 +114,14 @@ async function getAllExercises(trainerId: string): Promise<Maybe<DBExercises>> {
             name: categoryValue.name,
           })
         }
-      })
+      }
 
       return {
         id: e.id,
         name: e.name,
         ownerId: e.owner_id,
+        videoURL: e.video_url || "",
+        description: e.notes || "",
         categories: Array.from(categoriesMap.values()),
       }
     })
@@ -119,8 +129,6 @@ async function getAllExercises(trainerId: string): Promise<Maybe<DBExercises>> {
 
   const baseData = transformExerciseData(base.data)
   const customData = transformExerciseData(custom.data)
-  console.log(customData)
-  console.log(baseData)
 
   return {
     data: {
@@ -139,7 +147,7 @@ async function createClient({
 }: {
   trainerId: string
   newClient: { firstName: string; lastName: string; email: string }
-}) {
+}): Promise<Maybe<ClientBasic>> {
   const sb = createAdminClient()
   const { data, error } = await sb.auth.admin.createUser({
     email,
@@ -175,13 +183,10 @@ async function createClient({
   }
   return {
     data: {
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-        first_name: firstName,
-        last_name: lastName,
-        trainer_id: trainerId,
-      },
+      id: data.user.id,
+      email: data.user.email || "",
+      firstName,
+      lastName,
     },
     error: null,
   }

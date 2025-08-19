@@ -4,27 +4,23 @@ import { toast } from "sonner"
 import { deleteExerciseAction } from "@/actions/delete-exercise"
 import { ExerciseTable } from "@/components/tables/exercise-table/ExerciseTable"
 import type { TableExercise } from "@/components/tables/exercise-table/types"
-import logger from "@/lib/logger/logger"
+import { asTableExercise } from "@/components/tables/exercise-table/utils"
 import type { DBExercises } from "@/lib/supabase/server/users/trainer-repo"
+import type { CategoryWithValues } from "@/lib/types/categories"
 
 export function ClientExercisesPage({
   exercisesPromise,
+  categoriesPromise,
 }: {
   exercisesPromise: Promise<DBExercises>
+  categoriesPromise: Promise<CategoryWithValues[]>
 }) {
   const exercises = use(exercisesPromise)
+  const categories = use(categoriesPromise)
 
   const [baseExercises, setBaseExercises] = useState<TableExercise[]>(() => {
     const allExercises = exercises.base.concat(exercises.custom)
-    return allExercises.map((exercise) => ({
-      id: exercise.id,
-      name: exercise.name,
-      isCustom: exercise.ownerId !== null,
-      // TODO: Add these fields
-      notes: "",
-      imageURL: "",
-      videoURL: "",
-    }))
+    return allExercises.map((exercise) => asTableExercise(exercise))
   })
 
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({})
@@ -58,14 +54,20 @@ export function ClientExercisesPage({
     })
   }
 
+  const handleUpdateExercise = (exercise: TableExercise) => {
+    // update the row
+    setBaseExercises((prev) =>
+      prev.map((e) => (e.id === exercise.id ? exercise : e))
+    )
+  }
+
   return (
     <ExerciseTable
+      categories={categories}
       data={optimisticExercises}
       onDeleteExercise={handleDeleteExercise}
-      onSelectionChange={(newSelectedRows) => {
-        logger.info("onSelectionChange", newSelectedRows)
-        setSelectedRows(newSelectedRows)
-      }}
+      onSelectionChange={setSelectedRows}
+      onUpdateExercise={handleUpdateExercise}
       selectedRows={selectedRows}
     />
   )

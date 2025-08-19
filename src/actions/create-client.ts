@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import type { ClientBasic } from "@/lib/domain/clients"
 import { createClient } from "@/lib/supabase/server/users/trainer-repo"
 import { withAuthInput } from "./middleware/withAuth"
 
@@ -16,7 +17,7 @@ const schema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
 })
 
-export const createClientAction = withAuthInput(
+export const createClientAction = withAuthInput<z.infer<typeof schema>, ClientBasic>(
   {
     schema,
   },
@@ -26,15 +27,9 @@ export const createClientAction = withAuthInput(
       newClient: input,
     })
     if (error) {
-      return {
-        data: null,
-        error,
-      }
+      throw error
     }
-    revalidatePath("/home")
-    return {
-      data: userData,
-      error,
-    }
+    revalidatePath("/home/clients")
+    return userData
   }
 )
