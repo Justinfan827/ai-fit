@@ -1,34 +1,28 @@
-import { type CoreMessage, type DataStreamWriter, streamObject, tool } from "ai"
+import { streamObject, tool } from "ai"
 import { v4 as uuidv4 } from "uuid"
 import { z } from "zod"
-import type { Workouts } from "@/lib/domain/workouts"
 import { log } from "@/lib/logger/logger"
-import type { ContextItem } from "../prompts/context-schema"
 import { buildWorkoutModificationPrompt } from "../prompts/prompts"
 import { myProvider } from "../providers"
+import type { MyToolArgs } from "../ui-message-types"
 import { workoutChangeAISchema } from "./diff-schema"
-
-interface UpdateWorkoutProgramArgs {
-  contextItems: ContextItem[]
-  existingWorkouts: Workouts
-  dataStream: DataStreamWriter
-}
 
 export const updateWorkoutProgram = ({
   existingWorkouts,
   contextItems,
-  dataStream,
-}: UpdateWorkoutProgramArgs) => {
+  writer,
+}: MyToolArgs) => {
   return tool({
     description:
       "Take a text description of a change to the workout program and generate a structured diff of the change to apply to the workout program.",
-    parameters: z.object({
+    inputSchema: z.object({
       suggestedChangeText: z
         .string()
         .describe(
           "A text description of the change to make to the workout program."
         ),
     }),
+    outputSchema: z.string(),
     execute: async ({ suggestedChangeText }) => {
       const systemPrompt = buildWorkoutModificationPrompt(
         contextItems,
@@ -60,15 +54,16 @@ export const updateWorkoutProgram = ({
             log.error("Diff generation caught error:", diffParsed.error)
             continue
           }
-          // add a uuid to the diff
           const diffWithId = {
             ...diffParsed.data,
+            // add a uuid to the diff
             id: uuidv4().toString(),
           }
           log.consoleWithHeader("Suggested diff:", diffWithId)
-          dataStream.writeData({
-            type: "workout-diff",
-            content: diffWithId,
+          writer.write({
+            type: "data-diff",
+            transient: true,
+            data: diffWithId,
           })
         }
         log.consoleWithHeader("Finished elementStream iteration")

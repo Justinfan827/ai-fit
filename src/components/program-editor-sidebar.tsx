@@ -1,42 +1,41 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
+import { DefaultChatTransport } from "ai"
 import { Dumbbell, Plus, UserIcon, X } from "lucide-react"
+import { type ChangeEvent, type FormEvent, useState } from "react"
 import {
-  type ChangeEvent,
-  type ComponentProps,
-  type FormEvent,
-  useState,
-} from "react"
-import { Markdown } from "@/components/markdown"
+  PromptInput,
+  PromptInputButton,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputToolbar,
+  PromptInputTools,
+} from "@/components/ai-elements/prompt-input"
+import { Response } from "@/components/ai-elements/response"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
 } from "@/components/ui/sidebar"
-import { useZProgramWorkouts } from "@/hooks/zustand/program-editor-state"
+import {
+  useZEditorActions,
+  useZProgramWorkouts,
+} from "@/hooks/zustand/program-editor-state"
+import { workoutChangeSchema } from "@/lib/ai/tools/diff-schema"
+import type { MyUIMessage } from "@/lib/ai/ui-message-types"
 import type { ClientHomePage } from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
-import { cn } from "@/lib/utils"
+import log from "@/lib/logger/logger"
 import {
-  AIConversation,
-  AIConversationContent,
-  AIConversationScrollButton,
-} from "./ai/AIConversation"
-import {
-  AIInput,
-  AIInputButton,
-  AIInputSubmit,
-  AIInputTextarea,
-  AIInputToolbar,
-  AIInputTools,
-} from "./ai/AIInput"
-import { DataStreamHandler } from "./DataStreamHandler"
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from "./ai-elements/conversation"
+import { Message, MessageContent } from "./ai-elements/message"
 import { ExerciseSelectionDialog } from "./forms/ExerciseSelectionDialog"
 import { Icons } from "./icons"
-import { Avatar, AvatarFallback } from "./ui/avatar"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import {
@@ -86,29 +85,45 @@ export function ProgramEditorSidebar({
     ]
   })
 
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    status,
-    data: dataStream,
-  } = useChat({
-    api: "/api/chat",
-    body: {
-      contextItems: contextItems.map((item) => ({
-        type: item.type,
-        data:
-          item.type === "client"
-            ? item.data
-            : {
-                exercises: item.data,
-                title: item.label,
-              },
-      })),
-      workouts,
+  const [input, setInput] = useState("")
+
+  const { addProposedChanges } = useZEditorActions()
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (input.trim()) {
+      sendMessage({ text: input })
+      setInput("")
+    }
+  }
+
+  const { messages, status, sendMessage } = useChat<MyUIMessage>({
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      body: {
+        contextItems: contextItems.map((item) => ({
+          type: item.type,
+          data:
+            item.type === "client"
+              ? item.data
+              : {
+                  exercises: item.data,
+                  title: item.label,
+                },
+        })),
+        workouts,
+      },
+    }),
+    onData: ({ data, type }) => {
+      if (type === "data-diff") {
+        log.info("workout-diff", data)
+        const diffParsed = workoutChangeSchema.safeParse(data)
+        if (!diffParsed.success) {
+          log.error("Diff generation caught error:", diffParsed.error)
+          return
+        }
+        addProposedChanges([diffParsed.data])
+      }
     },
-    initialMessages: [],
   })
 
   const onAddContext = (payload: ContextAddPayload) => {
@@ -231,6 +246,7 @@ export function ProgramEditorSidebar({
       </Badge>
     )
   }
+  console.log("rendering", status, messages)
 
   return (
     <Sidebar
@@ -241,70 +257,48 @@ export function ProgramEditorSidebar({
     >
       <SidebarHeader />
       <SidebarContent className="flex flex-col">
-        <DataStreamHandler dataStream={dataStream} />
-        <AIConversation className="size-full">
-          <AIConversationContent className="space-y-4">
+        <Conversation>
+          <ConversationContent>
             {messages.map((message) => (
-              <div
-                className={cn(
-                  "flex gap-3",
-                  message.role === "user" ? "justify-end" : "justify-start"
-                )}
-                key={message.id}
-              >
-                {message.role === "assistant" && (
-                  <Avatar className="size-8 shrink-0">
-                    <AvatarFallback className="border border-input bg-primary-foreground text-primary">
-                      <Icons.sparkles className="size-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-
-                {message.role === "assistant" && (
-                  <div className="flex flex-col gap-2 text-primary text-sm leading-relaxed">
-                    {/* {status === "streaming" && (
-                      <div className="flex animate-pulse items-center gap-2 text-muted-foreground">
-                        <Icons.sparkles className="size-3" />
-                        <span>Thinking...</span>
-                      </div>
-                    )} */}
-                    {status === "streaming" && message.parts ? (
-                      // Handle streaming parts
-                      message.parts.map((part, index) => {
-                        if (part.type === "tool-invocation") {
-                          const toolInvocation = part.toolInvocation
+              <Message from={message.role} key={message.id}>
+                {message.parts.map((part) => {
+                  switch (part.type) {
+                    case "tool-updateWorkoutProgram":
+                      // New states for streaming and error handling
+                      switch (part.state) {
+                        case "input-streaming":
+                        case "input-available":
                           return (
                             <div
                               className="flex animate-pulse items-center gap-2 text-muted-foreground"
-                              key={`tool-${index}`}
+                              key={part.toolCallId}
                             >
                               <Icons.wrench className="size-3" />
-                              <span>Running {toolInvocation.toolName}...</span>
+                              <span>Updating program...</span>
                             </div>
                           )
-                        }
-                        if (part.type === "text") {
+                        case "output-error":
                           return (
-                            <Markdown key={`text-${index}`}>
-                              {part.text}
-                            </Markdown>
+                            <div key={part.toolCallId}>
+                              Error: {part.errorText}
+                            </div>
                           )
-                        }
-                        return null
-                      })
-                    ) : (
-                      <Markdown>{message.content}</Markdown>
-                    )}
-                  </div>
-                )}
-
-                {message.role === "user" && (
-                  <div className="ml-auto max-w-[80%] rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm leading-relaxed">
-                    {message.content}
-                  </div>
-                )}
-              </div>
+                        default:
+                          return null
+                      }
+                    case "text":
+                      return (
+                        <MessageContent>
+                          <Response key={message.id}>{part.text}</Response>
+                        </MessageContent>
+                      )
+                    default:
+                      return null
+                  }
+                })}
+              </Message>
             ))}
+
             {status === "submitted" && (
               <div className="rounded-lg px-3 py-2 text-sm">
                 <div className="flex animate-pulse items-center gap-2">
@@ -312,9 +306,92 @@ export function ProgramEditorSidebar({
                 </div>
               </div>
             )}
-          </AIConversationContent>
-          <AIConversationScrollButton />
-        </AIConversation>
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+        {/* <AIConversation className="size-full"> */}
+        {/*   <AIConversationContent className="space-y-4"> */}
+        {/*     {messages.map((message) => ( */}
+        {/*       <div */}
+        {/*         className={cn( */}
+        {/*           "flex gap-3", */}
+        {/*           message.role === "user" ? "justify-end" : "justify-start" */}
+        {/*         )} */}
+        {/*         key={message.id} */}
+        {/*       > */}
+        {/*         {message.role === "assistant" && ( */}
+        {/*           <Avatar className="size-8 shrink-0"> */}
+        {/*             <AvatarFallback className="border border-input bg-primary-foreground text-primary"> */}
+        {/*               <Icons.sparkles className="size-4" /> */}
+        {/*             </AvatarFallback> */}
+        {/*           </Avatar> */}
+        {/*         )} */}
+        {/**/}
+        {/*         {message.role === "assistant" && ( */}
+        {/*           <div className="flex flex-col gap-2 text-primary text-sm leading-relaxed"> */}
+        {/*             {message.parts.map((part) => { */}
+        {/*               switch (part.type) { */}
+        {/*                 case "tool-updateWorkoutProgram": */}
+        {/*                   // New states for streaming and error handling */}
+        {/*                   switch (part.state) { */}
+        {/*                     case "input-streaming": */}
+        {/*                     case "input-available": */}
+        {/*                       return ( */}
+        {/*                         <div */}
+        {/*                           className="flex animate-pulse items-center gap-2 text-muted-foreground" */}
+        {/*                           key={part.toolCallId} */}
+        {/*                         > */}
+        {/*                           <Icons.wrench className="size-3" /> */}
+        {/*                           <span>Running program update...</span> */}
+        {/*                         </div> */}
+        {/*                       ) */}
+        {/*                     case "output-available": */}
+        {/*                       return ( */}
+        {/*                         <div */}
+        {/*                           className="flex items-center gap-2 text-muted-foreground" */}
+        {/*                           key={part.toolCallId} */}
+        {/*                         > */}
+        {/*                           <Icons.wrench className="size-3" /> */}
+        {/*                           <span>Updates completed</span> */}
+        {/*                         </div> */}
+        {/*                       ) */}
+        {/*                     case "output-error": */}
+        {/*                       return ( */}
+        {/*                         <div key={part.toolCallId}> */}
+        {/*                           Error: {part.errorText} */}
+        {/*                         </div> */}
+        {/*                       ) */}
+        {/*                     default: */}
+        {/*                       return null */}
+        {/*                   } */}
+        {/*                 case "text": */}
+        {/*                   return ( */}
+        {/*                     <Markdown key={message.id}>{part.text}</Markdown> */}
+        {/*                   ) */}
+        {/*                 default: */}
+        {/*                   return null */}
+        {/*               } */}
+        {/*             })} */}
+        {/*           </div> */}
+        {/*         )} */}
+        {/**/}
+        {/*         {message.role === "user" && ( */}
+        {/*           <div className="ml-auto max-w-[80%] rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm leading-relaxed"> */}
+        {/*             {message.content} */}
+        {/*           </div> */}
+        {/*         )} */}
+        {/*       </div> */}
+        {/*     ))} */}
+        {/*     {status === "submitted" && ( */}
+        {/*       <div className="rounded-lg px-3 py-2 text-sm"> */}
+        {/*         <div className="flex animate-pulse items-center gap-2"> */}
+        {/*           <span className="text-muted-foreground">Thinking...</span> */}
+        {/*          </div> */}
+        {/*       </div> */}
+        {/*     )} */}
+        {/*   </AIConversationContent> */}
+        {/*   <AIConversationScrollButton /> */}
+        {/* </AIConversation> */}
       </SidebarContent>
       <SidebarFooter>
         <div className="space-y-3">
@@ -328,7 +405,7 @@ export function ProgramEditorSidebar({
           </div>
           <SidebarInput
             onAddContext={onAddContext}
-            onChange={handleInputChange}
+            onChange={(e) => setInput(e.target.value)}
             onSubmit={handleSubmit}
             state={{
               clients: availableClients,
@@ -375,15 +452,15 @@ function SidebarInput({
   value,
 }: SidebarInputProps) {
   return (
-    <AIInput onSubmit={onSubmit}>
-      <AIInputTextarea onChange={onChange} value={value} />
-      <AIInputToolbar>
-        <AIInputTools>
+    <PromptInput onSubmit={onSubmit}>
+      <PromptInputTextarea onChange={onChange} value={value} />
+      <PromptInputToolbar>
+        <PromptInputTools>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <AIInputButton>
+              <PromptInputButton>
                 <Plus className="size-4" />
-              </AIInputButton>
+              </PromptInputButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
               {state.clients.length > 0 && (
@@ -432,9 +509,9 @@ function SidebarInput({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </AIInputTools>
-        <AIInputSubmit disabled={!value} status="ready" />
-      </AIInputToolbar>
-    </AIInput>
+        </PromptInputTools>
+        <PromptInputSubmit disabled={!value} status="ready" />
+      </PromptInputToolbar>
+    </PromptInput>
   )
 }

@@ -1,9 +1,24 @@
 import { openai } from "@ai-sdk/openai"
-import { customProvider } from "ai"
+import {
+  customProvider,
+  defaultSettingsMiddleware,
+  wrapLanguageModel,
+} from "ai"
 
 export const myProvider = customProvider({
   languageModels: {
-    "chat-model": openai("gpt-4o"),
+    "chat-model": wrapLanguageModel({
+      model: openai("gpt-4o"),
+      middleware: defaultSettingsMiddleware({
+        settings: {
+          providerOptions: {
+            openai: {
+              // reasoningEffort: "high",
+            },
+          },
+        },
+      }),
+    }),
     // 'chat-model-reasoning': wrapLanguageModel({
     //   model: openai('gpt-4o-mini'),
     //   middleware: extractReasoningMiddleware({ tagName: 'think' }),
