@@ -32,6 +32,7 @@ import type {
   ExerciseSelection,
   GridChange,
   Position,
+  RowDeletion,
 } from "./workout-grid-types"
 import {
   applyIncrementalChange,
@@ -98,8 +99,8 @@ function DebugWorkoutJSON({ workout }: { workout: Workout }) {
 
 function WorkoutGridHeaderRow({ columns }: { columns: Column[] }) {
   return (
-    <div className="flex w-full" id="headers">
-      <div className="ml-[48px] flex px-2" id="dummy-action-menu" />
+    <div className="flex w-full pl-[var(--action-menu-padding)]" id="headers">
+      <div className="flex" id="dummy-action-menu" />
       {columns.map((col, idx) => {
         return (
           <div
@@ -465,6 +466,41 @@ function WorkoutGridRows({
     onWorkoutChange(updatedWorkout)
     setActiveCell({ row: rowIndex + 1, col: colIndex })
   }
+  const handleDeleteRow = (rowIndex: number) => {
+    const currentCell = grid[rowIndex]?.[0]
+    if (!currentCell || currentCell.originalBlockIndex === undefined) {
+      log.error("Cannot delete row: invalid cell or missing block index", {
+        rowIndex,
+        currentCell,
+      })
+      return
+    }
+
+    const blockIndex = currentCell.originalBlockIndex
+
+    // Determine what type of deletion this is
+    if (
+      currentCell.isCircuitExercise &&
+      currentCell.exerciseIndexInCircuit !== undefined
+    ) {
+      // Deleting an exercise within a circuit
+      const change: RowDeletion = {
+        type: "row-deletion",
+        cell: currentCell,
+        blockIndex,
+        exerciseIndexInCircuit: currentCell.exerciseIndexInCircuit,
+      }
+      handleGridChange(change)
+    } else {
+      // Deleting an entire block (either standalone exercise or entire circuit)
+      const change: RowDeletion = {
+        type: "row-deletion",
+        cell: currentCell,
+        blockIndex,
+      }
+      handleGridChange(change)
+    }
+  }
 
   const handleAddRow = (
     rowIndex: number,
@@ -508,6 +544,7 @@ function WorkoutGridRows({
             grid={grid}
             gridRefs={gridRefs}
             handleAddRow={handleAddRow}
+            handleDeleteRow={handleDeleteRow}
             handleInputChange={handleInputChange}
             handleKeyDown={handleKeyDown}
             handleOnSelectExercise={handleOnSelectExercise}
@@ -542,6 +579,7 @@ type GridRowProps = {
     colIndex: number,
     type: "exercise" | "circuit" | "exercise-in-circuit"
   ) => void
+  handleDeleteRow: (rowIndex: number) => void
   handleOnSelectExercise: (exercise: Exercise, row: number, col: number) => void
   handleInputChange: (
     e: ChangeEvent<HTMLInputElement>,
@@ -565,6 +603,7 @@ type RowActionBarProps = {
   rowIndex: number
   openDropdownRow: number | null
   handleProposalAction: (rowIndex: number, action: "accept" | "reject") => void
+  handleDeleteRow: (rowIndex: number) => void
   handleAddRow: (
     rowIndex: number,
     colIndex: number,
@@ -572,6 +611,19 @@ type RowActionBarProps = {
   ) => void
   handleOnSelectExercise: (exercise: Exercise, row: number, col: number) => void
   setOpenDropdownRow: (row: number | null) => void
+}
+
+function DeleteRowButton({ onDeleteRow }: { onDeleteRow: () => void }) {
+  return (
+    <Button
+      className="h-6 w-6 cursor-pointer text-red-400 opacity-0 transition-opacity ease-in-out hover:text-red-300 focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
+      onClick={onDeleteRow}
+      size="icon"
+      variant="ghost"
+    >
+      <Icons.x className="h-4 w-4" />
+    </Button>
+  )
 }
 
 /*
@@ -584,6 +636,7 @@ function RowActionBar({
   handleProposalAction,
   setOpenDropdownRow,
   handleAddRow,
+  handleDeleteRow,
 }: RowActionBarProps) {
   // Helper function to get color class based on proposed change type
   const getProposedChangeColorClass = (changeType?: string) => {
@@ -643,8 +696,8 @@ function RowActionBar({
     }
 
     return (
-      <>
-        <div className="h-6 w-6" />
+      <div className="flex items-center gap-2">
+        <DeleteRowButton onDeleteRow={() => handleDeleteRow(rowIndex)} />
         <AddRowDropdown
           isInCircuit={
             firstCell?.isCircuitHeader || firstCell?.isCircuitExercise
@@ -652,7 +705,7 @@ function RowActionBar({
           onAddRow={(type) => handleAddRow(rowIndex, 0, type)}
           onOpenChange={(open) => setOpenDropdownRow(open ? rowIndex : null)}
         />
-      </>
+      </div>
     )
   }
 
@@ -682,6 +735,7 @@ function WorkoutGridRow({
   rowIndex,
   openDropdownRow,
   handleAddRow,
+  handleDeleteRow,
   handleOnSelectExercise,
   handleInputChange,
   handleProposalAction,
@@ -699,6 +753,7 @@ function WorkoutGridRow({
     <div className="group flex h-9 w-full" key={`row-${rowIndex}`}>
       <RowActionBar
         handleAddRow={handleAddRow}
+        handleDeleteRow={handleDeleteRow}
         handleOnSelectExercise={handleOnSelectExercise}
         handleProposalAction={handleProposalAction}
         openDropdownRow={openDropdownRow}

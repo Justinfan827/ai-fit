@@ -63,7 +63,14 @@ export interface ExerciseSelection {
   }
 }
 
-export type GridChange = CellChange | ExerciseSelection
+export interface RowDeletion {
+  type: "row-deletion"
+  cell: Cell
+  blockIndex: number
+  exerciseIndexInCircuit?: number
+}
+
+export type GridChange = CellChange | ExerciseSelection | RowDeletion
 //#endregion
 
 //#region Type guards
@@ -75,5 +82,9 @@ export function isExerciseSelection(
 
 export function isCellChange(change: GridChange): change is CellChange {
   return change.type === "cell"
+}
+
+export function isRowDeletion(change: GridChange): change is RowDeletion {
+  return change.type === "row-deletion"
 }
 //#endregion

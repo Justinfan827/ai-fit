@@ -6,7 +6,7 @@ import type { DBClient } from "@/lib/supabase/types"
 
 interface Exercise {
   name: string
-  muscleGroup: string
+  muscleGroups: string[]
 }
 
 function parseExercisesCSV(filePath: string): {
@@ -19,7 +19,7 @@ function parseExercisesCSV(filePath: string): {
   // Skip header row
   const dataLines = lines.slice(1)
 
-  const exercises: Exercise[] = []
+  const exerciseMap = new Map<string, Set<string>>()
   const muscleGroups = new Set<string>()
 
   for (const line of dataLines) {
@@ -28,13 +28,22 @@ function parseExercisesCSV(filePath: string): {
     const [muscleGroup, exerciseName] = line.split(",").map((s) => s.trim())
 
     if (muscleGroup && exerciseName) {
-      exercises.push({
-        name: exerciseName,
-        muscleGroup,
-      })
+      // Group exercises by name and collect muscle groups
+      if (!exerciseMap.has(exerciseName)) {
+        exerciseMap.set(exerciseName, new Set())
+      }
+      exerciseMap.get(exerciseName)?.add(muscleGroup)
       muscleGroups.add(muscleGroup)
     }
   }
+
+  // Convert to Exercise array
+  const exercises: Exercise[] = Array.from(exerciseMap.entries()).map(
+    ([name, muscleGroupSet]) => ({
+      name,
+      muscleGroups: Array.from(muscleGroupSet),
+    })
+  )
 
   return { exercises, muscleGroups }
 }
@@ -131,14 +140,15 @@ async function insertCategoryValues(
 
   console.log(
     `Inserted ${data.length} new muscle group values:`,
-    data.map((v: any) => v.name)
+    data.map((v) => v.name)
   )
   return data
 }
 
 async function insertExercises(
-  supabase: any,
+  supabase: DBClient,
   exercises: Exercise[],
+  ownerId: string,
   categoryId: string
 ) {
   console.log("Inserting exercises...")
@@ -157,7 +167,7 @@ async function insertExercises(
   }
 
   const muscleGroupMap = new Map(
-    categoryValuesData.map((cv: any) => [cv.name, cv.id])
+    categoryValuesData.map((cv) => [cv.name, cv.id] as [string, string])
   )
 
   // Check which exercises already exist
@@ -171,7 +181,7 @@ async function insertExercises(
   }
 
   const existingNames = new Set(
-    existingExercises?.map((e: any) => e.name) || []
+    existingExercises?.map((e) => e.name as string) || []
   )
   const newExercises = exercises.filter(
     (exercise) => !existingNames.has(exercise.name)
@@ -180,7 +190,11 @@ async function insertExercises(
   if (newExercises.length === 0) {
     console.log("All exercises already exist")
     // Still need to create category assignments for existing exercises that might not have them
-    await createCategoryAssignments(supabase, exercises, muscleGroupMap)
+    await createCategoryAssignments(
+      supabase,
+      exercises,
+      muscleGroupMap as Map<string, string>
+    )
     return
   }
 
@@ -190,8 +204,8 @@ async function insertExercises(
     .insert(
       newExercises.map((exercise) => ({
         name: exercise.name,
-        owner_id: null, // Platform exercises have null owner_id
-        notes: `Exercise targeting ${exercise.muscleGroup}`,
+        owner_id: ownerId,
+        notes: `Exercise targeting ${exercise.muscleGroups.join(", ")}`,
       }))
     )
     .select()
@@ -204,11 +218,44 @@ async function insertExercises(
   console.log(`Inserted ${insertedExercises.length} new exercises`)
 
   // Create category assignments for new exercises
-  await createCategoryAssignments(supabase, newExercises, muscleGroupMap)
+  await createCategoryAssignments(
+    supabase,
+    newExercises,
+    muscleGroupMap as Map<string, string>
+  )
+}
+
+function createAssignmentsFromExercises(
+  exercises: Exercise[],
+  exerciseMap: Map<string, string>,
+  muscleGroupMap: Map<string, string>
+): Array<{ exercise_id: string; category_value_id: string }> {
+  const assignments: Array<{ exercise_id: string; category_value_id: string }> =
+    []
+
+  for (const exercise of exercises) {
+    const exerciseId = exerciseMap.get(exercise.name)
+
+    if (exerciseId) {
+      // Create an assignment for each muscle group this exercise targets
+      for (const muscleGroup of exercise.muscleGroups) {
+        const categoryValueId = muscleGroupMap.get(muscleGroup)
+
+        if (categoryValueId) {
+          assignments.push({
+            exercise_id: exerciseId,
+            category_value_id: categoryValueId,
+          })
+        }
+      }
+    }
+  }
+
+  return assignments
 }
 
 async function createCategoryAssignments(
-  supabase: any,
+  supabase: DBClient,
   exercises: Exercise[],
   muscleGroupMap: Map<string, string>
 ) {
@@ -226,21 +273,16 @@ async function createCategoryAssignments(
     return
   }
 
-  const exerciseMap = new Map(exercisesData.map((e: any) => [e.name, e.id]))
+  const exerciseMap = new Map(
+    exercisesData.map((e) => [e.name, e.id] as [string, string])
+  )
 
   // Create category assignments
-  const assignments = []
-  for (const exercise of exercises) {
-    const exerciseId = exerciseMap.get(exercise.name)
-    const categoryValueId = muscleGroupMap.get(exercise.muscleGroup)
-
-    if (exerciseId && categoryValueId) {
-      assignments.push({
-        exercise_id: exerciseId,
-        category_value_id: categoryValueId,
-      })
-    }
-  }
+  const assignments = createAssignmentsFromExercises(
+    exercises,
+    exerciseMap,
+    muscleGroupMap
+  )
 
   if (assignments.length === 0) {
     console.log("No category assignments to create")
@@ -265,7 +307,7 @@ async function createCategoryAssignments(
 
   const existingSet = new Set(
     existingAssignments?.map(
-      (a: any) => `${a.exercise_id}-${a.category_value_id}`
+      (a) => `${a.exercise_id}-${a.category_value_id}`
     ) || []
   )
 
@@ -332,7 +374,7 @@ async function seedExercises({
     await insertCategoryValues(supabase, categoryId, muscleGroups)
 
     // Step 3: Insert exercises and create category assignments
-    await insertExercises(supabase, exercises, categoryId)
+    await insertExercises(supabase, exercises, userId, categoryId)
 
     console.log("✅ Successfully seeded exercises with categories!")
   } catch (error) {

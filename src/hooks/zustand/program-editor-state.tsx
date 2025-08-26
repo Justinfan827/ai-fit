@@ -399,6 +399,7 @@ const EditorProgramProvider = ({
           const result = fuse.search(query, {
             limit: 10,
           })
+          console.log({ result })
           return result.map((r) => r.item)
         },
         applyPendingProposalById: (proposalId: string) => {

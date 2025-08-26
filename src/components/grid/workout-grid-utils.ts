@@ -6,7 +6,11 @@ import type {
 import { cn } from "@/lib/utils"
 import type { Column } from "./columns"
 import type { Cell, GridChange } from "./workout-grid-types"
-import { isCellChange, isExerciseSelection } from "./workout-grid-types"
+import {
+  isCellChange,
+  isExerciseSelection,
+  isRowDeletion,
+} from "./workout-grid-types"
 
 /**
  * Compute convenience boolean flags for a given grid cell.
@@ -240,7 +244,7 @@ function getValueFromCircuitBlock(block: CircuitBlock, field: string): string {
 }
 
 /**
- * Apply a granular cell/exercise-selection change to the Workout object.
+ * Apply a granular cell/exercise-selection/row-deletion change to the Workout object.
  */
 export function applyIncrementalChange(
   change: GridChange,
@@ -249,8 +253,38 @@ export function applyIncrementalChange(
   const cell = change.cell
   if (!cell) return workout
 
+  // Handle row deletion
+  if (isRowDeletion(change)) {
+    const newBlocks = [...workout.blocks]
+    const blockIndex = change.blockIndex
+
+    if (change.exerciseIndexInCircuit !== undefined) {
+      // Deleting an exercise within a circuit
+      const circuitBlock = newBlocks[blockIndex]
+      if (circuitBlock?.type === "circuit") {
+        const updatedCircuitBlock = {
+          ...circuitBlock,
+          circuit: {
+            ...circuitBlock.circuit,
+            exercises: circuitBlock.circuit.exercises.filter(
+              (_, index) => index !== change.exerciseIndexInCircuit
+            ),
+          },
+        }
+        newBlocks[blockIndex] = updatedCircuitBlock
+      }
+    } else {
+      // Deleting an entire block (exercise or circuit)
+      newBlocks.splice(blockIndex, 1)
+    }
+
+    return { ...workout, blocks: newBlocks }
+  }
+
   const newBlocks = [...workout.blocks]
-  const originalBlockIndex = cell.originalBlockIndex!
+  const originalBlockIndex = cell.originalBlockIndex
+  if (originalBlockIndex === undefined) return workout
+
   const blockToUpdate = newBlocks[originalBlockIndex]
   if (!blockToUpdate) return workout
 

@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 
 interface AddRowDropdownProps {
   onAddRow: (type: "exercise" | "circuit" | "exercise-in-circuit") => void
@@ -31,9 +32,10 @@ export default function AddRowDropdown({
     <DropdownMenu onOpenChange={handleOpenChange} open={isOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          className={`h-6 w-6 cursor-pointer text-accent-foreground transition-opacity ease-in-out focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 ${
+          className={cn(
+            "h-6 w-6 cursor-pointer text-accent-foreground transition-opacity ease-in-out focus:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100",
             isOpen ? "opacity-100" : "opacity-0"
-          }`}
+          )}
           size="icon"
           variant="ghost"
         >

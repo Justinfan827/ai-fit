@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from "uuid"
 import EditableTypography from "@/components/EditableTypeography"
 import { defaultBlocks, defaultColumns } from "@/components/grid/columns"
 import { Icons } from "@/components/icons"
-import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import apiCreateProgram from "@/fetches/create-program"
 import apiEditProgram from "@/fetches/edit-program"
@@ -211,114 +210,125 @@ export default function ProgramEditor() {
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
             return (
               <div
-                className="min-w-[1200px] pr-4"
-                id="workout-ui"
+                className="min-w-[1200px] space-y-4 pr-4 [--action-menu-padding:--spacing(18)]"
+                id="program-ui"
                 key={`by-week-workout-${weekIdx}`}
               >
-                <div className="gap-4">
-                  <div className="ml-16 flex items-center justify-between gap-4 pr-[52px] pb-3">
-                    {programType === "weekly" && (
-                      <Badge
-                        className="font-light text-muted-foreground text-xs uppercase tracking-widest"
-                        variant="outline"
-                      >
-                        Week {weekIdx + 1}
-                      </Badge>
-                    )}
-                    {programType === "weekly" && (
-                      <div className="flex items-center" id="action menu">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              className="h-8 w-8 text-accent-foreground/50 hover:text-accent-foreground"
-                              onClick={() => handleDuplicateWeek(weekIdx)}
-                              size="icon"
-                              variant="ghost"
-                            >
-                              <Icons.copy className="h-5 w-5" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Duplicate Week</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                    )}
-                  </div>
-                  <div className="w-full grow space-y-8" id="workouts-data">
-                    {weeksWorkouts.map((workout, workoutIdx) => {
-                      return (
-                        <div className="flex gap-4" key={workout.id}>
-                          <div className="grow space-y-4">
-                            <div className="ml-[64px] flex items-center justify-between">
-                              <EditableTypography
-                                onChange={(value) => {
-                                  const newWorkouts = workouts.map((w) => {
-                                    if (w.id === workout.id) {
-                                      return {
-                                        ...w,
-                                        name: value,
-                                      }
-                                    }
-                                    return w
-                                  })
-                                  setWorkouts(newWorkouts)
-                                }}
-                                value={workout.name}
-                              />
-                              <div
-                                className="flex items-center justify-center pl-2"
-                                id="action menu"
-                              >
-                                {workoutIdx === 0 && weekIdx === 0 ? null : (
-                                  <Button
-                                    className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
-                                    onClick={() => handleDeletion(workout.id)}
-                                    size="icon"
-                                    variant="ghost"
-                                  >
-                                    <Icons.x className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                            <WorkoutGrid
-                              columns={defaultColumns}
-                              onProposalAction={handleProposalAction}
-                              onWorkoutChange={(updatedWorkout) => {
-                                // Update the workout in the workouts array
-                                const updatedWorkouts = workouts.map((w) => {
+                {/* TODO: support weekly programs */}
+                <div
+                  className="flex items-center justify-between gap-4 pr-[52px] pb-3"
+                  id="program-ui-header"
+                >
+                  {programType === "weekly" && (
+                    <Badge
+                      className="font-light text-muted-foreground text-xs uppercase tracking-widest"
+                      variant="outline"
+                    >
+                      Week {weekIdx + 1}
+                    </Badge>
+                  )}
+                  {programType === "weekly" && (
+                    <div className="flex items-center" id="action menu">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            className="h-8 w-8 text-accent-foreground/50 hover:text-accent-foreground"
+                            onClick={() => handleDuplicateWeek(weekIdx)}
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <Icons.copy className="h-5 w-5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Duplicate Week</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  )}
+                </div>
+                <div
+                  className="w-full grow space-y-8"
+                  id="program-grid-container"
+                >
+                  {weeksWorkouts.map((workout, workoutIdx) => {
+                    return (
+                      <div className="flex gap-4" key={workout.id}>
+                        <div className="grow space-y-4">
+                          <div
+                            className="ml-[var(--action-menu-padding)] flex items-center justify-between"
+                            id="workout-header"
+                          >
+                            <EditableTypography
+                              onChange={(value) => {
+                                const newWorkouts = workouts.map((w) => {
                                   if (w.id === workout.id) {
-                                    return updatedWorkout
+                                    return {
+                                      ...w,
+                                      name: value,
+                                    }
                                   }
                                   return w
                                 })
-                                setWorkouts(updatedWorkouts)
+                                setWorkouts(newWorkouts)
                               }}
-                              workout={workout}
+                              value={workout.name}
                             />
-                          </div>
-                          {programType === "weekly" && (
-                            <div className="mt-[48px] flex flex-col items-stretch">
-                              <Button
-                                className="grow font-normal text-sm"
-                                id="next-week-workout-btn"
-                                onClick={() =>
-                                  addNewWorkoutToWeek({ week: weekIdx + 1 })
-                                }
-                                size="icon"
-                                variant="dashed"
-                              >
-                                <Icons.plus className="h-4 w-4 rounded-full" />
-                              </Button>
+                            <div
+                              className="flex items-center justify-center pl-2"
+                              id="workout-action-bar"
+                            >
+                              {workoutIdx === 0 && weekIdx === 0 ? null : (
+                                <Button
+                                  className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
+                                  onClick={() => handleDeletion(workout.id)}
+                                  size="icon"
+                                  variant="ghost"
+                                >
+                                  <Icons.x className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
-                          )}
+                          </div>
+                          <WorkoutGrid
+                            columns={defaultColumns}
+                            onProposalAction={handleProposalAction}
+                            onWorkoutChange={(updatedWorkout) => {
+                              // Update the workout in the workouts array
+                              const updatedWorkouts = workouts.map((w) => {
+                                if (w.id === workout.id) {
+                                  return updatedWorkout
+                                }
+                                return w
+                              })
+                              setWorkouts(updatedWorkouts)
+                            }}
+                            workout={workout}
+                          />
                         </div>
-                      )
-                    })}
-                  </div>
+                        {programType === "weekly" && (
+                          <div className="mt-[48px] flex flex-col items-stretch">
+                            <Button
+                              className="grow font-normal text-sm"
+                              id="next-week-workout-btn"
+                              onClick={() =>
+                                addNewWorkoutToWeek({ week: weekIdx + 1 })
+                              }
+                              size="icon"
+                              variant="dashed"
+                            >
+                              <Icons.plus className="h-4 w-4 rounded-full" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-                <div className="flex w-full items-center justify-end pt-4">
+                <div
+                  className="flex w-full items-center justify-start pt-4 pl-[var(--action-menu-padding)]"
+                  id="program-ui-add-workout-button"
+                >
                   <PlusButton
                     onClick={() => addNewWorkoutToWeek({ week: weekIdx })}
                     text="Add Workout"

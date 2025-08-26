@@ -33,6 +33,7 @@ export default async function Page({
     getCachedProgramByIdT(programid),
   ])
 
+  const allExercises = exercises.custom.concat(exercises.base)
   return (
     <SidebarProvider
       className="isolate flex flex-col"
@@ -43,10 +44,7 @@ export default async function Page({
         } as React.CSSProperties
       }
     >
-      <EditorProgramProvider
-        exercises={exercises.custom.concat(exercises.base)}
-        initialProgram={program}
-      >
+      <EditorProgramProvider exercises={allExercises} initialProgram={program}>
         <SiteHeader
           className="sticky top-0 z-50 flex w-full flex-shrink-0 items-center border-b bg-background"
           left={
