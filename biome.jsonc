@@ -18,7 +18,10 @@
   "linter": {
     "rules": {
       "correctness": {
-        "noUnusedImports": "error"
+        "noUnusedImports": {
+          "level": "error",
+          "fix": "safe"
+        }
       },
       "style": {
         "useBlockStatements": "off"

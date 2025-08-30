@@ -17,7 +17,10 @@ const schema = z.object({
   email: z.email({ error: "Please enter a valid email address." }),
 })
 
-export const createClientAction = withAuthInput<z.infer<typeof schema>, ClientBasic>(
+export const createClientAction = withAuthInput<
+  z.infer<typeof schema>,
+  ClientBasic
+>(
   {
     schema,
   },

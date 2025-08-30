@@ -11,35 +11,10 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { CheckIcon, ChevronDown } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import {
-  Tags,
-  TagsContent,
-  TagsEmpty,
-  TagsGroup,
-  TagsInput,
-  TagsItem,
-  TagsList,
-  TagsValue,
-} from "@/components/ui/kibo-ui/tags"
 import { Label } from "@/components/ui/label"
-import { PopoverTrigger } from "@/components/ui/popover"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Table,
   TableBody,

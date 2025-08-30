@@ -20,7 +20,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { Exercise } from "@/lib/domain/workouts"
 import type { CategoryWithValues } from "@/lib/types/categories"
 import type { TableExercise } from "./types"
 

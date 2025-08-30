@@ -2,7 +2,6 @@ import "server-only"
 
 import type { Maybe } from "@/lib/types/types"
 import { createServerClient } from "../create-server-client"
-import type { CategoryValue } from "../types"
 import { getAuthUser } from "./auth-utils"
 
 export interface ExerciseCategoryAssignment {
@@ -37,11 +36,12 @@ export async function getExerciseCategoryAssignments(
     return { data: null, error }
   }
 
-  const assignments: ExerciseCategoryAssignment[] = data?.map((assignment: any) => ({
-    category_value_id: assignment.category_value_id,
-    category_name: assignment.category_values.categories.name,
-    category_value_name: assignment.category_values.name,
-  })) || []
+  const assignments: ExerciseCategoryAssignment[] =
+    data?.map((assignment: any) => ({
+      category_value_id: assignment.category_value_id,
+      category_name: assignment.category_values.categories.name,
+      category_value_name: assignment.category_values.name,
+    })) || []
 
   return { data: assignments, error: null }
 }
@@ -68,7 +68,10 @@ export async function updateExerciseCategoryAssignments(
   }
 
   if (exercise.owner_id !== user.userId) {
-    return { data: null, error: new Error("You can only modify exercises you created") }
+    return {
+      data: null,
+      error: new Error("You can only modify exercises you created"),
+    }
   }
 
   // Remove all existing assignments for this exercise
@@ -83,7 +86,7 @@ export async function updateExerciseCategoryAssignments(
 
   // Add new assignments if any
   if (categoryValueIds.length > 0) {
-    const assignments = categoryValueIds.map(categoryValueId => ({
+    const assignments = categoryValueIds.map((categoryValueId) => ({
       exercise_id: exerciseId,
       category_value_id: categoryValueId,
     }))

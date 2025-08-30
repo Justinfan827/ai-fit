@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { Program, Workout, WorkoutInstance } from "@/lib/domain/workouts"
+import type { Program, WorkoutInstance } from "@/lib/domain/workouts"
 import type { Maybe } from "@/lib/types/types"
 import { createServerClient } from "../create-server-client"
 import type { Database } from "../database.types"

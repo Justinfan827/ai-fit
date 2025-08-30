@@ -66,6 +66,7 @@ export function ExerciseSelectionDialog({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <ExerciseTable
+            categories={[]}
             data={allExercises.map((e) => ({
               id: e.id,
               name: e.name,
@@ -77,7 +78,6 @@ export function ExerciseSelectionDialog({
               imageURL: "",
               videoURL: "",
             }))}
-            categories={[]}
             onDeleteExercise={() => {
               // No-op: deletion is not allowed in selection dialog
             }}

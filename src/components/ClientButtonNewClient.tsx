@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 import { toast } from "sonner"
 import { createClientAction } from "@/actions/create-client"
@@ -19,7 +20,6 @@ import {
 } from "@/components/ui/dialog"
 import { Icons } from "./icons"
 import LoadingButton from "./loading-button"
-import { useRouter } from "next/navigation"
 
 export default function ClientButtonNewClient() {
   const formName = "new-client-form"

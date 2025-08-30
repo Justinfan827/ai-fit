@@ -1,4 +1,3 @@
-import { diff } from "deep-object-diff"
 import { cloneDeep } from "lodash"
 
 import type { WorkoutChange } from "@/lib/ai/tools/diff-schema"
