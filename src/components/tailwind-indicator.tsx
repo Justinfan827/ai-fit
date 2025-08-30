@@ -2,8 +2,16 @@
 import { useEffect, useState } from "react"
 import { Icons } from "./icons"
 
+const positions = [
+  "bottom-1 left-1",
+  "bottom-1 right-1", 
+  "top-1 right-1",
+  "top-1 left-1"
+]
+
 export function TailwindIndicator() {
   const [width, setWidth] = useState(0)
+  const [positionIndex, setPositionIndex] = useState(0)
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -18,8 +26,16 @@ export function TailwindIndicator() {
       window.removeEventListener("resize", handleResize)
     }
   }, [])
+
+  const handleClick = () => {
+    setPositionIndex((prev) => (prev + 1) % positions.length)
+  }
   return (
-    <div className="fixed bottom-1 left-1 z-50 flex h-6 w-auto items-center justify-center gap-1 rounded-full px-3 py-2 font-mono text-white text-xs transition-all duration-300 ease-in-out">
+    <div 
+      className={`fixed ${positions[positionIndex]} z-50 flex h-6 w-auto items-center justify-center gap-1 rounded-full px-3 py-2 font-mono text-white text-xs transition-all duration-500 ease-in-out cursor-pointer hover:scale-110`}
+      onClick={handleClick}
+      type="button"
+    >
       <div className="block rounded-full bg-red-600 px-2 py-1 transition-all duration-300 sm:hidden">
         <div className="flex items-center gap-1">
           <Icons.smartphone className="h-3 w-3" />

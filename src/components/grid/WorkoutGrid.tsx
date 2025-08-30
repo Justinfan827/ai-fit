@@ -696,7 +696,7 @@ function RowActionBar({
     }
 
     return (
-      <div className="flex items-center gap-2">
+      <>
         <DeleteRowButton onDeleteRow={() => handleDeleteRow(rowIndex)} />
         <AddRowDropdown
           isInCircuit={
@@ -705,14 +705,14 @@ function RowActionBar({
           onAddRow={(type) => handleAddRow(rowIndex, 0, type)}
           onOpenChange={(open) => setOpenDropdownRow(open ? rowIndex : null)}
         />
-      </div>
+      </>
     )
   }
 
   return (
     <div
       className={cn(
-        "flex items-center px-2",
+        "flex items-center gap-2 px-2",
         openDropdownRow === rowIndex ? "opacity-100" : ""
       )}
       id="action menu"

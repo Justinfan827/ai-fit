@@ -13,7 +13,7 @@ import type {
   Workouts,
 } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
-import { newTestInitialProgram } from "./test-state"
+import { newTestInitialProgram, newTestProposedChanges } from "./test-state"
 
 const EditorStoreContext = createContext<UseBoundStore<
   StoreApi<EditorState>

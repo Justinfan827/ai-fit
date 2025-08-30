@@ -25,7 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import apiAssignProgramToClient from "@/fetches/assign-program-to-client"
+import { assignProgramAction } from "@/actions/assign-program"
 import type { Program } from "@/lib/domain/workouts"
 
 const assignProgramSchema = z.object({
@@ -51,7 +51,7 @@ export default function AssignProgramButton({ clientId, programs }: Props) {
   })
 
   const handleAssignProgram = async (values: AssignProgramFormValues) => {
-    const { error } = await apiAssignProgramToClient({
+    const { error } = await assignProgramAction({
       clientId,
       programId: values.programId,
     })
