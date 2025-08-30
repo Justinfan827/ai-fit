@@ -55,9 +55,6 @@ type WorkoutActions = {
   applyPendingProposalById: (proposalId: string) => void
   rejectPendingProposalById: (proposalId: string) => void
 
-  // save the current program to db
-  saveProgram: () => Promise<void>
-
   // History actions
   saveWorkoutToHistory: (workoutId: string, workout: Workout) => void
   undoWorkout: (workoutId: string) => void

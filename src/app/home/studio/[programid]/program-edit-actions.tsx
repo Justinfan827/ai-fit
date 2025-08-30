@@ -1,19 +1,56 @@
 "use client"
-import { useState } from "react"
+import { useTransition } from "react"
+import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import LoadingButton from "@/components/loading-button"
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
+import { updateProgramAction } from "@/actions/save-program"
+import {
+  useZProgramId,
+  useZProgramName,
+  useZProgramType,
+  useZProgramWorkouts,
+  useZProgramCreatedAt,
+} from "@/hooks/zustand/program-editor-state"
 
 export default function ProgramActions() {
-  const [isEdited, setIsEdited] = useState(false)
   const { open } = useSidebar()
+  const [isPending, startTransition] = useTransition()
+  const programId = useZProgramId()
+  const programName = useZProgramName()
+  const programType = useZProgramType()
+  const workouts = useZProgramWorkouts()
+  const createdAt = useZProgramCreatedAt()
+
+  const handleSaveProgram = () => {
+    startTransition(async () => {
+      try {
+        const program = {
+          id: programId,
+          name: programName,
+          type: programType,
+          workouts,
+          created_at: createdAt,
+        }
+
+        const result = await updateProgramAction(program)
+        if (result.error) {
+          toast("Failed to save program. Please try again.")
+        } else {
+          toast("Program saved successfully!")
+        }
+      } catch (_) {
+        toast("Failed to save program. Please try again.")
+      }
+    })
+  }
   return (
     <div className="flex items-center justify-center space-x-2">
       <LoadingButton
         className="w-20"
-        isLoading={isEdited}
-        onClick={() => setIsEdited(true)}
+        isLoading={isPending}
+        onClick={handleSaveProgram}
         variant="outline"
       >
         Save
