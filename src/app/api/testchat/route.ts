@@ -8,7 +8,7 @@ import { testExercises, testWorkouts } from "../../../../scripts/testdata"
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30
 
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
   const prompt = "generate a workout diff for the following changes"
   log.consoleWithHeader("Prompt:", prompt)
   const updateWorkoutProgramPrompt = buildWorkoutModificationPrompt(

@@ -49,9 +49,9 @@ import { asTableExercise } from "../tables/exercise-table/utils"
 import { Alert, AlertTitle } from "../ui/alert"
 
 const exerciseFormSchema = z.object({
-  name: z.string().min(1, "Exercise name is required"),
+  name: z.string().min(1, { error: "Exercise name is required" }),
   notes: z.string().optional(),
-  video_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  video_url: z.url().optional().or(z.literal("")),
   category_assignments: z.record(z.string(), z.array(z.string())).optional(),
 })
 

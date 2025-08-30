@@ -5,9 +5,9 @@ import { z } from "zod"
 import { createServerClient } from "@/lib/supabase/create-server-client"
 
 const createExerciseSchema = z.object({
-  name: z.string().min(1, "Exercise name is required"),
+  name: z.string().min(1, { error: "Exercise name is required" }),
   notes: z.string().optional(),
-  video_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  video_url: z.url().optional().or(z.literal("")),
   primary_benefit: z.string().optional(),
   primary_trained_colloquial: z.string().optional(),
   skill_requirement: z.string().optional(),

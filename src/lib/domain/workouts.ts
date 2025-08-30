@@ -1,21 +1,21 @@
 import { z } from "zod"
 
 export const categoryValueSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
 })
 
 export const categoriesSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   values: z.array(categoryValueSchema),
 })
 
 // exercises that are stored in the DB
 export const exerciseSchema = z.object({
-  id: z.string().uuid(), // Validates a UUID string
+  id: z.uuid(), // Validates a UUID string
   name: z.string(),
-  ownerId: z.string().uuid().nullable(),
+  ownerId: z.uuid().nullable(),
   videoURL: z.string(),
   description: z.string(),
   categories: z.array(categoriesSchema),
@@ -24,7 +24,7 @@ export const exerciseSchema = z.object({
 export const exercisesSchema = z.array(exerciseSchema)
 
 export const workoutExerciseSchema = z.object({
-  id: z.string().uuid(), // Validates a UUID string
+  id: z.uuid(), // Validates a UUID string
   exercise_name: z.string(),
   sets: z.string(), // Assuming `sets` is a string (e.g., "3")
   reps: z.string(), // Assuming `reps` is a string (e.g., "10")
@@ -66,7 +66,7 @@ export const pendingChangeTypeSchema = z.union([
 export const exerciseBlockSchema = z.object({
   type: z.literal("exercise"),
   exercise: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
     name: z.string(),
     metadata: z.object({
       sets: z.string(),
@@ -101,10 +101,10 @@ export const blockSchema = exerciseBlockSchema.or(circuitBlockSchema)
 export const blocksSchema = z.array(blockSchema)
 
 export const workoutSchema = z.object({
-  id: z.string().uuid(), // Validates a UUID string
+  id: z.uuid(), // Validates a UUID string
   program_order: z.number(),
   week: z.number().optional(), // Only present for weekly programs
-  program_id: z.string().uuid(),
+  program_id: z.uuid(),
   name: z.string(),
   blocks: blocksSchema,
 })
@@ -130,7 +130,7 @@ export const aiProgramSchema = z.object({
 export const workoutsSchema = z.array(workoutSchema)
 
 export const programSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   created_at: z.string().datetime({ offset: true }),
   name: z.string(),
   type: z.enum(["weekly", "splits"]),
@@ -153,22 +153,22 @@ export const exerciseInstanceSetSchema = z.object({
 })
 
 export const exerciseInstanceSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   sets: z.array(exerciseInstanceSetSchema),
 })
 
 export const workoutInstanceBlockSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   type: z.enum(["exercise"]),
   exercise: exerciseInstanceSchema,
 })
 
 export const workoutInstanceSchema = z.object({
-  id: z.string().uuid(),
-  workoutId: z.string().uuid(),
-  userId: z.string().uuid(),
-  programId: z.string().uuid(),
+  id: z.uuid(),
+  workoutId: z.uuid(),
+  userId: z.uuid(),
+  programId: z.uuid(),
   // supabase times are offset 0 at UTC
   startAt: z.string().datetime({ offset: true }).nullable(),
   endAt: z.string().datetime({ offset: true }).nullable().optional(),

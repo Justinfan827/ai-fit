@@ -9,10 +9,10 @@ import { updateClientDetails } from "@/lib/supabase/server/users/trainer-repo"
 const schema = z.object({
   clientId: z.string(),
   title: z.string().min(2, {
-    message: "Title must be at least 2 characters.",
+    error: "Title must be at least 2 characters.",
   }),
   description: z.string().min(2, {
-    message: "Description must be at least 2 characters.",
+    error: "Description must be at least 2 characters.",
   }),
 })
 

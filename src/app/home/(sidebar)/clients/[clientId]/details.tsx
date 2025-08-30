@@ -27,10 +27,10 @@ import { inputTrim } from "@/lib/utils/util"
 
 export const AddClientDetailFormSchema = z.object({
   title: z.string().min(2, {
-    message: "Title must be at least 2 characters.",
+    error: "Title must be at least 2 characters.",
   }),
   description: z.string().min(2, {
-    message: "Description must be at least 2 characters.",
+    error: "Description must be at least 2 characters.",
   }),
 })
 type ClientDetailFormType = z.infer<typeof AddClientDetailFormSchema>

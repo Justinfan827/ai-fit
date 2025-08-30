@@ -36,7 +36,10 @@ export async function POST(req: Request) {
             }),
             stopWhen: stepCountIs(4),
             onFinish: async ({ request, text }) => {
-              await sendDebugLog(JSON.parse(request?.body || "{}"), text)
+              await sendDebugLog(
+                request?.body ? JSON.parse(request.body as string) : {},
+                text
+              )
             },
             onError: (error) => log.error("Stream error:", error),
           })

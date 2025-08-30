@@ -1,5 +1,4 @@
 import { type ZodError, z } from "zod"
-import { generateErrorMessage } from "zod-error"
 import { ErrorBase, type ErrorOptions } from "@/lib/error-base"
 
 const ErrorCode = z.enum([
@@ -47,25 +46,7 @@ function fromZodError(error: ZodError): ErrorResponse {
   return {
     error: {
       code: "unprocessable_entity",
-      message: generateErrorMessage(error.issues, {
-        maxErrors: 1,
-        delimiter: {
-          component: ": ",
-        },
-        path: {
-          enabled: true,
-          type: "objectNotation",
-          label: "",
-        },
-        code: {
-          enabled: true,
-          label: "",
-        },
-        message: {
-          enabled: true,
-          label: "",
-        },
-      }),
+      message: z.prettifyError(error),
     },
   }
 }

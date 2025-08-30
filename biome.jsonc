@@ -7,8 +7,19 @@
       "quoteStyle": "double"
     }
   },
+
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "linter": {
     "rules": {
+      "correctness": {
+        "noUnusedImports": "error"
+      },
       "style": {
         "useBlockStatements": "off"
       },

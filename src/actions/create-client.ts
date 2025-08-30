@@ -9,12 +9,12 @@ import { withAuthInput } from "./middleware/withAuth"
 // This schema is used to validate input from client.
 const schema = z.object({
   firstName: z.string().min(2, {
-    message: "First name must be at least 2 characters.",
+    error: "First name must be at least 2 characters.",
   }),
   lastName: z.string().min(2, {
-    message: "Last name must be at least 2 characters.",
+    error: "Last name must be at least 2 characters.",
   }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
+  email: z.email({ error: "Please enter a valid email address." }),
 })
 
 export const createClientAction = withAuthInput<z.infer<typeof schema>, ClientBasic>(

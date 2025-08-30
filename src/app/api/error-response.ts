@@ -22,7 +22,7 @@ export function handleAPIResponse(e: unknown) {
   )
 }
 
-export function asError(e: any): ErrorResponse {
+export function asError(e: unknown): ErrorResponse {
   if (e instanceof AuthError) {
     return {
       error: {

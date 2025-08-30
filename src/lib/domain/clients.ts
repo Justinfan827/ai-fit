@@ -1,4 +1,4 @@
-import z from "zod"
+import { z } from "zod"
 import type { Program } from "./workouts"
 
 export const basicClientSchema = z.object({
