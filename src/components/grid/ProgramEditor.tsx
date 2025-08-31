@@ -129,7 +129,7 @@ export default function ProgramEditor() {
       toast("Error creating workout")
       return
     }
-    router.push(`/home/programs/${data.id}`)
+    router.push(`/home/studio/${data.id}`)
     toast("Workout created")
   }
 
