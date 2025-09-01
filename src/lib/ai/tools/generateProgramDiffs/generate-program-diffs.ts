@@ -2,12 +2,12 @@ import { streamObject, tool } from "ai"
 import { v4 as uuidv4 } from "uuid"
 import { z } from "zod"
 import { log } from "@/lib/logger/logger"
-import { buildWorkoutModificationPrompt } from "../prompts/prompts"
-import { myProvider } from "../providers"
-import type { MyToolArgs } from "../ui-message-types"
+import { buildWorkoutModificationPrompt } from "../../prompts/prompts"
+import { myProvider } from "../../providers"
+import type { MyToolArgs } from "../../ui-message-types"
 import { workoutChangeAISchema } from "./diff-schema"
 
-export const updateWorkoutProgram = ({
+export const generateProgramDiffs = ({
   existingWorkouts,
   contextItems,
   writer,

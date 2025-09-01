@@ -11,7 +11,7 @@ import type {
   RemoveCircuitExerciseAI,
   UpdateBlockAI,
   UpdateCircuitExerciseAI,
-} from "../tools/diff-schema"
+} from "../tools/generateProgramDiffs/diff-schema"
 import type {
   ClientContextData,
   ContextItem,
@@ -222,6 +222,41 @@ const updateCircuitExerciseExample: UpdateCircuitExerciseAI = {
   exercise: sampleExerciseBlock,
 }
 
+export const createWorkoutToolPrompt = `
+You are an AI assistant that is helping coaches make changes to an existing workout program.
+Your task is to convert a text representation of workouts (singular or multiple), and convert the 
+text into a structured JSON object adhering to the provided workouts schema.
+
+You have access to:
+- The current workout program in JSON format.
+- A list of general system exercises.
+- A list of the coach's preferred exercises.
+
+You will take the new workout in text and for each exericse find the appropriate exercise
+from the list of general system exercises and the coach's preferred exercises, and return a JSON array of objects, 
+where each object represents a new workout to add to the current workout program. Every exercise is uniquely identified by its id.
+When referencing an exercise, you MUST use the exercise's id.
+
+The workout program consists of a 0 indexed array of workouts. Each workout consists a 0 indexed array of 'blocks'.
+Each block can either be a single exercise, or a 'circuit', which is a group of exercises that are 
+performed in a circuit. Each workout has an index. Each block has an index. Each exercise inside a circuit block also has an index.
+
+Each exercise comes with a metadata object. The metadata object has the following fields:
+- sets: the number of sets to perform
+- reps: the number of reps to perform
+- weight: the weight to use
+- rest: the rest period between sets
+- notes: any additional notes about the exercise. This can be an empty string.
+
+Metadata fields are strings that follow specific formats:
+12, 10, 8 (comma-separated)
+12-15, 10-12, 8-10 (comma-separated ranges)
+E/S, E, or ES (each side)
+BW, BW+10, BW+20 (bodyweight + added weight)
+30s, 1m, 2m30s (rest periods in seconds, minutes, or minutes and seconds)
+
+`
+
 export const updateWorkoutToolPrompt = `
 You are an AI assistant that is helping coaches make changes to an existing workout program.
 Your task is to convert a text suggestion for a workout program into a structured JSON object
@@ -403,6 +438,26 @@ function buildSystemPrompt(
 }
 
 /**
+ * Builds a specialized system prompt to create a structured workout in JSON.
+ */
+function buildWorkoutCreationPrompt(
+  contextItems: ContextItem[] = [],
+  workouts?: Workouts
+): string {
+  const contextSections = contextItems
+    .filter((i) => i.type === "exercises")
+    .map((i) => buildExercisesContext(i.data, { includeIDs: true }))
+
+  const workoutsSection = workouts
+    ? createSection(
+        currentWorkoutsSectionName,
+        JSON.stringify(workouts, null, 2)
+      )
+    : ""
+  return `${createWorkoutToolPrompt}\n${contextSections.join("\n")}\n${workoutsSection}`
+}
+
+/**
  * Builds a specialized system prompt for workout modification mode (text-based output)
  */
 function buildWorkoutModificationPrompt(
@@ -500,5 +555,6 @@ Here is an example of the different types of changes that can be made to the wor
 export {
   buildSystemPrompt,
   buildWorkoutModificationPrompt,
+  buildWorkoutCreationPrompt,
   buildDiffGenerationPrompt,
 }

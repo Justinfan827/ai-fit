@@ -13,7 +13,7 @@ import type {
   Workouts,
 } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
-import { newTestInitialProgram, newTestProposedChanges } from "./test-state"
+import { newTestInitialProgram } from "./test-state"
 
 const EditorStoreContext = createContext<UseBoundStore<
   StoreApi<EditorState>
@@ -47,6 +47,7 @@ type WorkoutActions = {
   setProgramType: (pType: "splits") => void
   setProgramName: (name: string) => void
   setWorkouts: (workouts: Workouts) => void
+  addWorkout: (workout: Workout) => void
   // set the proposed changes to a new array
   setProposedChanges: (changes: WorkoutChange[]) => void
   // add to the proposed changes array
@@ -328,6 +329,22 @@ const EditorProgramProvider = ({
       currentChangeId: null,
       workoutHistories: initialWorkoutHistories,
       actions: {
+        addWorkout(workout: Workout) {
+          const { workoutHistories, workouts } = get()
+          const updatedHistories = { ...workoutHistories }
+          const updatedWorkouts = [...workouts, workout]
+
+          // Initialize history for the new workout
+          updatedHistories[workout.id] = {
+            history: [workout],
+            currentIndex: 0,
+          }
+
+          set({
+            workouts: updatedWorkouts,
+            workoutHistories: updatedHistories,
+          })
+        },
         setWorkouts: (workouts: Workouts) => {
           const { workoutHistories } = get()
           const updatedHistories = { ...workoutHistories }

@@ -7,8 +7,10 @@ import type {
 import z from "zod"
 import type { Workouts } from "../domain/workouts"
 import type { ContextItem } from "./prompts/context-schema"
-import { workoutChangeSchema } from "./tools/diff-schema"
-import { updateWorkoutProgram } from "./tools/update-workout-program"
+import { generateNewWorkouts } from "./tools/generateNewWorkouts/fn"
+import { aiWorkoutSchema } from "./tools/generateNewWorkouts/response-schema"
+import { workoutChangeSchema } from "./tools/generateProgramDiffs/diff-schema"
+import { generateProgramDiffs } from "./tools/generateProgramDiffs/generate-program-diffs"
 
 const metadataSchema = z.object({
   someMetadata: z.string(),
@@ -18,6 +20,7 @@ type MyMetadata = z.infer<typeof metadataSchema>
 
 const dataPartSchema = z.object({
   diff: workoutChangeSchema,
+  newWorkouts: aiWorkoutSchema,
 })
 
 type MyDataPart = z.infer<typeof dataPartSchema>
@@ -29,7 +32,8 @@ export type MyToolArgs = {
 }
 export const myTools = (args: MyToolArgs) => {
   return {
-    updateWorkoutProgram: updateWorkoutProgram(args),
+    generateProgramDiffs: generateProgramDiffs(args),
+    generateNewWorkouts: generateNewWorkouts(args),
   } satisfies ToolSet
 }
 

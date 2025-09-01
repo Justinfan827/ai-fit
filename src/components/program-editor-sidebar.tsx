@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { Dumbbell, Plus, UserIcon, X } from "lucide-react"
 import { type ChangeEvent, type FormEvent, useState } from "react"
+import { v4 as uuidv4 } from "uuid"
 import {
   PromptInput,
   PromptInputButton,
@@ -21,12 +22,17 @@ import {
 } from "@/components/ui/sidebar"
 import {
   useZEditorActions,
+  useZProgramId,
   useZProgramWorkouts,
 } from "@/hooks/zustand/program-editor-state"
-import { workoutChangeSchema } from "@/lib/ai/tools/diff-schema"
+import {
+  type AIBlock,
+  aiWorkoutSchema,
+} from "@/lib/ai/tools/generateNewWorkouts/response-schema"
+import { workoutChangeSchema } from "@/lib/ai/tools/generateProgramDiffs/diff-schema"
 import type { MyUIMessage } from "@/lib/ai/ui-message-types"
 import type { ClientHomePage } from "@/lib/domain/clients"
-import type { Exercise } from "@/lib/domain/workouts"
+import type { Block, Exercise } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
 import {
   Conversation,
@@ -67,12 +73,30 @@ type ExercisesContextItem = {
 
 type ContextItem = ClientContextItem | ExercisesContextItem
 
+// Map AI-generated blocks to domain blocks
+const mapAIBlockToDomainBlock = (aiBlock: AIBlock): Block => {
+  if (aiBlock.type === "exercise") {
+    return aiBlock // Exercise blocks match exactly
+  }
+  if (aiBlock.type === "circuit") {
+    return {
+      ...aiBlock,
+      circuit: {
+        ...aiBlock.circuit,
+        isDefault: false, // Default to false for AI-generated circuits
+      },
+    }
+  }
+  throw new Error(`Unknown block type: ${(aiBlock as any).type}`)
+}
+
 export function ProgramEditorSidebar({
   exercises: initialExercises,
   trainerId,
   availableClients = [],
 }: ProgramEditorSidebarProps) {
   const workouts = useZProgramWorkouts()
+  const programId = useZProgramId()
   const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
   const [contextItems, setContextItems] = useState<ContextItem[]>(() => {
     return [
@@ -87,7 +111,7 @@ export function ProgramEditorSidebar({
 
   const [input, setInput] = useState("")
 
-  const { addProposedChanges } = useZEditorActions()
+  const { addProposedChanges, addWorkout } = useZEditorActions()
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (input.trim()) {
@@ -114,14 +138,35 @@ export function ProgramEditorSidebar({
       },
     }),
     onData: ({ data, type }) => {
-      if (type === "data-diff") {
-        log.info("workout-diff", data)
-        const diffParsed = workoutChangeSchema.safeParse(data)
-        if (!diffParsed.success) {
-          log.error("Diff generation caught error:", diffParsed.error)
-          return
+      switch (type) {
+        case "data-diff": {
+          log.info("workout-diff", data)
+          const diffParsed = workoutChangeSchema.safeParse(data)
+          if (!diffParsed.success) {
+            log.error("Diff generation caught error:", diffParsed.error)
+            return
+          }
+          addProposedChanges([diffParsed.data])
+          break
         }
-        addProposedChanges([diffParsed.data])
+        case "data-newWorkouts": {
+          const workoutParsed = aiWorkoutSchema.safeParse(data)
+          if (!workoutParsed.success) {
+            log.error("Workout generation caught error:", workoutParsed.error)
+            return
+          }
+          addWorkout({
+            id: uuidv4(),
+            program_id: programId,
+            name: `Workout ${workouts.length + 1}`,
+            program_order: workouts.length,
+            blocks: workoutParsed.data.blocks.map(mapAIBlockToDomainBlock),
+          })
+          break
+        }
+
+        default:
+          break
       }
     },
   })
@@ -263,7 +308,7 @@ export function ProgramEditorSidebar({
               <Message from={message.role} key={message.id}>
                 {message.parts.map((part) => {
                   switch (part.type) {
-                    case "tool-updateWorkoutProgram":
+                    case "tool-generateProgramDiffs":
                       // New states for streaming and error handling
                       switch (part.state) {
                         case "input-streaming":
@@ -274,7 +319,7 @@ export function ProgramEditorSidebar({
                               key={part.toolCallId}
                             >
                               <Icons.wrench className="size-3" />
-                              <span>Updating program...</span>
+                              <span>Generating changes...</span>
                             </div>
                           )
                         case "output-error":
@@ -288,7 +333,7 @@ export function ProgramEditorSidebar({
                       }
                     case "text":
                       return (
-                        <MessageContent>
+                        <MessageContent key={message.id}>
                           <Response key={message.id}>{part.text}</Response>
                         </MessageContent>
                       )
