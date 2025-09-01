@@ -3,9 +3,9 @@
 import type { Workout, WorkoutInstance } from "@/lib/domain/workouts"
 
 export default function ClientPage({
-  clientId,
-  workout,
-  workoutInstance,
+  clientId: _clientId,
+  workout: _workout,
+  workoutInstance: _workoutInstance,
 }: {
   clientId: string
   workout: Workout

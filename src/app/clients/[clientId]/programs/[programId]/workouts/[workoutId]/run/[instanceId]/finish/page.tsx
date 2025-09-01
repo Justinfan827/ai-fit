@@ -1,5 +1,5 @@
-export default async function FinishRunInstancePage({
-  params,
+export default function FinishRunInstancePage({
+  params: _params,
 }: {
   params: Promise<{
     clientId: string

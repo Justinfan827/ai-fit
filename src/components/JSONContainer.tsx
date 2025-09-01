@@ -5,7 +5,7 @@ export default function JSONContainer({
   json,
   className,
 }: {
-  json: any
+  json: unknown
   className?: string
 }) {
   return (

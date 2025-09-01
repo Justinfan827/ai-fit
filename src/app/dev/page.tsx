@@ -3,8 +3,8 @@ import { createServerClient } from "@/lib/supabase/create-server-client"
 type DebugLog = {
   id: number
   created_at: string
-  request_data: any
-  response_data: any
+  request_data: unknown
+  response_data: unknown
 }
 
 export default async function DevPage() {
@@ -45,7 +45,7 @@ function LogItem({ log }: { log: DebugLog }) {
   )
 }
 
-function JsonPreview({ title, data }: { title: string; data: any }) {
+function JsonPreview({ title, data }: { title: string; data: unknown }) {
   const jsonString = JSON.stringify(data, null, 2) || "{}"
 
   return (

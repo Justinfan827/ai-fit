@@ -23,8 +23,8 @@ import { cn } from "@/lib/utils"
 import type { WorkoutForm } from "./form"
 
 export function WorkoutAccordion({
-  workout,
-  form,
+  workout: _workout,
+  form: _form,
 }: {
   workout: Workout
   form: WorkoutForm
@@ -72,7 +72,7 @@ export function WorkoutAccordion({
   )
 }
 
-function SetsContent({
+function _SetsContent({
   exerciseIdx,
   exercise,
   form,
