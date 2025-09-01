@@ -4,9 +4,9 @@ import { Icons } from "./icons"
 
 const positions = [
   "bottom-1 left-1",
-  "bottom-1 right-1", 
+  "bottom-1 right-1",
   "top-1 right-1",
-  "top-1 left-1"
+  "top-1 left-1",
 ]
 
 export function TailwindIndicator() {
@@ -31,8 +31,8 @@ export function TailwindIndicator() {
     setPositionIndex((prev) => (prev + 1) % positions.length)
   }
   return (
-    <div 
-      className={`fixed ${positions[positionIndex]} z-50 flex h-6 w-auto items-center justify-center gap-1 rounded-full px-3 py-2 font-mono text-white text-xs transition-all duration-500 ease-in-out cursor-pointer hover:scale-110`}
+    <div
+      className={`fixed ${positions[positionIndex]} z-50 flex h-6 w-auto cursor-pointer items-center justify-center gap-1 rounded-full px-3 py-2 font-mono text-white text-xs transition-all duration-500 ease-in-out hover:scale-110`}
       onClick={handleClick}
     >
       <div className="block rounded-full bg-red-600 px-2 py-1 transition-all duration-300 sm:hidden">

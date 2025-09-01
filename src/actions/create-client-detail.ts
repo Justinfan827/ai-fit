@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { withAuthInput } from "@/actions/middleware/withAuth"
+import { withAuthInput } from "@/actions/middleware/with-auth"
 import { updateClientDetails } from "@/lib/supabase/server/users/trainer-repo"
 
 // This schema is used to validate input from client.

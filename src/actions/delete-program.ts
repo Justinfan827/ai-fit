@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { deleteProgramById } from "@/lib/supabase/server/programs/mutations"
-import { withAuthInput } from "./middleware/withAuth"
+import { withAuthInput } from "./middleware/with-auth"
 
 // This schema is used to validate input from client.
 const schema = z.object({

@@ -4,7 +4,7 @@ import { type Exercise, exerciseSchema } from "@/lib/domain/workouts"
 import { createServerClient } from "@/lib/supabase/create-server-client"
 import { updateExerciseCategoryAssignments } from "@/lib/supabase/server/categories"
 import type { Tables } from "@/lib/supabase/types"
-import { withAuthInput } from "./middleware/withAuth"
+import { withAuthInput } from "./middleware/with-auth"
 
 export const updateExercise = withAuthInput<Exercise, Tables<"exercises">>(
   {

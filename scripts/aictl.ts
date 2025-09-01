@@ -1,5 +1,6 @@
 import { confirm, input } from "@inquirer/prompts"
 import { Command } from "commander"
+
 import {
   buildSystemPrompt,
   buildWorkoutModificationPrompt,
@@ -27,9 +28,9 @@ program
       requireEnvVars("SUPABASE_SERVICE_ROLE_KEY", "NEXT_PUBLIC_SUPABASE_URL")
     try {
       await runUserCreation({
-        email: email!,
-        supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY!,
-        supabaseURL: NEXT_PUBLIC_SUPABASE_URL!,
+        email,
+        supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY || "",
+        supabaseURL: NEXT_PUBLIC_SUPABASE_URL || "",
         opts: {
           isTrainer,
         },
@@ -44,14 +45,14 @@ program
 program
   .command("starter-pack")
   .description("Create a test user trainer@gmail.com and client.gmail.com")
-  .action(async (options) => {
+  .action(async () => {
     const { SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_URL } =
       requireEnvVars("SUPABASE_SERVICE_ROLE_KEY", "NEXT_PUBLIC_SUPABASE_URL")
     try {
       const trainerId = await runUserCreation({
         email: "trainer@test.com",
-        supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY!,
-        supabaseURL: NEXT_PUBLIC_SUPABASE_URL!,
+        supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY || "",
+        supabaseURL: NEXT_PUBLIC_SUPABASE_URL || "",
         opts: {
           isTrainer: true,
         },
@@ -59,8 +60,8 @@ program
 
       await runUserCreation({
         email: "client@test.com",
-        supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY!,
-        supabaseURL: NEXT_PUBLIC_SUPABASE_URL!,
+        supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY || "",
+        supabaseURL: NEXT_PUBLIC_SUPABASE_URL || "",
         opts: {
           isTrainer: false,
           setTrainerId: trainerId,
@@ -103,8 +104,8 @@ program
     }
     await seedExercises({
       userId,
-      supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY!,
-      supabaseURL: NEXT_PUBLIC_SUPABASE_URL!,
+      supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY || "",
+      supabaseURL: NEXT_PUBLIC_SUPABASE_URL || "",
     })
   })
 

@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid"
 
 import { programSchema } from "@/lib/domain/workouts"
 import { createProgram } from "@/lib/supabase/server/database.operations.mutations"
-import { withAuthInput } from "./middleware/withAuth"
+import { withAuthInput } from "./middleware/with-auth"
 
 const programSchemaWithoutId = programSchema.omit({ id: true })
 

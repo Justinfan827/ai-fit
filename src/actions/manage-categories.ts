@@ -5,7 +5,7 @@ import { z } from "zod"
 import { createServerClient } from "@/lib/supabase/create-server-client"
 import type { DBClient } from "@/lib/supabase/types"
 import type { Maybe } from "@/lib/types/types"
-import { withAuthInput } from "./middleware/withAuth"
+import { withAuthInput } from "./middleware/with-auth"
 
 // Base schemas for common fields
 const baseCategoryFields = {

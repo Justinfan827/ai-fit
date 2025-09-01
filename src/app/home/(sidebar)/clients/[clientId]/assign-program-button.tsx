@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
+import { assignProgramAction } from "@/actions/assign-program"
 import LoadingButton from "@/components/loading-button"
 import { ProgramPicker } from "@/components/program-dropdown-picker"
 import { Button } from "@/components/ui/button"
@@ -25,7 +26,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { assignProgramAction } from "@/actions/assign-program"
 import type { Program } from "@/lib/domain/workouts"
 
 const assignProgramSchema = z.object({

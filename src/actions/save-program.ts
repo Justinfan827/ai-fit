@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { programSchema } from "@/lib/domain/workouts"
 import { updateProgram } from "@/lib/supabase/server/database.operations.mutations"
-import { withAuthInput } from "./middleware/withAuth"
+import { withAuthInput } from "./middleware/with-auth"
 
 export const updateProgramAction = withAuthInput(
   {
@@ -19,4 +19,3 @@ export const updateProgramAction = withAuthInput(
     return resp.data
   }
 )
-
