@@ -126,6 +126,27 @@ export type Database = {
           },
         ]
       }
+      debug_log: {
+        Row: {
+          created_at: string
+          id: string
+          request_data: Json | null
+          response_data: Json | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          request_data?: Json | null
+          response_data?: Json | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          request_data?: Json | null
+          response_data?: Json | null
+        }
+        Relationships: []
+      }
       exercise_muscle_groups: {
         Row: {
           exercise_id: string

@@ -16,7 +16,7 @@ export function ProgramNavigationMenu({ programId }: { programId: string }) {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <Link href={`/home/programs/${programId}`} legacyBehavior passHref>
+          <Link href={`/home/programs/${programId}`} passHref>
             <NavigationMenuLink
               active={pathname === `/home/programs/${programId}`}
               className={navigationMenuTriggerStyle()}

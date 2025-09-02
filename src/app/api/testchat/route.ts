@@ -1,7 +1,7 @@
 import { streamObject } from "ai"
 import { buildWorkoutModificationPrompt } from "@/lib/ai/prompts/prompts"
 import { myProvider } from "@/lib/ai/providers"
-import { workoutChangeAISchema } from "@/lib/ai/tools/diff-schema"
+import { workoutChangeAISchema } from "@/lib/ai/tools/generateProgramDiffs/diff-schema"
 import log from "@/lib/logger/logger"
 import { testExercises, testWorkouts } from "../../../../scripts/testdata"
 

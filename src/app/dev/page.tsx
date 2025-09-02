@@ -1,11 +1,5 @@
 import { createServerClient } from "@/lib/supabase/create-server-client"
-
-type DebugLog = {
-  id: number
-  created_at: string
-  request_data: unknown
-  response_data: unknown
-}
+import type { Tables } from "@/lib/supabase/types"
 
 export default async function DevPage() {
   const sb = await createServerClient()
@@ -33,7 +27,7 @@ export default async function DevPage() {
   )
 }
 
-function LogItem({ log }: { log: DebugLog }) {
+function LogItem({ log }: { log: Tables<"debug_log"> }) {
   return (
     <div className="flex w-full flex-col gap-2 rounded-md border p-4">
       <p className="text-muted-foreground text-sm">

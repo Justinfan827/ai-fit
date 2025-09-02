@@ -242,7 +242,7 @@ ALTER TABLE ONLY public.exercises
 -- ============================================================================
 -- Represents the category types that users can create (e.g., "Muscle Groups", "Equipment", "Difficulty Level")
 CREATE TABLE public.categories (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    id uuid DEFAULT gen_random_uuid () PRIMARY KEY,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     name text NOT NULL,
@@ -254,14 +254,16 @@ CREATE TABLE public.categories (
 );
 
 -- Unique constraint: no duplicate categories per user (only for non-deleted records)
-CREATE UNIQUE INDEX categories_name_user_unique ON public.categories (name, user_id) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX categories_name_user_unique ON public.categories (name, user_id)
+WHERE
+    deleted_at IS NULL;
 
 -- ============================================================================
 -- CATEGORY VALUES TABLE
 -- ============================================================================
 -- Represents the actual values/tags within each category (e.g., "Chest", "Shoulders" under "Muscle Groups")
 CREATE TABLE public.category_values (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    id uuid DEFAULT gen_random_uuid () PRIMARY KEY,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     category_id uuid NOT NULL REFERENCES public.categories (id) ON DELETE CASCADE,
@@ -272,14 +274,16 @@ CREATE TABLE public.category_values (
 );
 
 -- Unique constraint: no duplicate values per category (only for non-deleted records)
-CREATE UNIQUE INDEX category_values_name_category_unique ON public.category_values (name, category_id) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX category_values_name_category_unique ON public.category_values (name, category_id)
+WHERE
+    deleted_at IS NULL;
 
 -- ============================================================================
 -- EXERCISE CATEGORY ASSIGNMENTS TABLE
 -- ============================================================================
 -- Junction table that assigns category values to exercises
 CREATE TABLE public.category_assignments (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    id uuid DEFAULT gen_random_uuid () PRIMARY KEY,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     exercise_id uuid NOT NULL REFERENCES public.exercises (id) ON DELETE CASCADE,
     category_value_id uuid NOT NULL REFERENCES public.category_values (id) ON DELETE CASCADE
@@ -287,55 +291,68 @@ CREATE TABLE public.category_assignments (
 
 -- Unique constraint: for each category, a category value can only be assigned once to an exercise
 ALTER TABLE ONLY public.category_assignments
-    ADD CONSTRAINT category_assignments_exercise_id_category_value_id_unique 
-    UNIQUE (exercise_id, category_value_id);
+    ADD CONSTRAINT category_assignments_exercise_id_category_value_id_unique UNIQUE (exercise_id, category_value_id);
 
 -- ============================================================================
 -- INDEXES FOR PERFORMANCE
 -- ============================================================================
 CREATE INDEX idx_categories_user_id ON public.categories (user_id);
+
 CREATE INDEX idx_category_values_category_id ON public.category_values (category_id);
+
 CREATE INDEX idx_category_assignments_exercise_id ON public.category_assignments (exercise_id);
+
 CREATE INDEX idx_category_assignments_category_value_id ON public.category_assignments (category_value_id);
 
 -- ============================================================================
 -- TRIGGERS FOR UPDATED_AT
 -- ============================================================================
-
 -- Function to update the updated_at timestamp
-CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION public.update_updated_at_column ()
+    RETURNS TRIGGER
+    AS $$
 BEGIN
     NEW.updated_at = now();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$
+LANGUAGE 'plpgsql';
 
 -- Triggers for updated_at
-CREATE TRIGGER update_categories_updated_at 
-    BEFORE UPDATE ON public.categories 
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_categories_updated_at
+    BEFORE UPDATE ON public.categories
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column ();
 
-CREATE TRIGGER update_category_values_updated_at 
-    BEFORE UPDATE ON public.category_values 
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_category_values_updated_at
+    BEFORE UPDATE ON public.category_values
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column ();
 
 -- ============================================================================
 -- QUERIES THAT WILL BE USED
 -- ============================================================================
-
 -- Get all categories for a user as well as the values for each category
-SELECT c.name AS category_name, cv.name AS value_name
-FROM public.categories c
-LEFT JOIN public.category_values cv ON c.id = cv.category_id
-WHERE c.user_id = '<USER_ID>';
+SELECT
+    c.name AS category_name,
+    cv.name AS value_name
+FROM
+    public.categories c
+    LEFT JOIN public.category_values cv ON c.id = cv.category_id
+WHERE
+    c.user_id = '<USER_ID>';
 
 -- For an exercise, get all categories and values assigned to it
-SELECT c.name AS category_name, cv.name AS value_name
-FROM public.categories c
-LEFT JOIN public.category_values cv ON c.id = cv.category_id
-LEFT JOIN public.category_assignments ca ON cv.id = ca.category_value_id
-WHERE ca.exercise_id = '<EXERCISE_ID>' AND c.user_id = '<USER_ID>';
+SELECT
+    c.name AS category_name,
+    cv.name AS value_name
+FROM
+    public.categories c
+    LEFT JOIN public.category_values cv ON c.id = cv.category_id
+    LEFT JOIN public.category_assignments ca ON cv.id = ca.category_value_id
+WHERE
+    ca.exercise_id = '<EXERCISE_ID>'
+    AND c.user_id = '<USER_ID>';
 
 CREATE TABLE public.programs (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -432,4 +449,11 @@ CREATE TABLE public.workout_rows (
 
 ALTER TABLE ONLY public.workout_rows
     ADD CONSTRAINT workout_rows_pkey PRIMARY KEY (id);
+
+CREATE TABLE debug_log (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+    request_data jsonb,
+    response_data jsonb,
+    created_at timestamptz NOT NULL DEFAULT NOW()
+);
 

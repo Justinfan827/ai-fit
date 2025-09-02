@@ -40,7 +40,6 @@ import {
   ConversationScrollButton,
 } from "./ai-elements/conversation"
 import { Message, MessageContent } from "./ai-elements/message"
-import { ExerciseSelectionDialog } from "./forms/ExerciseSelectionDialog"
 import { Icons } from "./icons"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
@@ -87,17 +86,15 @@ const mapAIBlockToDomainBlock = (aiBlock: AIBlock): Block => {
       },
     }
   }
-  throw new Error(`Unknown block type: ${(aiBlock as any).type}`)
+  throw new Error(`Unknown block type: ${aiBlock}`)
 }
 
 export function ProgramEditorSidebar({
   exercises: initialExercises,
-  trainerId,
   availableClients = [],
 }: ProgramEditorSidebarProps) {
   const workouts = useZProgramWorkouts()
   const programId = useZProgramId()
-  const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
   const [contextItems, setContextItems] = useState<ContextItem[]>(() => {
     return [
       {
@@ -197,7 +194,6 @@ export function ProgramEditorSidebar({
     const allExercisesSelected = initialExercises
 
     // Update local state so the dialog opens with everything pre-selected
-    setExercises(allExercisesSelected)
 
     const exerciseItem: ContextItem = {
       type: "exercises",
@@ -209,23 +205,6 @@ export function ProgramEditorSidebar({
       // Remove any existing exercise context first
       const filtered = prev.filter((item) => item.type !== "exercises")
       return [...filtered, exerciseItem]
-    })
-  }
-
-  const handleExercisesChange = (newExercises: Exercise[]) => {
-    setExercises(newExercises)
-    // Update context item if it exists
-    setContextItems((prev) => {
-      return prev.map((item) => {
-        if (item.type === "exercises") {
-          return {
-            ...item,
-            label: `${newExercises.length} Preferred Exercises`,
-            data: newExercises,
-          }
-        }
-        return item
-      })
     })
   }
 
@@ -247,29 +226,21 @@ export function ProgramEditorSidebar({
   const renderContextBadge = (item: ContextItem) => {
     if (item.type === "exercises") {
       return (
-        <ExerciseSelectionDialog
-          allExercises={initialExercises}
-          exercises={exercises}
-          key={item.label}
-          selectedExercises={exercises}
-          setExercises={handleExercisesChange}
-        >
-          <Badge className="flex cursor-pointer items-center gap-1 border-input bg-background text-foreground text-xs">
-            {getContextIcon(item.type)}
-            <span>{item.label}</span>
-            <Button
-              className="hover:bg-transparent"
-              onClick={(e) => {
-                e.stopPropagation()
-                removeContextItem(item.label)
-              }}
-              size="noSize"
-              variant="ghost"
-            >
-              <X className="size-3" />
-            </Button>
-          </Badge>
-        </ExerciseSelectionDialog>
+        <Badge className="flex cursor-pointer items-center gap-1 border-input bg-background text-foreground text-xs">
+          {getContextIcon(item.type)}
+          <span>{item.label}</span>
+          <Button
+            className="hover:bg-transparent"
+            onClick={(e) => {
+              e.stopPropagation()
+              removeContextItem(item.label)
+            }}
+            size="noSize"
+            variant="ghost"
+          >
+            <X className="size-3" />
+          </Button>
+        </Badge>
       )
     }
 

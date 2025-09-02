@@ -29,7 +29,7 @@ type ProgramState = {
   created_at: string
   name: string
   // TODO: start with splits for now, skip weekly support atm.
-  type: "splits"
+  type: "splits" | "weekly"
   workouts: Workouts
   proposedChanges: WorkoutChange[]
   currentChangeId: string | null

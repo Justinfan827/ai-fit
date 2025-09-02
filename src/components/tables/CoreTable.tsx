@@ -146,8 +146,8 @@ const CoreTableStickyRightBase = <TData,>({
                     }
                   >
                     {row.getVisibleCells().map((cell) => {
-                      const cellClassName =
-                        cell.column.columnDef.meta?.cellClassName
+                      // const cellClassName =
+                      //   cell.column.columnDef.meta?.cellClassName
                       return (
                         <TableCell
                           className={cn(
@@ -155,8 +155,8 @@ const CoreTableStickyRightBase = <TData,>({
                             cell.column.getIsPinned() === "right" &&
                               "sticky right-0 z-10 last:shadow-[-3px_0px_3px_-2px_theme('colors.border')] last:shadow-[0.2rem_0.2rem_0_1px_white,-3px_0px_3px_-2px_theme('colors.border')]",
                             table.getRowModel().rows?.length === rowIdx + 1 &&
-                              "first:rounded-bl-md last:rounded-br-md",
-                            cellClassName
+                              "first:rounded-bl-md last:rounded-br-md"
+                            // cellClassName
                           )}
                           // I'm sorry for this monstrosity. TLDR on how this works:
                           // the last: classes are for the last cell in the row, which needs to have a different border radius

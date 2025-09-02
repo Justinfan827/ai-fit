@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash"
 
-import type { WorkoutChange } from "@/lib/ai/tools/diff-schema"
+import type { WorkoutChange } from "@/lib/ai/tools/generateProgramDiffs/diff-schema"
 import type { Block, ExerciseBlock, Workout } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
 
