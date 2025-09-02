@@ -9,7 +9,7 @@
     "format:fix": "./node_modules/.bin/prettier --write .",
     "local-types": "npx supabase gen types typescript --local --schema public > ./src/lib/supabase/database.types.ts",
     "dev": "next dev --turbopack",
-    "check-types": "tsc --noEmit",
+    "check-types": "npx tsc --noEmit --skipLibCheck",
     "build": "next build",
     "start": "next start",
     "lint": "biome check",

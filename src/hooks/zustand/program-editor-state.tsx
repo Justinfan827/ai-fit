@@ -3,7 +3,7 @@ import Fuse from "fuse.js"
 import { createContext, useContext, useEffect, useState } from "react"
 import { create, type StoreApi, type UseBoundStore, useStore } from "zustand"
 import { mergeWorkoutWithProposedChanges } from "@/components/grid/workout-merge"
-import type { WorkoutChange } from "@/lib/ai/tools/diff-schema"
+import type { WorkoutChange } from "@/lib/ai/tools/generateProgramDiffs/diff-schema"
 import type {
   CircuitBlock,
   Exercise,

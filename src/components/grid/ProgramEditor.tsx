@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { v4 as uuidv4 } from "uuid"
+import { createProgramAction } from "@/actions/create-program"
+import { updateProgramAction } from "@/actions/save-program"
 import EditableTypography from "@/components/EditableTypeography"
 import { defaultBlocks, defaultColumns } from "@/components/grid/columns"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
-import apiCreateProgram from "@/fetches/create-program"
-import apiEditProgram from "@/fetches/edit-program"
 import {
   useZEditorActions,
   useZIsNewProgram,
@@ -115,21 +115,19 @@ export default function ProgramEditor() {
 
   const handleOnCreate = async () => {
     setIsPending(true)
-    const { data, error } = await apiCreateProgram({
-      body: {
+    const { data: createdProgram, error: createError } =
+      await createProgramAction({
         type: programType,
-        id: uuidv4().toString(),
         created_at: new Date().toISOString(),
         name: programName,
         workouts,
-      },
-    })
+      })
     setIsPending(false)
-    if (error) {
+    if (createError) {
       toast("Error creating workout")
       return
     }
-    router.push(`/home/studio/${data.id}`)
+    router.push(`/home/studio/${createdProgram.id}`)
     toast("Workout created")
   }
 
@@ -156,8 +154,8 @@ export default function ProgramEditor() {
 
   const handleOnSave = async () => {
     setIsPending(true)
-    const res = await apiEditProgram({ body: domainProgram })
-    if (res.error) {
+    const { error: updateError } = await updateProgramAction(domainProgram)
+    if (updateError) {
       toast.error("Error", {
         description: `Oops! We couldn't save your workout.Please try again`,
       })

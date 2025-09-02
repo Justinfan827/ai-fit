@@ -29,7 +29,7 @@ export const testMessage: MyUIMessage[] = [
       {
         output: "done",
         state: "output-available",
-        type: "tool-updateWorkoutProgram",
+        type: "tool-generateProgramDiffs",
         input: {
           suggestedChangeText: "This is the diff",
         },

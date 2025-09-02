@@ -11,5 +11,6 @@ export function asTableExercise(exercise: Exercise): TableExercise {
     // TODO: Add image url field
     imageURL: "",
     originalExercise: exercise,
+    categoryAssignments: exercise.categories,
   }
 }
