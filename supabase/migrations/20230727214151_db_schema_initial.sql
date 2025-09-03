@@ -418,38 +418,6 @@ ALTER TABLE ONLY public.trainer_assigned_programs
 ALTER TABLE ONLY public.trainer_assigned_programs
     ADD CONSTRAINT trainer_assigned_programs_trainer_id_fkey FOREIGN KEY (trainer_id) REFERENCES public.users (id) ON DELETE SET NULL NOT VALID;
 
-CREATE TABLE public.workout_instances (
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    start_at timestamp with time zone,
-    end_at timestamp with time zone,
-    workout_id uuid NOT NULL,
-    blocks jsonb NOT NULL,
-    user_id uuid NOT NULL,
-    id uuid DEFAULT gen_random_uuid () NOT NULL,
-    program_id uuid NOT NULL
-);
-
-ALTER TABLE ONLY public.workout_instances
-    ADD CONSTRAINT workout_instance_pkey PRIMARY KEY (id);
-
-ALTER TABLE ONLY public.workout_instances
-    ADD CONSTRAINT workout_instance_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users (id) ON DELETE CASCADE;
-
-ALTER TABLE ONLY public.workout_instances
-    ADD CONSTRAINT workout_instances_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.programs (id) ON DELETE CASCADE;
-
-ALTER TABLE ONLY public.workout_instances
-    ADD CONSTRAINT workout_instances_workout_id_fkey FOREIGN KEY (workout_id) REFERENCES public.workouts (id) ON DELETE CASCADE;
-
-CREATE TABLE public.workout_rows (
-    workout_id uuid,
-    row_data jsonb,
-    id uuid DEFAULT gen_random_uuid () NOT NULL
-);
-
-ALTER TABLE ONLY public.workout_rows
-    ADD CONSTRAINT workout_rows_pkey PRIMARY KEY (id);
-
 CREATE TABLE debug_log (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
     request_data jsonb,

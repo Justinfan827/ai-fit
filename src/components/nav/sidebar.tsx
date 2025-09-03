@@ -143,19 +143,23 @@ export function AppSidebar({ hideOnURLs = [], user }: AppSidebarProps) {
                   <SidebarGroup>
                     <SidebarGroupLabel>Exercises</SidebarGroupLabel>
                     <SidebarGroupContent>
-                      {settingsItems.map((item) => {
-                        const isActive = new RegExp(item.matchRegex).test(path)
-                        return (
-                          <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton asChild isActive={isActive}>
-                              <Link href={item.url}>
-                                <item.icon className="text-sidebar-accent-foreground/70 transition-colors duration-100 ease-linear group-hover/menu-item:text-sidebar-accent-foreground group-has-data-[active=true]/menu-item:font-medium group-has-data-[active=true]/menu-item:text-sidebar-accent-foreground" />
-                                <span>{item.title}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        )
-                      })}
+                      <SidebarMenu>
+                        {settingsItems.map((item) => {
+                          const isActive = new RegExp(item.matchRegex).test(
+                            path
+                          )
+                          return (
+                            <SidebarMenuItem key={item.title}>
+                              <SidebarMenuButton asChild isActive={isActive}>
+                                <Link href={item.url}>
+                                  <item.icon className="text-sidebar-accent-foreground/70 transition-colors duration-100 ease-linear group-hover/menu-item:text-sidebar-accent-foreground group-has-data-[active=true]/menu-item:font-medium group-has-data-[active=true]/menu-item:text-sidebar-accent-foreground" />
+                                  <span>{item.title}</span>
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          )
+                        })}
+                      </SidebarMenu>
                     </SidebarGroupContent>
                   </SidebarGroup>
                 </SidebarMenu>

@@ -8,11 +8,26 @@ import type {
   ClientHomePage,
 } from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
-import createAdminClient from "@/lib/supabase/create-admin-client"
 import type { Maybe } from "@/lib/types/types"
 import { createServerClient } from "../../create-server-client"
 import { getAuthUser } from "../auth-utils"
 import { resolvePrograms } from "../programs/utils"
+import {
+  type BaseExercisesQueryData,
+  type CustomExercisesQueryData,
+  createBaseExercisesQuery,
+  createClientDetailsQuery,
+  createClientHomePageQueries,
+  createClientVerificationQuery,
+  createCustomExercisesQuery,
+  createTrainerAssignmentQuery,
+  createUserMetadataQuery,
+  createUserMutation,
+  setUserClaimMutation,
+  softDeleteClientMutation,
+  updateUserMetadataMutation,
+  updateUserProfileMutation,
+} from "./trainer-queries"
 
 export type DBExercises = {
   base: Exercise[]
@@ -29,52 +44,49 @@ const getCachedAllExercisesT = cache(
   }
 )
 
+const transformExerciseData = (
+  exercises: BaseExercisesQueryData | CustomExercisesQueryData
+): Exercise[] => {
+  if (!exercises) return []
+  return exercises.map((e): Exercise => {
+    // Group category values by category
+    const categoriesMap = new Map()
+
+    for (const assignment of e.category_assignments) {
+      const categoryValue = assignment.category_values
+      const category = categoryValue?.categories
+
+      if (category && categoryValue) {
+        if (!categoriesMap.has(category.id)) {
+          categoriesMap.set(category.id, {
+            id: category.id,
+            name: category.name,
+            values: [],
+          })
+        }
+        categoriesMap.get(category.id).values.push({
+          id: categoryValue.id,
+          name: categoryValue.name,
+        })
+      }
+    }
+
+    return {
+      id: e.id,
+      name: e.name,
+      ownerId: e.owner_id,
+      videoURL: e.video_url || "",
+      description: e.notes || "",
+      categories: Array.from(categoriesMap.values()),
+    }
+  })
+}
+
 async function getAllExercises(trainerId: string): Promise<Maybe<DBExercises>> {
   const sb = await createServerClient()
 
-  // Query for base exercises with categories
-  const baseQuery = sb
-    .from("exercises")
-    .select(`
-      id,
-      name,
-      video_url,
-      owner_id,
-      notes,
-      category_assignments (
-        category_values (
-          id,
-          name,
-          categories (
-            id,
-            name
-          )
-        )
-      )
-    `)
-    .is("owner_id", null)
-
-  // Query for custom exercises with categories
-  const customQuery = sb
-    .from("exercises")
-    .select(`
-      id,
-      name,
-      video_url,
-      owner_id,
-      notes,
-      category_assignments (
-        category_values (
-          id,
-          name,
-          categories (
-            id,
-            name
-          )
-        )
-      )
-    `)
-    .eq("owner_id", trainerId)
+  const baseQuery = createBaseExercisesQuery(sb)
+  const customQuery = createCustomExercisesQuery(sb, trainerId)
 
   const [base, custom] = await Promise.all([baseQuery, customQuery])
 
@@ -91,49 +103,16 @@ async function getAllExercises(trainerId: string): Promise<Maybe<DBExercises>> {
     }
   }
 
+  const baseData: BaseExercisesQueryData = base.data
+  const customData: CustomExercisesQueryData = custom.data
   // Transform the data to match exerciseSchema
-  const transformExerciseData = (exercises: any[]): Exercise[] => {
-    return exercises.map((e): Exercise => {
-      // Group category values by category
-      const categoriesMap = new Map()
-
-      for (const assignment of e.category_assignments) {
-        const categoryValue = assignment.category_values
-        const category = categoryValue?.categories
-
-        if (category && categoryValue) {
-          if (!categoriesMap.has(category.id)) {
-            categoriesMap.set(category.id, {
-              id: category.id,
-              name: category.name,
-              values: [],
-            })
-          }
-          categoriesMap.get(category.id).values.push({
-            id: categoryValue.id,
-            name: categoryValue.name,
-          })
-        }
-      }
-
-      return {
-        id: e.id,
-        name: e.name,
-        ownerId: e.owner_id,
-        videoURL: e.video_url || "",
-        description: e.notes || "",
-        categories: Array.from(categoriesMap.values()),
-      }
-    })
-  }
-
-  const baseData = transformExerciseData(base.data)
-  const customData = transformExerciseData(custom.data)
+  const baseExercises = transformExerciseData(baseData)
+  const customExercises = transformExerciseData(customData)
 
   return {
     data: {
-      base: baseData,
-      custom: customData,
+      base: baseExercises,
+      custom: customExercises,
     },
     error: null,
   }
@@ -148,39 +127,29 @@ async function createClient({
   trainerId: string
   newClient: { firstName: string; lastName: string; email: string }
 }): Promise<Maybe<ClientBasic>> {
-  const sb = createAdminClient()
-  const { data, error } = await sb.auth.admin.createUser({
-    email,
-    password: email,
-    email_confirm: true,
-    app_metadata: {
-      provider: "email",
-      providers: ["email"],
-    },
-  })
+  const { data, error } = await createUserMutation(email)
   if (error) {
     return { data: null, error }
   }
 
-  const { error: rpcErr } = await sb.rpc("set_claim", {
-    uid: data.user.id,
-    claim: "USER_ROLE",
-    value: "CLIENT",
-  })
+  const { error: rpcErr } = await setUserClaimMutation(
+    data.user.id,
+    "USER_ROLE",
+    "CLIENT"
+  )
   if (rpcErr) {
     return { data: null, error: rpcErr }
   }
-  const { error: insertErr } = await sb
-    .from("users")
-    .update({
-      trainer_id: trainerId,
-      first_name: firstName,
-      last_name: lastName,
-    })
-    .eq("id", data.user.id)
+
+  const { error: insertErr } = await updateUserProfileMutation(data.user.id, {
+    trainer_id: trainerId,
+    first_name: firstName,
+    last_name: lastName,
+  })
   if (insertErr) {
     return { data: null, error: insertErr }
   }
+
   return {
     data: {
       id: data.user.id,
@@ -202,11 +171,8 @@ async function deleteClientById({
   const sb = await createServerClient()
 
   // First, verify that the client belongs to this trainer
-  const { data: client, error: verifyError } = await sb
-    .from("users")
-    .select("trainer_id")
-    .eq("id", clientId)
-    .single()
+  const { data: client, error: verifyError } =
+    await createClientVerificationQuery(sb, clientId)
 
   if (verifyError) {
     return { data: null, error: verifyError }
@@ -220,11 +186,7 @@ async function deleteClientById({
   }
 
   // Soft delete: set trainer_id to null instead of hard deleting the user
-  const { error } = await sb
-    .from("users")
-    .update({ trainer_id: null })
-    .eq("id", clientId)
-    .eq("trainer_id", trainerId) // Extra safety check
+  const { error } = await softDeleteClientMutation(sb, clientId, trainerId)
 
   if (error) {
     return { data: null, error }
@@ -241,28 +203,26 @@ async function deleteClientDetailById({
   detailId: string
 }) {
   const sb = await createServerClient()
-  const { data, error } = await sb
-    .from("users")
-    .select("metadata")
-    .eq("id", clientId)
-    .single()
+
+  const { data, error } = await createUserMetadataQuery(sb, clientId)
   if (error) {
     return { data: null, error }
   }
+
   const metadata = (data.metadata as Record<string, unknown>) || {}
   metadata.details = ((metadata.details as ClientDetail[]) || []).filter(
     (d) => d.id !== detailId
   )
-  const { data: user, error: updateErr } = await sb
-    .from("users")
-    .update({
-      metadata: metadata as never,
-    })
-    .eq("id", clientId)
-    .select("*")
+
+  const { data: user, error: updateErr } = await updateUserMetadataMutation(
+    sb,
+    clientId,
+    metadata as never
+  )
   if (updateErr) {
     return { data: null, error: updateErr }
   }
+
   return {
     data: { user },
     error: null,
@@ -271,6 +231,7 @@ async function deleteClientDetailById({
 
 async function updateClientDetails({
   clientId,
+  trainerId,
   title,
   description,
 }: {
@@ -280,14 +241,22 @@ async function updateClientDetails({
   description: string
 }) {
   const sb = await createServerClient()
-  const { data, error } = await sb
-    .from("users")
-    .select("metadata")
-    .eq("id", clientId)
-    .single()
+
+  // check that the client belongs to the trainer
+  const { data: client, error: clientError } =
+    await createTrainerAssignmentQuery(sb, clientId, trainerId)
+  if (clientError) {
+    return { data: null, error: clientError }
+  }
+  if (!client) {
+    return { data: null, error: new Error("Client not found or access denied") }
+  }
+
+  const { data, error } = await createUserMetadataQuery(sb, clientId)
   if (error) {
     return { data: null, error }
   }
+
   const metadata = (data.metadata as Record<string, unknown>) || {}
   const details = (metadata.details as ClientDetail[]) || []
   details.push({
@@ -297,16 +266,15 @@ async function updateClientDetails({
   })
   metadata.details = details
 
-  const { data: user, error: updateErr } = await sb
-    .from("users")
-    .update({
-      metadata: metadata as never,
-    })
-    .eq("id", clientId)
-    .select("*")
+  const { data: user, error: updateErr } = await updateUserMetadataMutation(
+    sb,
+    clientId,
+    metadata as never
+  )
   if (updateErr) {
     return { data: null, error: updateErr }
   }
+
   return {
     data: { user },
     error: null,
@@ -328,15 +296,14 @@ const getCachedAllClientDetailsT = cache(
   This is currentlyused to populate the client list in the program editor sidebar.
   */
 async function fetchAllClientDetails(): Promise<Maybe<ClientHomePage[]>> {
-  const sb = await createServerClient()
   const { user, error } = await getAuthUser()
   if (error) {
     return { data: null, error }
   }
-  const { data: clientsData, error: clientError } = await sb
-    .from("users")
-    .select("*")
-    .eq("trainer_id", user.userId)
+
+  const sb = await createServerClient()
+  const { data: clientsData, error: clientError } =
+    await createClientDetailsQuery(sb, user.userId)
 
   if (clientError) {
     return { data: null, error: clientError }
@@ -376,33 +343,30 @@ async function fetchAllClientDetails(): Promise<Maybe<ClientHomePage[]>> {
 async function getClientHomePageData(
   clientId: string
 ): Promise<Maybe<ClientHomePage>> {
-  const sb = await createServerClient()
   const { user, error: getUserError } = await getAuthUser()
   if (getUserError) {
     return { data: null, error: getUserError }
   }
 
-  const { data: client, error: clientError } = await sb
-    .from("users")
-    .select("*")
-    .eq("trainer_id", user.userId)
-    .eq("id", clientId)
-    .single()
+  const sb = await createServerClient()
+  const [clientResult, programsResult] = await createClientHomePageQueries(
+    sb,
+    user.userId,
+    clientId
+  )
 
-  if (clientError) {
-    return { data: null, error: clientError }
+  if (clientResult.error) {
+    return { data: null, error: clientResult.error }
   }
 
-  const { data: pData, error: pErr } = await sb
-    .from("programs")
-    .select("*")
-    .eq("user_id", client.id)
-    .order("created_at", { ascending: false })
-
-  if (pErr) {
-    return { data: null, error: pErr }
+  if (programsResult.error) {
+    return { data: null, error: programsResult.error }
   }
 
+  const client = clientResult.data
+  const pData = programsResult.data
+
+  // Use the same supabase client for resolvePrograms
   const { data: progData, error: progErr } = await resolvePrograms(sb, pData)
   if (progErr) {
     return { data: null, error: progErr }

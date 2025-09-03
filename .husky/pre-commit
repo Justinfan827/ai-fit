@@ -1,0 +1,5 @@
+# Run tests first
+pnpm test:run
+
+# Run lint-staged for TypeScript compilation and linting on staged files
+npx lint-staged

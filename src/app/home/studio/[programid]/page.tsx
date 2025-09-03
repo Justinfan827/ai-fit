@@ -30,7 +30,7 @@ export default async function Page({
     getCachedUserT(),
     getCachedAllExercisesT(authUser.userId),
     getCachedAllClientDetailsT(),
-    getCachedProgramByIdT(programid),
+    getCachedProgramByIdT(authUser.userId, programid),
   ])
 
   const allExercises = exercises.custom.concat(exercises.base)
