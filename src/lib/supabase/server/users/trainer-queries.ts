@@ -3,7 +3,6 @@ import "server-only"
 import type { QueryData } from "@supabase/supabase-js"
 
 import createAdminClient from "../../create-admin-client"
-import type { Database } from "../../database.types"
 import type { DBClient } from "../../types"
 
 /**
@@ -120,7 +119,7 @@ export type ClientProgramsQueryData = QueryData<
 /**
  * Query for trainer assignment verification
  */
-export const createTrainerAssignmentQuery = (
+export const getClientTrainerAssignmentQuery = (
   sb: DBClient,
   clientId: string,
   trainerId: string
@@ -133,7 +132,7 @@ export const createTrainerAssignmentQuery = (
     .single()
 
 export type TrainerAssignmentQueryData = QueryData<
-  ReturnType<typeof createTrainerAssignmentQuery>
+  ReturnType<typeof getClientTrainerAssignmentQuery>
 >
 
 /**
@@ -144,6 +143,26 @@ export const createUserMetadataQuery = (sb: DBClient, clientId: string) =>
 
 export type UserMetadataQueryData = QueryData<
   ReturnType<typeof createUserMetadataQuery>
+>
+
+/**
+ * Query for trainer client notes
+ */
+export const getTrainerClientNotesQuery = (
+  sb: DBClient,
+  trainerId: string,
+  clientId: string
+) =>
+  sb
+    .from("trainer_client_notes")
+    .select("*")
+    .eq("trainer_id", trainerId)
+    .eq("client_id", clientId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+
+export type TrainerClientNotesQueryData = QueryData<
+  ReturnType<typeof getTrainerClientNotesQuery>
 >
 
 // ============================================================================
@@ -209,14 +228,60 @@ export const softDeleteClientMutation = (
 }
 
 /**
- * Update user metadata
+ * Create a new trainer client note
  */
-export const updateUserMetadataMutation = (
+export const createTrainerClientNoteMutation = (
   sb: DBClient,
+  trainerId: string,
   clientId: string,
-  metadata: Database["public"]["Tables"]["users"]["Update"]["metadata"]
+  title: string,
+  description: string
 ) => {
-  return sb.from("users").update({ metadata }).eq("id", clientId).select("*")
+  return sb
+    .from("trainer_client_notes")
+    .insert({
+      trainer_id: trainerId,
+      client_id: clientId,
+      title,
+      description,
+    })
+    .select("*")
+    .single()
+}
+
+/**
+ * Update a trainer client note
+ */
+export const updateTrainerClientNoteMutation = (
+  sb: DBClient,
+  noteId: string,
+  title: string,
+  description: string
+) => {
+  return sb
+    .from("trainer_client_notes")
+    .update({
+      title,
+      description,
+    })
+    .eq("id", noteId)
+    .select("*")
+    .single()
+}
+
+/**
+ * Soft delete a trainer client note
+ */
+export const deleteTrainerClientNoteMutation = (
+  sb: DBClient,
+  noteId: string
+) => {
+  return sb
+    .from("trainer_client_notes")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", noteId)
+    .select("*")
+    .single()
 }
 
 // ============================================================================
@@ -236,3 +301,51 @@ export const createClientHomePageQueries = (
 
   return Promise.all([clientQuery, programsQuery])
 }
+
+/**
+ * Query for client home page data with single SQL join
+ */
+export const getClientDetailsQuery = (
+  sb: DBClient,
+  trainerId: string,
+  clientId: string
+) =>
+  sb
+    .from("users")
+    .select(`
+      id,
+      email,
+      first_name,
+      last_name,
+      created_at,
+      age,
+      gender,
+      weight_unit,
+      weight_value,
+      height_unit,
+      height_value,
+      programs (
+        id,
+        name,
+        type,
+        is_template,
+        template_id,
+        created_at,
+        user_id,
+        workouts (
+          id,
+          name,
+          program_order,
+          week,
+          blocks,
+          created_at
+        )
+      )
+    `)
+    .eq("trainer_id", trainerId)
+    .eq("id", clientId)
+    .single()
+
+export type ClientHomePageQueryData = QueryData<
+  ReturnType<typeof getClientDetailsQuery>
+>

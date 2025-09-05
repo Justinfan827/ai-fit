@@ -201,9 +201,23 @@ CREATE TABLE public.users (
     email text,
     first_name text,
     last_name text,
-    metadata jsonb,
-    trainer_id uuid
+    trainer_id uuid,
+    -- Biometric columns
+    age INTEGER CHECK (age >= 0 AND age <= 150),
+    gender TEXT CHECK (gender IN ('male', 'female')),
+    weight_value NUMERIC(5,2) CHECK (weight_value > 0 AND weight_value <= 999.99),
+    weight_unit TEXT DEFAULT 'kg' CHECK (weight_unit IN ('kg', 'lbs')),
+    height_value NUMERIC(5,2) CHECK (height_value > 0 AND height_value <= 999.99),
+    height_unit TEXT DEFAULT 'cm' CHECK (height_unit IN ('cm', 'in'))
 );
+
+-- Add detailed comments for biometric columns
+COMMENT ON COLUMN public.users.age IS 'User age in years (0-150)';
+COMMENT ON COLUMN public.users.gender IS 'User gender identity';
+COMMENT ON COLUMN public.users.weight_value IS 'Weight value: kg (0-999.99) or lbs (0-999.99)';
+COMMENT ON COLUMN public.users.weight_unit IS 'Weight unit: kg or lbs';
+COMMENT ON COLUMN public.users.height_value IS 'Height value: cm (0-999.99) or in (0-999.99)';
+COMMENT ON COLUMN public.users.height_unit IS 'Height unit: cm (centimeters) or in (inches)';
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
@@ -425,3 +439,47 @@ CREATE TABLE debug_log (
     created_at timestamptz NOT NULL DEFAULT NOW()
 );
 
+-- ============================================================================
+-- TRAINER CLIENT NOTES TABLE
+-- ============================================================================
+-- This table stores notes that trainers create about their clients
+-- Supports multiple trainers per client and trainer-specific notes
+
+CREATE TABLE public.trainer_client_notes (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    
+    -- The trainer who created this note
+    trainer_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    
+    -- The client this note is about
+    client_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    
+    -- Note content
+    title text NOT NULL,
+    description text NOT NULL,
+    
+    -- Soft delete flag
+    deleted_at timestamp with time zone DEFAULT NULL
+);
+
+-- Indexes for performance
+CREATE INDEX idx_trainer_client_notes_trainer_id ON public.trainer_client_notes(trainer_id);
+CREATE INDEX idx_trainer_client_notes_client_id ON public.trainer_client_notes(client_id);
+CREATE INDEX idx_trainer_client_notes_trainer_client ON public.trainer_client_notes(trainer_id, client_id);
+
+-- Function to automatically update the updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Trigger to automatically update updated_at
+CREATE TRIGGER update_trainer_client_notes_updated_at 
+    BEFORE UPDATE ON public.trainer_client_notes 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();

@@ -4,9 +4,9 @@ import { PageLayout } from "@/components/page-layout"
 import { ProgramGrid } from "@/components/program-grid"
 import { SiteHeader } from "@/components/site-header"
 import { Tp } from "@/components/typography"
-import { Button } from "@/components/ui/button"
 import { getAllCurrentUserUnassignedPrograms } from "@/lib/supabase/server/database.operations.queries"
 import { getClientHomePageData } from "@/lib/supabase/server/users/trainer-repo"
+import NewProgramButtonWithData from "../../programs/new-program-button-with-data"
 import AssignProgramButton from "./assign-program-button"
 import { ClientDetailsPageSection } from "./details"
 
@@ -45,12 +45,7 @@ export default async function ClientPage({
         }
         right={
           <div className="flex gap-4">
-            <Button asChild>
-              <Link href={`/home/programs/generate?clientId=${clientId}`}>
-                New program
-                <Icons.sparkles className="h-5 w-5" />
-              </Link>
-            </Button>
+            <NewProgramButtonWithData />
           </div>
         }
       />
@@ -61,7 +56,7 @@ export default async function ClientPage({
         <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
           <ClientDetailsPageSection
             clientUserId={clientId}
-            details={clientData.details}
+            trainerNotes={clientData.trainerNotes}
           />
         </div>
         <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
