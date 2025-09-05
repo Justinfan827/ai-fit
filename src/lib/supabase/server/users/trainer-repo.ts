@@ -414,6 +414,15 @@ async function getTrainerNotesForClient({
   }
 }
 
+const getCachedClientHomePageDataT = cache(
+  async (clientId: string): Promise<ClientHomePage> => {
+    const { data, error } = await getClientHomePageData(clientId)
+    if (error) {
+      throw error
+    }
+    return data
+  }
+)
 /*
  * Fetch the data required for the home page of the client.
  * Includes:
@@ -500,4 +509,5 @@ export {
   getClientHomePageData,
   getCachedAllExercisesT,
   getCachedAllClientDetailsT,
+  getCachedClientHomePageDataT,
 }

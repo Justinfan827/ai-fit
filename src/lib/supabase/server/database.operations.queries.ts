@@ -173,6 +173,16 @@ export async function getUserPrograms(): Promise<Maybe<Program[]>> {
   return resolvePrograms(client, pData)
 }
 
+export const getCachedAllCurrentUserUnassignedProgramsT = cache(
+  async (): Promise<Program[]> => {
+    const { data, error } = await getAllCurrentUserUnassignedPrograms()
+    if (error) {
+      throw error
+    }
+    return data
+  }
+)
+
 export async function getAllCurrentUserUnassignedPrograms(): Promise<
   Maybe<Program[]>
 > {

@@ -1,14 +1,63 @@
 import Link from "next/link"
+import { Suspense } from "react"
 import { Icons } from "@/components/icons"
 import { PageLayout } from "@/components/page-layout"
 import { ProgramGrid } from "@/components/program-grid"
 import { SiteHeader } from "@/components/site-header"
+import { BasicSkeleton } from "@/components/skeletons/basic-skeleton"
+import { ButtonSkeleton } from "@/components/skeletons/button-skeleton"
 import { Tp } from "@/components/typography"
-import { getAllCurrentUserUnassignedPrograms } from "@/lib/supabase/server/database.operations.queries"
-import { getClientHomePageData } from "@/lib/supabase/server/users/trainer-repo"
+import { getCachedAllCurrentUserUnassignedProgramsT } from "@/lib/supabase/server/database.operations.queries"
+import { getCachedClientHomePageDataT } from "@/lib/supabase/server/users/trainer-repo"
 import NewProgramButtonWithData from "../../programs/new-program-button-with-data"
 import AssignProgramButton from "./assign-program-button"
 import { ClientDetailsPageSection } from "./details"
+
+// Component for async client name in header
+const ClientName = async ({ clientId }: { clientId: string }) => {
+  const { firstName, lastName } = await getCachedClientHomePageDataT(clientId)
+  return (
+    <p className="capitalize">
+      {firstName} {lastName}
+    </p>
+  )
+}
+
+// Component for async client details section
+const ClientDetails = async ({ clientId }: { clientId: string }) => {
+  const { trainerNotes } = await getCachedClientHomePageDataT(clientId)
+  return (
+    <ClientDetailsPageSection
+      clientUserId={clientId}
+      trainerNotes={trainerNotes}
+    />
+  )
+}
+
+const ProgramsSection = async ({ clientId }: { clientId: string }) => {
+  const [client, programs] = await Promise.all([
+    getCachedClientHomePageDataT(clientId),
+    getCachedAllCurrentUserUnassignedProgramsT(),
+  ])
+
+  return (
+    <ProgramGrid
+      emptyState={{
+        title: "Assign a program",
+        subtitle:
+          "Assign a program to this client to help them reach their goals.",
+        actionComponent: (
+          <AssignProgramButton clientId={clientId} programs={programs} />
+        ),
+      }}
+      linkPath="/home/studio/:programId"
+      programs={client.programs}
+      showActions={false}
+      showTimestamp={false}
+      variant="full"
+    />
+  )
+}
 
 export default async function ClientPage({
   params,
@@ -16,16 +65,7 @@ export default async function ClientPage({
   params: Promise<{ clientId: string }>
 }) {
   const clientId = (await params).clientId
-  const { data: clientData, error } = await getClientHomePageData(clientId)
-  if (error) {
-    return <div>error: {error.message}</div>
-  }
 
-  const { data: programs, error: programsError } =
-    await getAllCurrentUserUnassignedPrograms()
-  if (programsError) {
-    return <div>error: {programsError.message}</div>
-  }
   return (
     <PageLayout>
       <SiteHeader
@@ -38,9 +78,9 @@ export default async function ClientPage({
               Clients
             </Link>
             <Icons.chevronRight className="size-3 text-muted-foreground" />
-            <p className="capitalize">
-              {clientData.firstName} {clientData.lastName}
-            </p>
+            <Suspense fallback={<ButtonSkeleton className="h-6" />}>
+              <ClientName clientId={clientId} />
+            </Suspense>
           </div>
         }
         right={
@@ -53,30 +93,16 @@ export default async function ClientPage({
         className="@container/main flex flex-1 flex-col"
         id="clients content"
       >
-        <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
-          <ClientDetailsPageSection
-            clientUserId={clientId}
-            trainerNotes={clientData.trainerNotes}
-          />
-        </div>
-        <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
-          <Tp variant="h4">Assigned Programs</Tp>
-          <ProgramGrid
-            emptyState={{
-              title: "Assign a program",
-              subtitle:
-                "Assign a program to this client to help them reach their goals.",
-              actionComponent: (
-                <AssignProgramButton clientId={clientId} programs={programs} />
-              ),
-            }}
-            linkPath="/home/studio/:programId"
-            programs={clientData.programs}
-            showActions={false}
-            showTimestamp={false}
-            variant="full"
-          />
-        </div>
+        <Suspense fallback={<BasicSkeleton />}>
+          <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
+            <div>Hello</div>
+            <ClientDetails clientId={clientId} />
+          </div>
+          <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
+            <Tp variant="h4">Assigned Programs</Tp>
+            <ProgramsSection clientId={clientId} />
+          </div>
+        </Suspense>
       </div>
     </PageLayout>
   )
