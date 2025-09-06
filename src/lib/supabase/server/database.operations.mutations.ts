@@ -1,22 +1,9 @@
 import "server-only"
 
-import type { Program, WorkoutInstance } from "@/lib/domain/workouts"
+import type { Program } from "@/lib/domain/workouts"
 import type { Maybe } from "@/lib/types/types"
 import { createServerClient } from "../create-server-client"
 import type { Database, Json } from "../database.types"
-
-export async function saveWorkoutInstance(instance: WorkoutInstance) {
-  const client = await createServerClient()
-  return await client.from("workout_instances").insert({
-    id: instance.id,
-    user_id: instance.userId,
-    start_at: instance.startAt,
-    end_at: instance.endAt,
-    program_id: instance.programId,
-    workout_id: instance.workoutId,
-    blocks: instance.blocks,
-  })
-}
 
 // sendDebugLog is used to send ai debug logs to the database
 export async function sendDebugLog(request?: Json, response?: Json) {

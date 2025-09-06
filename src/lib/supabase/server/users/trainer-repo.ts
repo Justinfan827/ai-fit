@@ -1,14 +1,19 @@
 import "server-only"
 
 import { cache } from "react"
-import { v4 as uuidv4 } from "uuid"
 import type {
   ClientBasic,
-  ClientDetail,
   ClientHomePage,
+  TrainerClientNote,
 } from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
 import type { Maybe } from "@/lib/types/types"
+import {
+  convertHeight,
+  convertWeight,
+  type HeightUnit,
+  type WeightUnit,
+} from "@/lib/utils/biometric-units"
 import { createServerClient } from "../../create-server-client"
 import { getAuthUser } from "../auth-utils"
 import { resolvePrograms } from "../programs/utils"
@@ -17,21 +22,49 @@ import {
   type CustomExercisesQueryData,
   createBaseExercisesQuery,
   createClientDetailsQuery,
-  createClientHomePageQueries,
   createClientVerificationQuery,
   createCustomExercisesQuery,
-  createTrainerAssignmentQuery,
-  createUserMetadataQuery,
+  createTrainerClientNoteMutation,
   createUserMutation,
+  deleteTrainerClientNoteMutation,
+  getClientDetailsQuery,
+  getClientTrainerAssignmentQuery,
+  getTrainerClientNotesQuery,
   setUserClaimMutation,
   softDeleteClientMutation,
-  updateUserMetadataMutation,
   updateUserProfileMutation,
 } from "./trainer-queries"
 
 export type DBExercises = {
   base: Exercise[]
   custom: Exercise[]
+}
+
+// Helper functions for safe unit type casting
+const isWeightUnit = (unit: string | null): unit is WeightUnit => {
+  return unit === "kg" || unit === "lbs"
+}
+
+const isHeightUnit = (unit: string | null): unit is HeightUnit => {
+  return unit === "cm" || unit === "in"
+}
+
+const safeConvertWeight = (
+  value: number | null,
+  unit: string | null
+): number => {
+  if (!value) return 0
+  if (!isWeightUnit(unit)) return 0
+  return convertWeight.toKg(value, unit)
+}
+
+const safeConvertHeight = (
+  value: number | null,
+  unit: string | null
+): number => {
+  if (!value) return 0
+  if (!isHeightUnit(unit)) return 0
+  return convertHeight.toCm(value, unit)
 }
 
 const getCachedAllExercisesT = cache(
@@ -195,41 +228,48 @@ async function deleteClientById({
   return { data: undefined, error: null }
 }
 
-async function deleteClientDetailById({
+async function deleteClientNoteById({
+  noteId,
   clientId,
-  detailId,
+  trainerId,
 }: {
+  noteId: string
   clientId: string
-  detailId: string
-}) {
+  trainerId: string
+}): Promise<Maybe<TrainerClientNote>> {
   const sb = await createServerClient()
 
-  const { data, error } = await createUserMetadataQuery(sb, clientId)
-  if (error) {
-    return { data: null, error }
+  // Verify that the client belongs to this trainer
+  const { data: client, error: clientError } =
+    await getClientTrainerAssignmentQuery(sb, clientId, trainerId)
+  if (clientError) {
+    return { data: null, error: clientError }
+  }
+  if (!client) {
+    return { data: null, error: new Error("Client not found or access denied") }
   }
 
-  const metadata = (data.metadata as Record<string, unknown>) || {}
-  metadata.details = ((metadata.details as ClientDetail[]) || []).filter(
-    (d) => d.id !== detailId
-  )
-
-  const { data: user, error: updateErr } = await updateUserMetadataMutation(
-    sb,
-    clientId,
-    metadata as never
-  )
-  if (updateErr) {
-    return { data: null, error: updateErr }
+  const { data: note, error: deleteErr } =
+    await deleteTrainerClientNoteMutation(sb, noteId)
+  if (deleteErr) {
+    return { data: null, error: deleteErr }
   }
 
   return {
-    data: { user },
+    data: {
+      id: note.id,
+      trainerId: note.trainer_id,
+      clientId: note.client_id,
+      title: note.title,
+      description: note.description,
+      createdAt: note.created_at,
+      updatedAt: note.updated_at,
+    },
     error: null,
   }
 }
 
-async function updateClientDetails({
+async function createClientNote({
   clientId,
   trainerId,
   title,
@@ -239,12 +279,12 @@ async function updateClientDetails({
   clientId: string
   title: string
   description: string
-}) {
+}): Promise<Maybe<TrainerClientNote>> {
   const sb = await createServerClient()
 
-  // check that the client belongs to the trainer
+  // Verify that the client belongs to this trainer
   const { data: client, error: clientError } =
-    await createTrainerAssignmentQuery(sb, clientId, trainerId)
+    await getClientTrainerAssignmentQuery(sb, clientId, trainerId)
   if (clientError) {
     return { data: null, error: clientError }
   }
@@ -252,31 +292,28 @@ async function updateClientDetails({
     return { data: null, error: new Error("Client not found or access denied") }
   }
 
-  const { data, error } = await createUserMetadataQuery(sb, clientId)
-  if (error) {
-    return { data: null, error }
-  }
-
-  const metadata = (data.metadata as Record<string, unknown>) || {}
-  const details = (metadata.details as ClientDetail[]) || []
-  details.push({
-    id: uuidv4(),
-    title,
-    description,
-  })
-  metadata.details = details
-
-  const { data: user, error: updateErr } = await updateUserMetadataMutation(
-    sb,
-    clientId,
-    metadata as never
-  )
-  if (updateErr) {
-    return { data: null, error: updateErr }
+  const { data: note, error: createErr } =
+    await createTrainerClientNoteMutation(
+      sb,
+      trainerId,
+      clientId,
+      title,
+      description
+    )
+  if (createErr) {
+    return { data: null, error: createErr }
   }
 
   return {
-    data: { user },
+    data: {
+      id: note.id,
+      trainerId: note.trainer_id,
+      clientId: note.client_id,
+      title: note.title,
+      description: note.description,
+      createdAt: note.created_at,
+      updatedAt: note.updated_at,
+    },
     error: null,
   }
 }
@@ -310,7 +347,6 @@ async function fetchAllClientDetails(): Promise<Maybe<ClientHomePage[]>> {
   }
 
   const clients: ClientHomePage[] = clientsData.map((c) => {
-    const metadata = (c.metadata as Record<string, unknown>) || {}
     return {
       id: c.id,
       email: c.email || "",
@@ -318,13 +354,13 @@ async function fetchAllClientDetails(): Promise<Maybe<ClientHomePage[]>> {
       lastName: c.last_name || "",
       createdAt: c.created_at || "",
       programs: [],
-      age: (metadata.age as number) || 0,
-      gender: (metadata.gender as string) || "",
-      liftingExperienceMonths:
-        (metadata.lifting_experience_months as number) || 0,
-      weightKg: (metadata.weight_kg as number) || 0,
-      heightCm: (metadata.height_cm as number) || 0,
-      details: (metadata?.details as ClientDetail[]) || [],
+      age: c.age || 0,
+      gender: c.gender || "",
+      liftingExperienceMonths: 0, // This field will need to be added to users table if needed
+      weightKg: safeConvertWeight(c.weight_value, c.weight_unit),
+      heightCm: safeConvertHeight(c.height_value, c.height_unit),
+      details: [], // Legacy details are now handled by trainerNotes
+      trainerNotes: [], // Will be populated separately if needed
     }
   })
 
@@ -334,11 +370,67 @@ async function fetchAllClientDetails(): Promise<Maybe<ClientHomePage[]>> {
   }
 }
 
+async function getTrainerNotesForClient({
+  trainerId,
+  clientId,
+}: {
+  trainerId: string
+  clientId: string
+}): Promise<Maybe<TrainerClientNote[]>> {
+  const sb = await createServerClient()
+
+  // Verify that the client belongs to this trainer
+  const { data: client, error: clientError } =
+    await getClientTrainerAssignmentQuery(sb, clientId, trainerId)
+  if (clientError) {
+    return { data: null, error: clientError }
+  }
+  if (!client) {
+    return { data: null, error: new Error("Client not found or access denied") }
+  }
+
+  const { data: notes, error } = await getTrainerClientNotesQuery(
+    sb,
+    trainerId,
+    clientId
+  )
+  if (error) {
+    return { data: null, error }
+  }
+
+  const transformedNotes: TrainerClientNote[] = notes.map((note) => ({
+    id: note.id,
+    trainerId: note.trainer_id,
+    clientId: note.client_id,
+    title: note.title,
+    description: note.description,
+    createdAt: note.created_at,
+    updatedAt: note.updated_at,
+  }))
+
+  return {
+    data: transformedNotes,
+    error: null,
+  }
+}
+
+const getCachedClientHomePageDataT = cache(
+  async (clientId: string): Promise<ClientHomePage> => {
+    const { data, error } = await getClientHomePageData(clientId)
+    if (error) {
+      throw error
+    }
+    return data
+  }
+)
 /*
  * Fetch the data required for the home page of the client.
  * Includes:
- * - Assigned client programs
- * - Client details e.g. any trainer created notes
+ * - Assigned client programs (with workouts)
+ * - Client biometric data
+ * - Trainer created notes
+ *
+ * OPTIMIZED VERSION: Uses parallel queries and SQL joins to minimize waterfalls
  */
 async function getClientHomePageData(
   clientId: string
@@ -349,30 +441,42 @@ async function getClientHomePageData(
   }
 
   const sb = await createServerClient()
-  const [clientResult, programsResult] = await createClientHomePageQueries(
-    sb,
-    user.userId,
-    clientId
-  )
+
+  // Execute queries in parallel to eliminate async waterfalls
+  const [clientResult, notesResult] = await Promise.all([
+    getClientDetailsQuery(sb, user.userId, clientId),
+    getTrainerClientNotesQuery(sb, user.userId, clientId),
+  ])
 
   if (clientResult.error) {
     return { data: null, error: clientResult.error }
   }
-
-  if (programsResult.error) {
-    return { data: null, error: programsResult.error }
+  if (notesResult.error) {
+    return { data: null, error: notesResult.error }
   }
 
   const client = clientResult.data
-  const pData = programsResult.data
+  // Transform trainer notes
+  const transformedNotes: TrainerClientNote[] = notesResult.data.map(
+    (note) => ({
+      id: note.id,
+      trainerId: note.trainer_id,
+      clientId: note.client_id,
+      title: note.title,
+      description: note.description,
+      createdAt: note.created_at,
+      updatedAt: note.updated_at,
+    })
+  )
 
-  // Use the same supabase client for resolvePrograms
-  const { data: progData, error: progErr } = await resolvePrograms(sb, pData)
+  // Transform the programs data (already includes workouts from the SQL join)
+  const { data: progData, error: progErr } = await resolvePrograms(
+    sb,
+    client.programs || []
+  )
   if (progErr) {
     return { data: null, error: progErr }
   }
-
-  const metadata = (client.metadata as Record<string, unknown>) || {}
 
   return {
     data: {
@@ -382,13 +486,13 @@ async function getClientHomePageData(
       lastName: client.last_name || "",
       createdAt: client.created_at || "",
       programs: progData,
-      age: (metadata.age as number) || 0,
-      gender: (metadata.gender as string) || "",
-      liftingExperienceMonths:
-        (metadata.lifting_experience_months as number) || 0,
-      weightKg: (metadata.weight_kg as number) || 0,
-      heightCm: (metadata.height_cm as number) || 0,
-      details: (metadata?.details as ClientDetail[]) || [],
+      age: client.age || 0,
+      gender: client.gender || "",
+      liftingExperienceMonths: 0, // This field will need to be added to users table if needed
+      weightKg: safeConvertWeight(client.weight_value, client.weight_unit),
+      heightCm: safeConvertHeight(client.height_value, client.height_unit),
+      details: [], // Legacy details are now handled by trainerNotes
+      trainerNotes: transformedNotes,
     },
     error: null,
   }
@@ -398,10 +502,12 @@ export {
   getAllExercises,
   createClient,
   deleteClientById,
-  deleteClientDetailById,
-  updateClientDetails,
+  deleteClientNoteById,
+  createClientNote,
+  getTrainerNotesForClient,
   fetchAllClientDetails,
   getClientHomePageData,
   getCachedAllExercisesT,
   getCachedAllClientDetailsT,
+  getCachedClientHomePageDataT,
 }

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import type { ClientDetail } from "@/lib/domain/clients"
+import type { TrainerClientNote } from "@/lib/domain/clients"
 import { inputTrim } from "@/lib/utils/util"
 
 export const AddClientDetailFormSchema = z.object({
@@ -43,10 +43,10 @@ type ClientDetailFormProps = {
 }
 export function ClientDetailsPageSection({
   clientUserId,
-  details,
+  trainerNotes,
 }: {
   clientUserId: string
-  details: ClientDetail[]
+  trainerNotes: TrainerClientNote[]
 }) {
   const [isAddingDetail, setIsAddingDetail] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -59,7 +59,7 @@ export function ClientDetailsPageSection({
         description: inputTrim(data.description),
       })
       if (error) {
-        toast("Error", {
+        toast.error("Error", {
           description: (
             <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
               <code className="text-white">
@@ -68,7 +68,12 @@ export function ClientDetailsPageSection({
             </pre>
           ),
         })
+        return
       }
+
+      toast.success("Detail added successfully", {
+        description: <code className="text-xs">{data.title}</code>,
+      })
       setIsAddingDetail(false)
     })
   }
@@ -117,20 +122,20 @@ export function ClientDetailsPageSection({
         />
       )}
 
-      {details.map((detail) => (
-        <Card className="relative" key={detail.id}>
+      {trainerNotes.map((trainerNote) => (
+        <Card className="relative" key={trainerNote.id}>
           <Button
             className="absolute top-2 right-2 text-muted-foreground"
-            onClick={() => handleRemoveDetail(detail.id)}
+            onClick={() => handleRemoveDetail(trainerNote.id)}
             size="icon"
             variant="ghost"
           >
             <Icons.x className="h-5 w-5" />
           </Button>
           <CardHeader>
-            <p className="font-normal tracking-tight">{detail.title}</p>
+            <p className="font-normal tracking-tight">{trainerNote.title}</p>
             <p className="whitespace-pre-wrap font-normal text-muted-foreground text-sm leading-snug">
-              {detail.description}
+              {trainerNote.description}
             </p>
           </CardHeader>
         </Card>

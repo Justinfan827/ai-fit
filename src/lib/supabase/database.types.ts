@@ -147,29 +147,6 @@ export type Database = {
         }
         Relationships: []
       }
-      exercise_muscle_groups: {
-        Row: {
-          exercise_id: string
-          muscle_group_id: string
-        }
-        Insert: {
-          exercise_id: string
-          muscle_group_id: string
-        }
-        Update: {
-          exercise_id?: string
-          muscle_group_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "exercise_muscle_groups_muscle_group_id_fkey"
-            columns: ["muscle_group_id"]
-            isOneToOne: false
-            referencedRelation: "muscle_groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       exercises: {
         Row: {
           created_at: string
@@ -204,24 +181,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      muscle_groups: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
       }
       programs: {
         Row: {
@@ -311,33 +270,96 @@ export type Database = {
           },
         ]
       }
+      trainer_client_notes: {
+        Row: {
+          client_id: string
+          created_at: string
+          deleted_at: string | null
+          description: string
+          id: string
+          title: string
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          deleted_at?: string | null
+          description: string
+          id?: string
+          title: string
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string
+          id?: string
+          title?: string
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_client_notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_client_notes_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
+          age: number | null
           created_at: string | null
           email: string | null
           first_name: string | null
+          gender: string | null
+          height_unit: string | null
+          height_value: number | null
           id: string
           last_name: string | null
-          metadata: Json | null
           trainer_id: string | null
+          weight_unit: string | null
+          weight_value: number | null
         }
         Insert: {
+          age?: number | null
           created_at?: string | null
           email?: string | null
           first_name?: string | null
+          gender?: string | null
+          height_unit?: string | null
+          height_value?: number | null
           id: string
           last_name?: string | null
-          metadata?: Json | null
           trainer_id?: string | null
+          weight_unit?: string | null
+          weight_value?: number | null
         }
         Update: {
+          age?: number | null
           created_at?: string | null
           email?: string | null
           first_name?: string | null
+          gender?: string | null
+          height_unit?: string | null
+          height_value?: number | null
           id?: string
           last_name?: string | null
-          metadata?: Json | null
           trainer_id?: string | null
+          weight_unit?: string | null
+          weight_value?: number | null
         }
         Relationships: [
           {
@@ -348,79 +370,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      workout_instances: {
-        Row: {
-          blocks: Json
-          created_at: string
-          end_at: string | null
-          id: string
-          program_id: string
-          start_at: string | null
-          user_id: string
-          workout_id: string
-        }
-        Insert: {
-          blocks: Json
-          created_at?: string
-          end_at?: string | null
-          id?: string
-          program_id: string
-          start_at?: string | null
-          user_id: string
-          workout_id: string
-        }
-        Update: {
-          blocks?: Json
-          created_at?: string
-          end_at?: string | null
-          id?: string
-          program_id?: string
-          start_at?: string | null
-          user_id?: string
-          workout_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "workout_instance_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workout_instances_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workout_instances_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: false
-            referencedRelation: "workouts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      workout_rows: {
-        Row: {
-          id: string
-          row_data: Json | null
-          workout_id: string | null
-        }
-        Insert: {
-          id?: string
-          row_data?: Json | null
-          workout_id?: string | null
-        }
-        Update: {
-          id?: string
-          row_data?: Json | null
-          workout_id?: string | null
-        }
-        Relationships: []
       }
       workouts: {
         Row: {

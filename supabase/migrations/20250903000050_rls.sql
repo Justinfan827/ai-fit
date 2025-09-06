@@ -12,6 +12,7 @@ ALTER TABLE public.programs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workouts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trainer_assigned_programs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.debug_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.trainer_client_notes ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
 -- USERS TABLE POLICIES
@@ -387,4 +388,57 @@ CREATE POLICY "debug_log_delete_policy" ON public.debug_log
     TO authenticated
     USING (
         (SELECT email FROM auth.users WHERE id = auth.uid()) = 'justinfan827@gmail.com'
+    );
+
+-- ============================================================================
+-- TRAINER CLIENT NOTES TABLE POLICIES
+-- ============================================================================
+
+-- Only trainers can view notes they created about their clients
+CREATE POLICY "trainer_client_notes_select_policy" ON public.trainer_client_notes
+    FOR SELECT
+    TO authenticated
+    USING (
+        (SELECT auth.uid()) = trainer_id
+    );
+
+-- Trainers can view notes they created about their clients
+CREATE POLICY "trainer_notes_select_policy" ON public.trainer_client_notes
+    FOR SELECT
+    TO authenticated
+    USING (
+        (SELECT auth.uid()) = trainer_id
+    );
+
+-- Trainers can create notes about their clients
+CREATE POLICY "trainer_notes_insert_policy" ON public.trainer_client_notes
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        (SELECT auth.uid()) = trainer_id
+    );
+
+-- Trainers can update their own notes about their clients
+CREATE POLICY "trainer_notes_update_policy" ON public.trainer_client_notes
+    FOR UPDATE
+    TO authenticated
+    USING (
+        (SELECT auth.uid()) = trainer_id
+    )
+    WITH CHECK (
+        (SELECT auth.uid()) = trainer_id
+        AND
+        client_id IN (
+            SELECT id 
+            FROM public.users 
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+    );
+
+-- Trainers can delete (soft delete) their own notes
+CREATE POLICY "trainer_notes_delete_policy" ON public.trainer_client_notes
+    FOR DELETE
+    TO authenticated
+    USING (
+        (SELECT auth.uid()) = trainer_id
     );

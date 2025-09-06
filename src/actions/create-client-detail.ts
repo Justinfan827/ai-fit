@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { withAuthInput } from "@/actions/middleware/with-auth"
-import { updateClientDetails } from "@/lib/supabase/server/users/trainer-repo"
+import { createClientNote } from "@/lib/supabase/server/users/trainer-repo"
 
 // This schema is used to validate input from client.
 const schema = z.object({
@@ -21,7 +21,7 @@ export const createClientDetailAction = withAuthInput(
     schema,
   },
   async ({ input, user }) => {
-    const { data: userData, error } = await updateClientDetails({
+    const { data: noteData, error } = await createClientNote({
       trainerId: user.userId,
       ...input,
     })
@@ -33,7 +33,7 @@ export const createClientDetailAction = withAuthInput(
     }
     revalidatePath(`/home/clients/${input.clientId}`)
     return {
-      data: userData,
+      data: noteData,
       error: null,
     }
   }
