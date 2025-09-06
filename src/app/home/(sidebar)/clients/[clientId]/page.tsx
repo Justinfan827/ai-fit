@@ -11,7 +11,7 @@ import { getCachedAllCurrentUserUnassignedProgramsT } from "@/lib/supabase/serve
 import { getCachedClientHomePageDataT } from "@/lib/supabase/server/users/trainer-repo"
 import NewProgramButtonWithData from "../../programs/new-program-button-with-data"
 import AssignProgramButton from "./assign-program-button"
-import { ClientDetailsPageSection } from "./details"
+import { ClientTrainerNotesPageSection } from "./trainer-notes"
 
 // Component for async client name in header
 const ClientName = async ({ clientId }: { clientId: string }) => {
@@ -27,7 +27,7 @@ const ClientName = async ({ clientId }: { clientId: string }) => {
 const ClientDetails = async ({ clientId }: { clientId: string }) => {
   const { trainerNotes } = await getCachedClientHomePageDataT(clientId)
   return (
-    <ClientDetailsPageSection
+    <ClientTrainerNotesPageSection
       clientUserId={clientId}
       trainerNotes={trainerNotes}
     />

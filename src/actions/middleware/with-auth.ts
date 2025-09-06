@@ -61,6 +61,7 @@ const withAuthInput = <TInput, TResult>(
         error: null,
       }
     } catch (e) {
+      console.log("server action error", e)
       return {
         ...asError(e),
         data: null,

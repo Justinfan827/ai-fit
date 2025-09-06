@@ -3,23 +3,27 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { withAuthInput } from "@/actions/middleware/with-auth"
-import { deleteClientNoteById } from "@/lib/supabase/server/users/trainer-repo"
+import { createTrainerNote } from "@/lib/supabase/server/users/trainer-repo"
 
 // This schema is used to validate input from client.
 const schema = z.object({
-  noteId: z.string(),
-  clientId: z.string(), // For revalidation path
+  clientId: z.string(),
+  title: z.string().min(2, {
+    error: "Title must be at least 2 characters.",
+  }),
+  description: z.string().min(2, {
+    error: "Description must be at least 2 characters.",
+  }),
 })
 
-export const deleteClientNoteAction = withAuthInput(
+export const createTrainerNoteAction = withAuthInput(
   {
     schema,
   },
   async ({ input, user }) => {
-    const { data: noteData, error } = await deleteClientNoteById({
-      noteId: input.noteId,
-      clientId: input.clientId,
+    const { data: noteData, error } = await createTrainerNote({
       trainerId: user.userId,
+      ...input,
     })
     if (error) {
       return {

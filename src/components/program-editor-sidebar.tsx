@@ -31,7 +31,7 @@ import {
 } from "@/lib/ai/tools/generateNewWorkouts/response-schema"
 import { workoutChangeSchema } from "@/lib/ai/tools/generateProgramDiffs/diff-schema"
 import type { MyUIMessage } from "@/lib/ai/ui-message-types"
-import type { ClientHomePage } from "@/lib/domain/clients"
+import type { ClientWithTrainerNotes } from "@/lib/domain/clients"
 import type { Block, Exercise } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
 import {
@@ -54,14 +54,14 @@ import { Separator } from "./ui/separator"
 interface ProgramEditorSidebarProps {
   trainerId: string
   exercises: Exercise[]
-  client?: ClientHomePage // Make client optional
-  availableClients?: ClientHomePage[] // List of available clients to choose from
+  client?: ClientWithTrainerNotes // Make client optional
+  availableClients?: ClientWithTrainerNotes[] // List of available clients to choose from
 }
 
 type ClientContextItem = {
   type: "client"
   label: string
-  data: ClientHomePage
+  data: ClientWithTrainerNotes
 }
 
 type ExercisesContextItem = {
@@ -175,7 +175,7 @@ export function ProgramEditorSidebar({
       addExercisesContext(payload.data)
     }
   }
-  const addClientContext = (selectedClient: ClientHomePage) => {
+  const addClientContext = (selectedClient: ClientWithTrainerNotes) => {
     const clientItem: ContextItem = {
       type: "client",
       label: `${selectedClient.firstName} ${selectedClient.lastName}`,
@@ -441,7 +441,7 @@ interface SidebarInputProps {
   onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void
   value: string
   state: {
-    clients: ClientHomePage[]
+    clients: ClientWithTrainerNotes[]
     exercises: Exercise[]
     contextItems: ContextItem[]
   }
@@ -450,7 +450,7 @@ interface SidebarInputProps {
 
 type ClientContextAddPayload = {
   type: "client"
-  data: ClientHomePage
+  data: ClientWithTrainerNotes
 }
 
 type ExercisesContextAddPayload = {

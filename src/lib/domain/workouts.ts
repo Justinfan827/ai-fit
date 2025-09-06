@@ -165,6 +165,7 @@ export type Exercise = z.infer<typeof exerciseSchema>
 export type ExerciseBlockSchema = z.infer<typeof exerciseBlockSchema>
 export type ExerciseInstance = z.infer<typeof exerciseInstanceSchema>
 export type Program = z.infer<typeof programSchema>
+export type SparseProgram = Omit<Program, "workouts">
 export type Workout = z.infer<typeof workoutSchema>
 export type WorkoutExercise = z.infer<typeof workoutExerciseSchema>
 export type WorkoutInstance = z.infer<typeof workoutInstanceSchema>
