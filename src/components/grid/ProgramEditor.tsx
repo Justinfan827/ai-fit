@@ -21,10 +21,12 @@ import {
   useZProposedChanges,
 } from "@/hooks/zustand/program-editor-state"
 import { type Program, programSchema } from "@/lib/domain/workouts"
+import { cn } from "@/lib/utils"
 import PlusButton from "../buttons/PlusButton"
 import LoadingButton from "../loading-button"
 import { ProposedChangesMenu } from "../proposed-changes-menu"
 import { Badge } from "../ui/badge"
+import { useSidebar } from "../ui/sidebar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import WorkoutGrid from "./WorkoutGrid"
 import { groupWorkoutsByWeek } from "./workout-utils"
@@ -201,9 +203,17 @@ export default function ProgramEditor() {
       </LoadingButton>
     </div>
   )
+  const { open } = useSidebar()
   return (
-    <div className="flex grow flex-col gap-4 overflow-auto px-4">
-      <div className="scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent grow overflow-x-auto">
+    <div className="px-1 pt-2">
+      <div
+        className={cn(
+          "scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent overflow-auto",
+          !open && "h-[calc(100svh-var(--header-height)-4*var(--spacing))]",
+          open &&
+            "h-[calc(100svh-var(--header-height)-2*var(--inset-height)-4*var(--spacing))]"
+        )}
+      >
         <div className="flex gap-8">
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
             return (
@@ -336,8 +346,9 @@ export default function ProgramEditor() {
             )
           })}
         </div>
+
+        <ProposedChangesMenu />
       </div>
-      <ProposedChangesMenu />
     </div>
   )
 }

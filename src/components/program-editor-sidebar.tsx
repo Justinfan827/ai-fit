@@ -14,12 +14,7 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
 import { Response } from "@/components/ai-elements/response"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-} from "@/components/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarFooter } from "@/components/ui/sidebar"
 import {
   useZEditorActions,
   useZProgramId,
@@ -89,6 +84,16 @@ const mapAIBlockToDomainBlock = (aiBlock: AIBlock): Block => {
   throw new Error(`Unknown block type: ${aiBlock}`)
 }
 
+const Thinking = () => {
+  return (
+    <div className="rounded-lg px-3 py-2 text-sm">
+      <div className="flex animate-pulse items-center gap-2">
+        <span className="text-muted-foreground">Thinking...</span>
+      </div>
+    </div>
+  )
+}
+
 export function ProgramEditorSidebar({
   exercises: initialExercises,
   availableClients = [],
@@ -107,6 +112,10 @@ export function ProgramEditorSidebar({
   })
 
   const [input, setInput] = useState("")
+  const [showDebugMessages, setShowDebugMessages] = useState(false)
+  const handleToggleDebugMessages = () => {
+    setShowDebugMessages((prev) => !prev)
+  }
 
   const { addProposedChanges, addWorkout } = useZEditorActions()
   const handleSubmit = (e: React.FormEvent) => {
@@ -226,7 +235,10 @@ export function ProgramEditorSidebar({
   const renderContextBadge = (item: ContextItem) => {
     if (item.type === "exercises") {
       return (
-        <Badge className="flex cursor-pointer items-center gap-1 border-input bg-background text-foreground text-xs">
+        <Badge
+          className="flex cursor-pointer items-center gap-1 border-input bg-background text-foreground text-xs"
+          key={item.label}
+        >
           {getContextIcon(item.type)}
           <span>{item.label}</span>
           <Button
@@ -271,13 +283,33 @@ export function ProgramEditorSidebar({
       side="right"
       variant="inset"
     >
-      <SidebarHeader />
-      <SidebarContent className="flex flex-col">
+      <SidebarContent className="flex flex-col ">
+        <div className="border-b px-4 py-2">
+          <div className="flex items-center justify-between">
+            <Button
+              aria-pressed={showDebugMessages}
+              className="h-7 px-2 text-xs"
+              onClick={handleToggleDebugMessages}
+              size="sm"
+              type="button"
+              variant={showDebugMessages ? "default" : "outline"}
+            >
+              {showDebugMessages ? "Hide" : "Show Messages"}
+            </Button>
+          </div>
+          {showDebugMessages && (
+            <div className="mt-2 overflow-auto rounded-md bg-muted p-2">
+              <pre className="whitespace-pre-wrap break-words text-[11px] leading-relaxed">
+                {JSON.stringify(messages, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
         <Conversation>
-          <ConversationContent>
+          <ConversationContent className="scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             {messages.map((message) => (
               <Message from={message.role} key={message.id}>
-                {message.parts.map((part) => {
+                {message.parts.map((part, partIdx) => {
                   switch (part.type) {
                     case "tool-generateProgramDiffs":
                       // New states for streaming and error handling
@@ -304,8 +336,8 @@ export function ProgramEditorSidebar({
                       }
                     case "text":
                       return (
-                        <MessageContent key={message.id}>
-                          <Response key={message.id}>{part.text}</Response>
+                        <MessageContent key={`${message.id}-${partIdx}`}>
+                          <Response>{part.text}</Response>
                         </MessageContent>
                       )
                     default:
@@ -315,13 +347,7 @@ export function ProgramEditorSidebar({
               </Message>
             ))}
 
-            {status === "submitted" && (
-              <div className="rounded-lg px-3 py-2 text-sm">
-                <div className="flex animate-pulse items-center gap-2">
-                  <span className="text-muted-foreground">Thinking...</span>
-                </div>
-              </div>
-            )}
+            {status === "submitted" && <Thinking />}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>

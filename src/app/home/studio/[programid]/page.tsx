@@ -39,14 +39,14 @@ export default async function Page({
       className="isolate flex flex-col"
       style={
         {
-          "--sidebar-width": "calc(var(--spacing) * 102)",
+          "--sidebar-width": "calc(var(--spacing) * 120)",
           "--header-height": "calc(var(--spacing) * 16)",
         } as React.CSSProperties
       }
     >
       <EditorProgramProvider exercises={allExercises} initialProgram={program}>
         <SiteHeader
-          className="sticky top-0 z-50 flex w-full flex-shrink-0 items-center border-b bg-background"
+          className="flex w-full flex-shrink-0 items-center border-b bg-background"
           left={
             <div className="flex items-center gap-2 leading-none">
               <Link
@@ -87,6 +87,7 @@ export default async function Page({
               "peer-data-[variant=inset]:peer-data-[state=collapsed]:rounded-none!",
               "transition-all duration-300 ease-in-out"
             )}
+            id="program-editor-inset"
           >
             <ProgramEditor />
           </SidebarInset>

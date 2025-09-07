@@ -10,6 +10,7 @@ import { getCachedAllCurrentUserUnassignedProgramsT } from "@/lib/supabase/serve
 import { getCachedClientHomePageDataT } from "@/lib/supabase/server/users/trainer-repo"
 import NewProgramButtonWithData from "../../programs/new-program-button-with-data"
 import AssignProgramButton from "./assign-program-button"
+import ClientBasicInfoSection from "./basic-information-section"
 import { ClientTrainerNotesPageSection } from "./trainer-notes"
 
 // Component for async client name in header
@@ -19,6 +20,19 @@ const ClientName = async ({ clientId }: { clientId: string }) => {
     <p className="capitalize">
       {firstName} {lastName}
     </p>
+  )
+}
+
+const ClientBasicInfo = async ({ clientId }: { clientId: string }) => {
+  const { age, gender, weight, height } =
+    await getCachedClientHomePageDataT(clientId)
+  return (
+    <ClientBasicInfoSection
+      age={age}
+      gender={gender}
+      height={height}
+      weight={weight}
+    />
   )
 }
 
@@ -99,6 +113,7 @@ export default async function ClientPage({
       >
         <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
           <Suspense fallback={<BasicSkeleton />}>
+            <ClientBasicInfo clientId={clientId} />
             <ClientDetails clientId={clientId} />
             <Tp variant="h4">Assigned Programs</Tp>
             <ProgramsSection clientId={clientId} />

@@ -55,7 +55,7 @@ export function ClientTrainerNotesPageSection({
   clientUserId,
   trainerNotes,
 }: ClientTrainerNotesPageSectionProps) {
-  const [isAddingDetail, setIsAddingDetail] = useState(false)
+  const [isEditingNotes, setIsEditingNotes] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   const handleOnSubmit = (data: TrainerNoteFormType) => {
@@ -81,7 +81,7 @@ export function ClientTrainerNotesPageSection({
       toast.success("Detail added successfully", {
         description: <code className="text-xs">{data.title}</code>,
       })
-      setIsAddingDetail(false)
+      setIsEditingNotes(false)
     })
   }
 
@@ -107,28 +107,7 @@ export function ClientTrainerNotesPageSection({
 
   return (
     <>
-      <div className="flex items-center gap-4">
-        <PageSectionHeader>Notes</PageSectionHeader>
-        {!isAddingDetail && (
-          <Button
-            onClick={() => setIsAddingDetail(true)}
-            size="sm"
-            variant="dashed"
-          >
-            <Icons.plus className="h-3 w-3" />
-            New detail
-          </Button>
-        )}
-      </div>
-      {isAddingDetail && (
-        <TrainerNoteForm
-          formName="add-client-detail-form"
-          isPending={isPending}
-          onCancel={() => setIsAddingDetail(false)}
-          onSubmit={handleOnSubmit}
-        />
-      )}
-
+      <PageSectionHeader>Notes</PageSectionHeader>
       {trainerNotes.map((trainerNote) => (
         <Card className="relative" key={trainerNote.id}>
           <Button
@@ -147,6 +126,24 @@ export function ClientTrainerNotesPageSection({
           </CardHeader>
         </Card>
       ))}
+      {isEditingNotes && (
+        <TrainerNoteForm
+          formName="add-client-detail-form"
+          isPending={isPending}
+          onCancel={() => setIsEditingNotes(false)}
+          onSubmit={handleOnSubmit}
+        />
+      )}
+      {!isEditingNotes && (
+        <Button
+          onClick={() => setIsEditingNotes(true)}
+          size="sm"
+          variant="dashed"
+        >
+          <Icons.plus className="h-3 w-3" />
+          New note
+        </Button>
+      )}
     </>
   )
 }
