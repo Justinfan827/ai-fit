@@ -23,6 +23,7 @@ import {
 import { type Program, programSchema } from "@/lib/domain/workouts"
 import { cn } from "@/lib/utils"
 import PlusButton from "../buttons/PlusButton"
+import { EmptyStateCard } from "../empty-state"
 import LoadingButton from "../loading-button"
 import { ProposedChangesMenu } from "../proposed-changes-menu"
 import { Badge } from "../ui/badge"
@@ -215,6 +216,20 @@ export default function ProgramEditor() {
         )}
       >
         <div className="flex gap-8">
+          {workouts.length === 0 && (
+            <div className="w-full p-4">
+              <EmptyStateCard
+                actionComponent={
+                  <PlusButton
+                    onClick={() => addNewWorkoutToWeek({ week: 0 })}
+                    text="Add Workout"
+                  />
+                }
+                subtitle="Add a workout to get started"
+                title="No Workouts"
+              />
+            </div>
+          )}
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
             return (
               <div
@@ -286,16 +301,14 @@ export default function ProgramEditor() {
                               className="flex items-center justify-center pl-2"
                               id="workout-action-bar"
                             >
-                              {workoutIdx === 0 && weekIdx === 0 ? null : (
-                                <Button
-                                  className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
-                                  onClick={() => handleDeletion(workout.id)}
-                                  size="icon"
-                                  variant="ghost"
-                                >
-                                  <Icons.x className="h-4 w-4" />
-                                </Button>
-                              )}
+                              <Button
+                                className="h-6 w-6 text-accent-foreground opacity-50 transition-opacity ease-in-out hover:opacity-100"
+                                onClick={() => handleDeletion(workout.id)}
+                                size="icon"
+                                variant="ghost"
+                              >
+                                <Icons.x className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
                           <WorkoutGrid
