@@ -36,6 +36,7 @@ const getCachedAllExercisesT = cache(
   async (trainerId: string): Promise<DBExercises> => {
     const { data, error } = await getAllExercises(trainerId)
     if (error) {
+      console.log("exercises", error)
       throw error
     }
     return data
@@ -295,6 +296,7 @@ async function createTrainerNote({
 const getCachedAllClientDetailsT = cache(async () => {
   const { data, error } = await getAllClientDetails()
   if (error) {
+    console.log("client details error", error)
     throw error
   }
   return data
@@ -358,11 +360,9 @@ const getCachedClientHomePageDataT = cache(async (clientId: string) => {
 /*
  * Fetch the data required for the home page of the client.
  * Includes:
- * - Assigned client programs (with workouts)
- * - Client biometric data
- * - Trainer created notes
- *
- * OPTIMIZED VERSION: Uses parallel queries and SQL joins to minimize waterfalls
+ * - Assigned workout programs
+ * - Basic info
+ * - Trainer specific notes
  */
 async function getClientHomePageData(
   clientId: string

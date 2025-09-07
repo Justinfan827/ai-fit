@@ -11,7 +11,7 @@ export const updateProgramAction = withAuthInput(
     schema: programSchema,
   },
   async ({ input, user }) => {
-    const resp = await updateProgram(user.userId, input)
+    const resp = await updateProgram(input)
     if (resp.error) {
       throw resp.error
     }

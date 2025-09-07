@@ -72,7 +72,7 @@ export default function ClientButtonNewClient() {
             Create a new client profile with basic information and measurements
           </DialogDescription>
         </DialogHeader>
-        <div className="scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent grid max-h-[500px] gap-4 overflow-y-auto py-4">
+        <div className="scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent grid max-h-[500px] gap-4 overflow-y-auto">
           <NewClientForm formName={formName} onSubmit={onSubmit} />
         </div>
         <DialogFooter>

@@ -1,5 +1,5 @@
 import "server-only"
-
+import { PostgrestError } from "@supabase/postgrest-js"
 import type { Program } from "@/lib/domain/workouts"
 import type { Maybe } from "@/lib/types/types"
 import { createServerClient } from "../create-server-client"
@@ -57,10 +57,7 @@ export async function createProgram(
   }
 }
 
-export async function updateProgram(
-  userId: string,
-  program: Program
-): Promise<Maybe<Program>> {
+export async function updateProgram(program: Program): Promise<Maybe<Program>> {
   const client = await createServerClient()
   const { data: dbProgramData, error } = await client
     .from("programs")
@@ -68,12 +65,13 @@ export async function updateProgram(
       name: program.name,
     })
     .eq("id", program.id)
-    .eq("user_id", userId)
     .select("*")
     .single()
   if (error) {
-    return { data: null, error: new Error("Failed to update program") }
+    console.log("update program error", error)
+    return { data: null, error: new PostgrestError(error) }
   }
+  const programUserId = dbProgramData.user_id
 
   // TODO: incrementally update workouts
   const { error: dErr } = await client
@@ -95,7 +93,7 @@ export async function updateProgram(
             name: workout.name,
             program_id: program.id,
             program_order: idx,
-            user_id: userId,
+            user_id: programUserId,
             blocks: workout.blocks,
           },
           {
@@ -169,13 +167,9 @@ export async function assignProgramToUser({
     })
     .select("*")
     .single()
-
   if (newProgramError) {
     return { data: null, error: newProgramError }
   }
-
-  // Duplicate workouts
-
   const { data: workouts, error: workoutError } = await client
     .from("workouts")
     .select("*")

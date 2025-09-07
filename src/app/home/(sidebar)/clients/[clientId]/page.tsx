@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { Suspense } from "react"
 import { Icons } from "@/components/icons"
-import { PageLayout } from "@/components/page-layout"
 import { ProgramGrid } from "@/components/program-grid"
 import { SiteHeader } from "@/components/site-header"
 import { BasicSkeleton } from "@/components/skeletons/basic-skeleton"
@@ -25,11 +24,16 @@ const ClientName = async ({ clientId }: { clientId: string }) => {
 
 // Component for async client details section
 const ClientDetails = async ({ clientId }: { clientId: string }) => {
-  const { trainerNotes } = await getCachedClientHomePageDataT(clientId)
+  const { trainerNotes, age, gender, weight, height } =
+    await getCachedClientHomePageDataT(clientId)
   return (
     <ClientTrainerNotesPageSection
+      age={age}
       clientUserId={clientId}
+      gender={gender}
+      height={height}
       trainerNotes={trainerNotes}
+      weight={weight}
     />
   )
 }
@@ -67,7 +71,7 @@ export default async function ClientPage({
   const clientId = (await params).clientId
 
   return (
-    <PageLayout>
+    <>
       <SiteHeader
         left={
           <div className="flex items-center gap-2 leading-none">
@@ -93,17 +97,14 @@ export default async function ClientPage({
         className="@container/main flex flex-1 flex-col"
         id="clients content"
       >
-        <Suspense fallback={<BasicSkeleton />}>
-          <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
-            <div>Hello</div>
+        <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
+          <Suspense fallback={<BasicSkeleton />}>
             <ClientDetails clientId={clientId} />
-          </div>
-          <div className="flex flex-col gap-4 pt-8 pb-4 md:gap-6 md:px-4 md:py-6">
             <Tp variant="h4">Assigned Programs</Tp>
             <ProgramsSection clientId={clientId} />
-          </div>
-        </Suspense>
+          </Suspense>
+        </div>
       </div>
-    </PageLayout>
+    </>
   )
 }

@@ -75,10 +75,10 @@ export const getAllTrainerClientsQuery = (sb: DBClient, trainerId: string) =>
       trainer_client_notes!client_id (
         id,
         title,
-        description
+        description,
+        created_at
       )
     `)
-    .order("trainer_client_notes.created_at", { ascending: false })
     .eq("trainer_id", trainerId)
 
 export type GetAllTrainerClientsQueryData = QueryData<
@@ -108,7 +108,7 @@ export const getClientDetailedQuery = (
     .select(`
       *,
       trainer_client_notes!client_id (
-      *
+        *
       ),
       programs (
         *,
@@ -119,6 +119,7 @@ export const getClientDetailedQuery = (
     `)
     .eq("trainer_id", trainerId)
     .eq("id", clientId)
+    .is("trainer_client_notes.deleted_at", null)
     .single()
 
 export type GetClientDetailedQueryData = QueryData<

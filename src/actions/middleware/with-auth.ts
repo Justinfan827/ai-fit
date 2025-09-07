@@ -1,5 +1,6 @@
 import type { z } from "zod"
 import { asError } from "@/app/api/error-response"
+import log from "@/lib/logger/logger"
 import {
   type AuthUser,
   authUserRequest,
@@ -21,14 +22,19 @@ type WithAuthInputHandler<TInput, TResult> = (
  */
 const withAuth = <TResult>(handler: WithAuthHandler<TResult>) => {
   return async () => {
+    let user: AuthUser | undefined
     try {
-      const user = await authUserRequest()
+      user = await authUserRequest()
       const result = await handler({ user })
       return {
         data: result,
         error: null,
       }
     } catch (e) {
+      log.errorWithStack("server action error", e, {
+        action: "withAuth",
+        userId: user?.userId || "unknown",
+      })
       return {
         ...asError(e),
         data: null,
@@ -45,8 +51,9 @@ const withAuthInput = <TInput, TResult>(
   handler: WithAuthInputHandler<TInput, TResult>
 ) => {
   return async (input: TInput) => {
+    let user: AuthUser | undefined
     try {
-      const user = await authUserRequest()
+      user = await authUserRequest()
       const parsedInput = schema.safeParse(input)
       if (!parsedInput.success) {
         throw parsedInput.error
@@ -61,7 +68,11 @@ const withAuthInput = <TInput, TResult>(
         error: null,
       }
     } catch (e) {
-      console.log("server action error", e)
+      console.log("server action error", e instanceof Error)
+      log.errorWithStack("server action error", e, {
+        action: "withAuthInput",
+        userId: user?.userId || "unknown",
+      })
       return {
         ...asError(e),
         data: null,
