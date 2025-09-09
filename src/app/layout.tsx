@@ -4,6 +4,7 @@ import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
+import { isLive } from "@/lib/utils"
 
 export const metadata = {
   title: "Create Next App",
@@ -32,7 +33,7 @@ export default function RootLayout({
           {children}
         </ThemeProvider>
         <Toaster />
-        <TailwindIndicator />
+        {!isLive() && <TailwindIndicator />}
       </body>
     </html>
   )
