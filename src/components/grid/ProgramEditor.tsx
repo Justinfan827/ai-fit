@@ -233,24 +233,22 @@ export default function ProgramEditor() {
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
             return (
               <div
-                className="min-w-[1200px] space-y-4 pr-4 [--action-menu-padding:--spacing(18)]"
+                className="min-w-[1200px] space-y-4 pt-4 pr-4 [--action-menu-padding:--spacing(18)]"
                 id="program-ui"
                 key={`by-week-workout-${weekIdx}`}
               >
                 {/* TODO: support weekly programs */}
-                <div
-                  className="flex items-center justify-between gap-4 pr-[52px] pb-3"
-                  id="program-ui-header"
-                >
-                  {programType === "weekly" && (
+                {programType === "weekly" && (
+                  <div
+                    className="debug flex items-center justify-between gap-4 pr-[52px] pb-3"
+                    id="program-ui-header"
+                  >
                     <Badge
                       className="font-light text-muted-foreground text-xs uppercase tracking-widest"
                       variant="outline"
                     >
                       Week {weekIdx + 1}
                     </Badge>
-                  )}
-                  {programType === "weekly" && (
                     <div className="flex items-center" id="action menu">
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -268,8 +266,9 @@ export default function ProgramEditor() {
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
                 <div
                   className="w-full grow space-y-8"
                   id="program-grid-container"
