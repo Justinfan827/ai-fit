@@ -21,11 +21,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { Program } from "@/lib/domain/workouts"
+import type { SparseProgram } from "@/lib/domain/workouts"
 import { cn } from "@/lib/utils"
 
 export interface ProgramListItemProps {
-  program: Program
+  program: SparseProgram
   variant?: "full" | "simple" | "compact"
   showActions?: boolean
   showTimestamp?: boolean
@@ -105,7 +105,7 @@ function ProgramListItemMenu({
   program,
   onDelete,
 }: {
-  program: Program
+  program: SparseProgram
   onDelete: (programId: string) => void
 }) {
   const [isOpen, setIsOpen] = useState(false)

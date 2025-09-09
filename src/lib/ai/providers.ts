@@ -8,7 +8,7 @@ import {
 export const myProvider = customProvider({
   languageModels: {
     "chat-model": wrapLanguageModel({
-      model: openai("gpt-4o"),
+      model: openai("gpt-4.1"),
       middleware: defaultSettingsMiddleware({
         settings: {
           providerOptions: {

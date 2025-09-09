@@ -128,9 +128,10 @@ export async function getExercises() {
 }
 
 export const getCachedProgramByIdT = cache(
-  async (userId: string, programId: string): Promise<Program> => {
-    const { data, error } = await getProgramById(userId, programId)
+  async (programId: string): Promise<Program> => {
+    const { data, error } = await getProgramById(programId)
     if (error) {
+      console.log("programs error", error)
       throw error
     }
     return data
@@ -138,17 +139,16 @@ export const getCachedProgramByIdT = cache(
 )
 
 export async function getProgramById(
-  userId: string,
   programId: string
 ): Promise<Maybe<Program>> {
   const client = await createServerClient()
   const { data: pData, error: pErr } = await client
     .from("programs")
     .select("*")
-    .eq("user_id", userId)
     .eq("id", programId)
     .single()
 
+  console.log("program data", pData)
   if (pErr) {
     return { data: null, error: pErr }
   }
@@ -173,15 +173,13 @@ export async function getUserPrograms(): Promise<Maybe<Program[]>> {
   return resolvePrograms(client, pData)
 }
 
-export const getCachedAllCurrentUserUnassignedProgramsT = cache(
-  async (): Promise<Program[]> => {
-    const { data, error } = await getAllCurrentUserUnassignedPrograms()
-    if (error) {
-      throw error
-    }
-    return data
+export const getCachedAllCurrentUserUnassignedProgramsT = cache(async () => {
+  const { data, error } = await getAllCurrentUserUnassignedPrograms()
+  if (error) {
+    throw error
   }
-)
+  return data
+})
 
 export async function getAllCurrentUserUnassignedPrograms(): Promise<
   Maybe<Program[]>

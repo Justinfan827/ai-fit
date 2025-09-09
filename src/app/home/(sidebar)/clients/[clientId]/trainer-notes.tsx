@@ -4,11 +4,11 @@ import { useState, useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { createClientDetailAction } from "@/actions/create-client-detail"
-import { deleteClientDetailAction } from "@/actions/delete-client-detail"
+import { createTrainerNoteAction } from "@/actions/create-trainer-note"
+import { deleteTrainerNoteAction } from "@/actions/delete-trainer-note"
 import { Icons } from "@/components/icons"
 import LoadingButton from "@/components/loading-button"
-import { PageSection, PageSectionHeader } from "@/components/page-layout"
+import { PageSectionHeader } from "@/components/page-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardFooter, CardHeader } from "@/components/ui/card"
 import {
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import type { TrainerClientNote } from "@/lib/domain/clients"
+import type { TrainerNote, ValueWithUnit } from "@/lib/domain/clients"
 import { inputTrim } from "@/lib/utils/util"
 
 export const AddClientDetailFormSchema = z.object({
@@ -33,27 +33,34 @@ export const AddClientDetailFormSchema = z.object({
     error: "Description must be at least 2 characters.",
   }),
 })
-type ClientDetailFormType = z.infer<typeof AddClientDetailFormSchema>
+type TrainerNoteFormType = z.infer<typeof AddClientDetailFormSchema>
 
-type ClientDetailFormProps = {
+type TrainerNoteFormProps = {
   formName: string
   isPending: boolean
-  onSubmit: (data: ClientDetailFormType) => void
+  onSubmit: (data: TrainerNoteFormType) => void
   onCancel: () => void
 }
-export function ClientDetailsPageSection({
+
+type ClientTrainerNotesPageSectionProps = {
+  clientUserId: string
+  trainerNotes: TrainerNote[]
+  age: number
+  gender: string
+  weight: ValueWithUnit
+  height: ValueWithUnit
+}
+
+export function ClientTrainerNotesPageSection({
   clientUserId,
   trainerNotes,
-}: {
-  clientUserId: string
-  trainerNotes: TrainerClientNote[]
-}) {
-  const [isAddingDetail, setIsAddingDetail] = useState(false)
+}: ClientTrainerNotesPageSectionProps) {
+  const [isEditingNotes, setIsEditingNotes] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  const handleOnSubmit = (data: ClientDetailFormType) => {
+  const handleOnSubmit = (data: TrainerNoteFormType) => {
     startTransition(async () => {
-      const { error } = await createClientDetailAction({
+      const { error } = await createTrainerNoteAction({
         clientId: clientUserId,
         title: inputTrim(data.title),
         description: inputTrim(data.description),
@@ -74,13 +81,13 @@ export function ClientDetailsPageSection({
       toast.success("Detail added successfully", {
         description: <code className="text-xs">{data.title}</code>,
       })
-      setIsAddingDetail(false)
+      setIsEditingNotes(false)
     })
   }
 
   const handleRemoveDetail = (detailId: string) => {
     startTransition(async () => {
-      const { error } = await deleteClientDetailAction({
+      const { error } = await deleteTrainerNoteAction({
         clientId: clientUserId,
         detailId,
       })
@@ -99,29 +106,8 @@ export function ClientDetailsPageSection({
   }
 
   return (
-    <PageSection>
-      <div className="flex items-center gap-4">
-        <PageSectionHeader>Details</PageSectionHeader>
-        {!isAddingDetail && (
-          <Button
-            onClick={() => setIsAddingDetail(true)}
-            size="sm"
-            variant="dashed"
-          >
-            <Icons.plus className="h-3 w-3" />
-            New detail
-          </Button>
-        )}
-      </div>
-      {isAddingDetail && (
-        <ClientDetailForm
-          formName="add-client-detail-form"
-          isPending={isPending}
-          onCancel={() => setIsAddingDetail(false)}
-          onSubmit={handleOnSubmit}
-        />
-      )}
-
+    <>
+      <PageSectionHeader>Notes</PageSectionHeader>
       {trainerNotes.map((trainerNote) => (
         <Card className="relative" key={trainerNote.id}>
           <Button
@@ -140,20 +126,38 @@ export function ClientDetailsPageSection({
           </CardHeader>
         </Card>
       ))}
-    </PageSection>
+      {isEditingNotes && (
+        <TrainerNoteForm
+          formName="add-client-detail-form"
+          isPending={isPending}
+          onCancel={() => setIsEditingNotes(false)}
+          onSubmit={handleOnSubmit}
+        />
+      )}
+      {!isEditingNotes && (
+        <Button
+          onClick={() => setIsEditingNotes(true)}
+          size="sm"
+          variant="dashed"
+        >
+          <Icons.plus className="h-3 w-3" />
+          New note
+        </Button>
+      )}
+    </>
   )
 }
-function ClientDetailForm({
+function TrainerNoteForm({
   formName,
   onSubmit,
   onCancel,
   isPending,
-}: ClientDetailFormProps) {
+}: TrainerNoteFormProps) {
   const initialState = {
     title: "",
     description: "",
   }
-  const form = useForm<ClientDetailFormType>({
+  const form = useForm<TrainerNoteFormType>({
     resolver: zodResolver(AddClientDetailFormSchema),
     defaultValues: initialState,
   })

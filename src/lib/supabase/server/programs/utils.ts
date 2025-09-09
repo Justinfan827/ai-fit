@@ -14,6 +14,7 @@ export async function resolveProgram(
     .eq("program_id", dbProgram.id)
     .order("program_order", { ascending: true })
 
+  console.log("workoutdata", wData)
   if (wErr) {
     return { data: null, error: wErr }
   }

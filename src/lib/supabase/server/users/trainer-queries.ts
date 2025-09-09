@@ -3,6 +3,7 @@ import "server-only"
 import type { QueryData } from "@supabase/supabase-js"
 
 import createAdminClient from "../../create-admin-client"
+import type { Database } from "../../database.types"
 import type { DBClient } from "../../types"
 
 /**
@@ -64,13 +65,24 @@ export type CustomExercisesQueryData = QueryData<
 >
 
 /**
- * Query for client details (users with trainer relationship)
+ * Get all the client details for a trainer
  */
-export const createClientDetailsQuery = (sb: DBClient, trainerId: string) =>
-  sb.from("users").select("*").eq("trainer_id", trainerId)
+export const getAllTrainerClientsQuery = (sb: DBClient, trainerId: string) =>
+  sb
+    .from("users")
+    .select(`
+      *, 
+      trainer_client_notes!client_id (
+        id,
+        title,
+        description,
+        created_at
+      )
+    `)
+    .eq("trainer_id", trainerId)
 
-export type ClientDetailsQueryData = QueryData<
-  ReturnType<typeof createClientDetailsQuery>
+export type GetAllTrainerClientsQueryData = QueryData<
+  ReturnType<typeof getAllTrainerClientsQuery>
 >
 
 /**
@@ -84,22 +96,34 @@ export type ClientVerificationQueryData = QueryData<
 >
 
 /**
- * Query for client with programs
+ * Query for client with programs + trainer notes
  */
-export const createClientWithProgramsQuery = (
+export const getClientDetailedQuery = (
   sb: DBClient,
   trainerId: string,
   clientId: string
 ) =>
   sb
     .from("users")
-    .select("*")
+    .select(`
+      *,
+      trainer_client_notes!client_id (
+        *
+      ),
+      programs (
+        *,
+        workouts (
+          *
+        )
+      )
+    `)
     .eq("trainer_id", trainerId)
     .eq("id", clientId)
+    .is("trainer_client_notes.deleted_at", null)
     .single()
 
-export type ClientWithProgramsQueryData = QueryData<
-  ReturnType<typeof createClientWithProgramsQuery>
+export type GetClientDetailedQueryData = QueryData<
+  ReturnType<typeof getClientDetailedQuery>
 >
 
 /**
@@ -205,12 +229,10 @@ export const setUserClaimMutation = (
  * Update user profile
  */
 export const updateUserProfileMutation = (
+  sb: DBClient,
   userId: string,
-  profile: { trainer_id: string; first_name: string; last_name: string }
-) => {
-  const sb = createAdminClient()
-  return sb.from("users").update(profile).eq("id", userId)
-}
+  profile: Database["public"]["Tables"]["users"]["Update"]
+) => sb.from("users").update(profile).eq("id", userId).select("*")
 
 /**
  * Soft delete client (remove trainer assignment)
@@ -228,78 +250,50 @@ export const softDeleteClientMutation = (
 }
 
 /**
- * Create a new trainer client note
+ * Create trainer note
  */
-export const createTrainerClientNoteMutation = (
+export const createTrainerNoteMutation = (
   sb: DBClient,
-  trainerId: string,
-  clientId: string,
-  title: string,
-  description: string
+  {
+    clientId,
+    trainerId,
+    description,
+    title,
+  }: {
+    clientId: string
+    trainerId: string
+    description: string
+    title: string
+  }
 ) => {
   return sb
     .from("trainer_client_notes")
-    .insert({
-      trainer_id: trainerId,
-      client_id: clientId,
-      title,
-      description,
-    })
+    .insert({ client_id: clientId, trainer_id: trainerId, description, title })
     .select("*")
     .single()
 }
 
 /**
- * Update a trainer client note
+ * Delete trainer note (soft delete)
  */
-export const updateTrainerClientNoteMutation = (
+export const deleteTrainerNoteMutation = (
   sb: DBClient,
-  noteId: string,
-  title: string,
-  description: string
-) => {
-  return sb
-    .from("trainer_client_notes")
-    .update({
-      title,
-      description,
-    })
-    .eq("id", noteId)
-    .select("*")
-    .single()
-}
-
-/**
- * Soft delete a trainer client note
- */
-export const deleteTrainerClientNoteMutation = (
-  sb: DBClient,
-  noteId: string
+  {
+    clientId,
+    trainerId,
+    noteId,
+  }: {
+    clientId: string
+    trainerId: string
+    noteId: string
+  }
 ) => {
   return sb
     .from("trainer_client_notes")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", noteId)
-    .select("*")
-    .single()
-}
-
-// ============================================================================
-// COMPOUND QUERY FUNCTIONS - For complex operations requiring multiple queries
-// ============================================================================
-
-/**
- * Get client with programs - combines client and programs queries
- */
-export const createClientHomePageQueries = (
-  sb: DBClient,
-  trainerId: string,
-  clientId: string
-) => {
-  const clientQuery = createClientWithProgramsQuery(sb, trainerId, clientId)
-  const programsQuery = createClientProgramsQuery(sb, clientId)
-
-  return Promise.all([clientQuery, programsQuery])
+    .eq("trainer_id", trainerId)
+    .eq("client_id", clientId)
 }
 
 /**

@@ -14,12 +14,7 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
 import { Response } from "@/components/ai-elements/response"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-} from "@/components/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarFooter } from "@/components/ui/sidebar"
 import {
   useZEditorActions,
   useZProgramId,
@@ -31,7 +26,7 @@ import {
 } from "@/lib/ai/tools/generateNewWorkouts/response-schema"
 import { workoutChangeSchema } from "@/lib/ai/tools/generateProgramDiffs/diff-schema"
 import type { MyUIMessage } from "@/lib/ai/ui-message-types"
-import type { ClientHomePage } from "@/lib/domain/clients"
+import type { ClientWithTrainerNotes } from "@/lib/domain/clients"
 import type { Block, Exercise } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
 import {
@@ -54,14 +49,14 @@ import { Separator } from "./ui/separator"
 interface ProgramEditorSidebarProps {
   trainerId: string
   exercises: Exercise[]
-  client?: ClientHomePage // Make client optional
-  availableClients?: ClientHomePage[] // List of available clients to choose from
+  client?: ClientWithTrainerNotes // Make client optional
+  availableClients?: ClientWithTrainerNotes[] // List of available clients to choose from
 }
 
 type ClientContextItem = {
   type: "client"
   label: string
-  data: ClientHomePage
+  data: ClientWithTrainerNotes
 }
 
 type ExercisesContextItem = {
@@ -89,6 +84,16 @@ const mapAIBlockToDomainBlock = (aiBlock: AIBlock): Block => {
   throw new Error(`Unknown block type: ${aiBlock}`)
 }
 
+const Thinking = () => {
+  return (
+    <div className="rounded-lg px-3 py-2 text-sm">
+      <div className="flex animate-pulse items-center gap-2">
+        <span className="text-muted-foreground">Thinking...</span>
+      </div>
+    </div>
+  )
+}
+
 export function ProgramEditorSidebar({
   exercises: initialExercises,
   availableClients = [],
@@ -107,6 +112,10 @@ export function ProgramEditorSidebar({
   })
 
   const [input, setInput] = useState("")
+  const [showDebugMessages, setShowDebugMessages] = useState(false)
+  const handleToggleDebugMessages = () => {
+    setShowDebugMessages((prev) => !prev)
+  }
 
   const { addProposedChanges, addWorkout } = useZEditorActions()
   const handleSubmit = (e: React.FormEvent) => {
@@ -175,7 +184,7 @@ export function ProgramEditorSidebar({
       addExercisesContext(payload.data)
     }
   }
-  const addClientContext = (selectedClient: ClientHomePage) => {
+  const addClientContext = (selectedClient: ClientWithTrainerNotes) => {
     const clientItem: ContextItem = {
       type: "client",
       label: `${selectedClient.firstName} ${selectedClient.lastName}`,
@@ -226,7 +235,10 @@ export function ProgramEditorSidebar({
   const renderContextBadge = (item: ContextItem) => {
     if (item.type === "exercises") {
       return (
-        <Badge className="flex cursor-pointer items-center gap-1 border-input bg-background text-foreground text-xs">
+        <Badge
+          className="flex cursor-pointer items-center gap-1 border-input bg-background text-foreground text-xs"
+          key={item.label}
+        >
           {getContextIcon(item.type)}
           <span>{item.label}</span>
           <Button
@@ -271,13 +283,33 @@ export function ProgramEditorSidebar({
       side="right"
       variant="inset"
     >
-      <SidebarHeader />
-      <SidebarContent className="flex flex-col">
+      <SidebarContent className="flex flex-col ">
+        <div className="border-b px-4 py-2">
+          <div className="flex items-center justify-between">
+            <Button
+              aria-pressed={showDebugMessages}
+              className="h-7 px-2 text-xs"
+              onClick={handleToggleDebugMessages}
+              size="sm"
+              type="button"
+              variant={showDebugMessages ? "default" : "outline"}
+            >
+              {showDebugMessages ? "Hide" : "Show Messages"}
+            </Button>
+          </div>
+          {showDebugMessages && (
+            <div className="mt-2 overflow-auto rounded-md bg-muted p-2">
+              <pre className="whitespace-pre-wrap break-words text-[11px] leading-relaxed">
+                {JSON.stringify(messages, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
         <Conversation>
-          <ConversationContent>
+          <ConversationContent className="scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             {messages.map((message) => (
               <Message from={message.role} key={message.id}>
-                {message.parts.map((part) => {
+                {message.parts.map((part, partIdx) => {
                   switch (part.type) {
                     case "tool-generateProgramDiffs":
                       // New states for streaming and error handling
@@ -304,8 +336,8 @@ export function ProgramEditorSidebar({
                       }
                     case "text":
                       return (
-                        <MessageContent key={message.id}>
-                          <Response key={message.id}>{part.text}</Response>
+                        <MessageContent key={`${message.id}-${partIdx}`}>
+                          <Response>{part.text}</Response>
                         </MessageContent>
                       )
                     default:
@@ -315,13 +347,7 @@ export function ProgramEditorSidebar({
               </Message>
             ))}
 
-            {status === "submitted" && (
-              <div className="rounded-lg px-3 py-2 text-sm">
-                <div className="flex animate-pulse items-center gap-2">
-                  <span className="text-muted-foreground">Thinking...</span>
-                </div>
-              </div>
-            )}
+            {status === "submitted" && <Thinking />}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
@@ -441,7 +467,7 @@ interface SidebarInputProps {
   onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void
   value: string
   state: {
-    clients: ClientHomePage[]
+    clients: ClientWithTrainerNotes[]
     exercises: Exercise[]
     contextItems: ContextItem[]
   }
@@ -450,7 +476,7 @@ interface SidebarInputProps {
 
 type ClientContextAddPayload = {
   type: "client"
-  data: ClientHomePage
+  data: ClientWithTrainerNotes
 }
 
 type ExercisesContextAddPayload = {

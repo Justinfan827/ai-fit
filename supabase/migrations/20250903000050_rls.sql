@@ -231,6 +231,13 @@ CREATE POLICY "programs_select_policy" ON public.programs
             FROM public.trainer_assigned_programs 
             WHERE client_id = (SELECT auth.uid())
         )
+        OR
+        -- Trainers can view programs owned by their clients
+        user_id IN (
+            SELECT id
+            FROM public.users
+            WHERE trainer_id = (SELECT auth.uid())
+        )
     );
 
 -- Users can insert their own programs
@@ -239,12 +246,43 @@ CREATE POLICY "programs_insert_policy" ON public.programs
     TO authenticated
     WITH CHECK ((SELECT auth.uid()) = user_id);
 
+-- Trainers can insert programs for their clients
+CREATE POLICY "programs_insert_trainer_clients_policy" ON public.programs
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        user_id IN (
+            SELECT id
+            FROM public.users
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+    );
+
 -- Users can update their own programs
 CREATE POLICY "programs_update_policy" ON public.programs
     FOR UPDATE
     TO authenticated
     USING ((SELECT auth.uid()) = user_id)
     WITH CHECK ((SELECT auth.uid()) = user_id);
+
+-- Trainers can update programs for their clients
+CREATE POLICY "programs_update_trainer_clients_policy" ON public.programs
+    FOR UPDATE
+    TO authenticated
+    USING (
+        user_id IN (
+            SELECT id
+            FROM public.users
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+    )
+    WITH CHECK (
+        user_id IN (
+            SELECT id
+            FROM public.users
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+    );
 
 -- Users can delete their own programs
 CREATE POLICY "programs_delete_policy" ON public.programs
@@ -262,6 +300,13 @@ CREATE POLICY "workouts_select_policy" ON public.workouts
     TO authenticated
     USING (
         (SELECT auth.uid()) = user_id
+        OR
+        -- Trainers can view workouts for their clients
+        user_id IN (
+            SELECT id
+            FROM public.users
+            WHERE trainer_id = (SELECT auth.uid())
+        )
     );
 
 -- Users can insert workouts for programs they own
@@ -272,14 +317,43 @@ CREATE POLICY "workouts_insert_policy" ON public.workouts
         (SELECT auth.uid()) = user_id
     );
 
+
+-- Trainers can insert workouts for their clients
+CREATE POLICY "workouts_insert_trainer_clients_policy" ON public.workouts
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        user_id IN (
+            SELECT id
+            FROM public.users
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+    );
+
 -- Users can update workouts for programs they own
 CREATE POLICY "workouts_update_policy" ON public.workouts
     FOR UPDATE
     TO authenticated
     USING (
         (SELECT auth.uid()) = user_id
+        OR
+        -- Trainers can update workouts for their clients
+        user_id IN (
+            SELECT id
+            FROM public.users
+            WHERE trainer_id = (SELECT auth.uid())
+        )
     )
-    WITH CHECK ( (SELECT auth.uid()) = user_id);
+    WITH CHECK (
+        (SELECT auth.uid()) = user_id
+        OR
+        -- Trainers can update workouts for their clients
+        user_id IN (
+            SELECT id
+            FROM public.users
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+    );
 
 -- Users can delete workouts for programs they own
 CREATE POLICY "workouts_delete_policy" ON public.workouts
@@ -287,6 +361,13 @@ CREATE POLICY "workouts_delete_policy" ON public.workouts
     TO authenticated
     USING (
         (SELECT auth.uid()) = user_id
+        OR
+        -- Trainers can delete workouts for their clients
+        user_id IN (
+            SELECT id
+            FROM public.users
+            WHERE trainer_id = (SELECT auth.uid())
+        )
     );
 
 -- ============================================================================
@@ -315,12 +396,6 @@ CREATE POLICY "trainer_assigned_programs_insert_policy" ON public.trainer_assign
             FROM public.users 
             WHERE trainer_id = (SELECT auth.uid())
         )
-        AND
-        program_id IN (
-            SELECT id 
-            FROM public.programs 
-            WHERE user_id = (SELECT auth.uid())
-        )
     );
 
 -- Only trainers can update their assignments
@@ -335,12 +410,6 @@ CREATE POLICY "trainer_assigned_programs_update_policy" ON public.trainer_assign
             SELECT id 
             FROM public.users 
             WHERE trainer_id = (SELECT auth.uid())
-        )
-        AND
-        program_id IN (
-            SELECT id 
-            FROM public.programs 
-            WHERE user_id = (SELECT auth.uid())
         )
     );
 
@@ -390,55 +459,42 @@ CREATE POLICY "debug_log_delete_policy" ON public.debug_log
         (SELECT email FROM auth.users WHERE id = auth.uid()) = 'justinfan827@gmail.com'
     );
 
--- ============================================================================
--- TRAINER CLIENT NOTES TABLE POLICIES
--- ============================================================================
 
--- Only trainers can view notes they created about their clients
+-- ============================================================================
+-- TRAINER CLIENT NOTES TABLE RLS POLICIES
+-- ============================================================================
+-- Missing RLS policies for the trainer_client_notes table
+-- This table stores notes that trainers create about their clients
+
+-- Trainers can view notes they created, clients can view notes about themselves
 CREATE POLICY "trainer_client_notes_select_policy" ON public.trainer_client_notes
     FOR SELECT
     TO authenticated
     USING (
         (SELECT auth.uid()) = trainer_id
+        OR
+        (SELECT auth.uid()) = client_id
     );
 
--- Trainers can view notes they created about their clients
-CREATE POLICY "trainer_notes_select_policy" ON public.trainer_client_notes
-    FOR SELECT
-    TO authenticated
-    USING (
-        (SELECT auth.uid()) = trainer_id
-    );
-
--- Trainers can create notes about their clients
-CREATE POLICY "trainer_notes_insert_policy" ON public.trainer_client_notes
+-- Only trainers can create notes about their clients
+CREATE POLICY "trainer_client_notes_insert_policy" ON public.trainer_client_notes
     FOR INSERT
     TO authenticated
     WITH CHECK (
         (SELECT auth.uid()) = trainer_id
     );
 
--- Trainers can update their own notes about their clients
-CREATE POLICY "trainer_notes_update_policy" ON public.trainer_client_notes
+-- Only trainers can update their own notes
+CREATE POLICY "trainer_client_notes_update_policy" ON public.trainer_client_notes
     FOR UPDATE
     TO authenticated
-    USING (
-        (SELECT auth.uid()) = trainer_id
-    )
+    USING ((SELECT auth.uid()) = trainer_id)
     WITH CHECK (
         (SELECT auth.uid()) = trainer_id
-        AND
-        client_id IN (
-            SELECT id 
-            FROM public.users 
-            WHERE trainer_id = (SELECT auth.uid())
-        )
     );
 
--- Trainers can delete (soft delete) their own notes
-CREATE POLICY "trainer_notes_delete_policy" ON public.trainer_client_notes
+-- Only trainers can delete their own notes
+CREATE POLICY "trainer_client_notes_delete_policy" ON public.trainer_client_notes
     FOR DELETE
     TO authenticated
-    USING (
-        (SELECT auth.uid()) = trainer_id
-    );
+    USING ((SELECT auth.uid()) = trainer_id);

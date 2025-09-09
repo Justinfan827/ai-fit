@@ -48,6 +48,30 @@ const logWithMetadata = (
   }
 }
 
+// Helper function specifically for error logging with stack traces
+const logError = (
+  logFn: (obj: unknown, msg?: string) => void,
+  message: string,
+  error?: unknown,
+  metadata?: Record<string, unknown>
+) => {
+  console.log("logging error")
+  const errorData: Record<string, unknown> = { ...metadata }
+
+  if (error instanceof Error) {
+    errorData.error = {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause,
+    }
+  } else if (error) {
+    errorData.error = error
+  }
+
+  logFn(errorData, message)
+}
+
 // Export logger with typed interface
 export const log = {
   trace: (message: string, ...args: unknown[]) =>
@@ -62,8 +86,20 @@ export const log = {
     logWithMetadata(logger.error.bind(logger), message, ...args),
   fatal: (message: string, ...args: unknown[]) =>
     logWithMetadata(logger.fatal.bind(logger), message, ...args),
+
+  // Enhanced error logging methods that capture stack traces
+  errorWithStack: (
+    message: string,
+    error?: unknown,
+    metadata?: Record<string, unknown>
+  ) => logError(logger.error.bind(logger), message, error, metadata),
+  fatalWithStack: (
+    message: string,
+    error?: unknown,
+    metadata?: Record<string, unknown>
+  ) => logError(logger.fatal.bind(logger), message, error, metadata),
+
   child: (bindings: Record<string, unknown>) => logger.child(bindings),
-  // biome-ignore lint/suspicious/noConsole: this is for debugging
   console: (...args: unknown[]) => console.log(...args),
   consoleWithHeader: (message: string, ...args: unknown[]) => {
     log.console(`\n<==========${message}==========>\n`)
@@ -98,6 +134,16 @@ export default log
  * try {
  *   // some code
  * } catch (error) {
+ *   // OLD way (manual):
  *   log.error('Operation failed', { error: error.message, stack: error.stack });
+ *
+ *   // NEW way (automatic stack capture):
+ *   log.errorWithStack('Operation failed', error);
+ *
+ *   // With additional metadata:
+ *   log.errorWithStack('Database operation failed', error, {
+ *     userId: 123,
+ *     operation: 'createUser'
+ *   });
  * }
  */

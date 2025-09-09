@@ -43,6 +43,7 @@ import {
   PlusCircle,
   Redo,
   Repeat2,
+  Ruler,
   Scale,
   Search,
   Send,
@@ -104,6 +105,7 @@ export const Icons = {
   plusCircle: PlusCircle,
   redo: Redo,
   repeat: Repeat2,
+  ruler: Ruler,
   scale: Scale,
   search: Search,
   settings: Settings,
@@ -122,14 +124,16 @@ export const Icons = {
 // guide for logos
 // https://www.google.com/search?q=jakearchibald+svg&oq=jakearchibald+svg&sourceid=chrome&ie=UTF-8
 // https://www.youtube.com/watch?v=MbUyHQRq2go&list=PL7CcGwsqRpSM3w9BT_21tUU8JN2SnyckR&index=12
-export function Logo({ className }: React.SVGAttributes<HTMLOrSVGElement>) {
+export function Logo({ ...props }: React.SVGAttributes<HTMLOrSVGElement>) {
   return (
     <svg
       className="h-[32px] w-[32px]"
       fill="none"
       viewBox="0 0 53 53"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
+      <title>Logo</title>
       <rect fill="white" height="53" width="53" />
       <rect fill="black" height="25" width="10" x="34" y="14" />
       <rect fill="black" height="25" width="10" x="9" y="14" />

@@ -6,11 +6,11 @@ import {
   ProgramListItem,
   type ProgramListItemProps,
 } from "@/components/program-list-item"
-import type { Program } from "@/lib/domain/workouts"
+import type { SparseProgram } from "@/lib/domain/workouts"
 import { cn } from "@/lib/utils"
 
 export interface ProgramGridProps {
-  programs: Program[]
+  programs: SparseProgram[]
   variant?: ProgramListItemProps["variant"]
   showActions?: boolean
   showTimestamp?: boolean

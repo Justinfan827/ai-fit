@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { deleteClientNoteById } from "@/lib/supabase/server/users/trainer-repo"
+import { deleteTrainerNoteById } from "@/lib/supabase/server/users/trainer-repo"
 import { withAuthInput } from "./middleware/with-auth"
 
 // This schema is used to validate input from client.
@@ -11,12 +11,12 @@ const schema = z.object({
   clientId: z.string(),
 })
 
-export const deleteClientDetailAction = withAuthInput(
+export const deleteTrainerNoteAction = withAuthInput(
   {
     schema,
   },
   async ({ input, user }) => {
-    const { data: userData, error } = await deleteClientNoteById({
+    const { data: userData, error } = await deleteTrainerNoteById({
       trainerId: user.userId,
       clientId: input.clientId,
       noteId: input.detailId,
