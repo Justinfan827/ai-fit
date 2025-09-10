@@ -5,7 +5,7 @@ import { log } from "@/lib/logger/logger"
 import { buildWorkoutModificationPrompt } from "../../prompts/prompts"
 import { myProvider } from "../../providers"
 import type { MyToolArgs } from "../../ui-message-types"
-import { workoutChangeAISchema } from "./diff-schema"
+import { type WorkoutChange, workoutChangeAISchema } from "./diff-schema"
 
 export const generateProgramDiffs = ({
   existingWorkouts,
@@ -48,6 +48,7 @@ export const generateProgramDiffs = ({
         })
         log.consoleWithHeader("Diff generation streaming.")
 
+        const allDiffs: WorkoutChange[] = []
         for await (const element of elementStream) {
           const diffParsed = workoutChangeAISchema.safeParse(element)
           if (!diffParsed.success) {
@@ -65,9 +66,9 @@ export const generateProgramDiffs = ({
             transient: true,
             data: diffWithId,
           })
+          allDiffs.push(diffWithId)
         }
-        log.consoleWithHeader("Finished elementStream iteration")
-        return "Done generating diff for workout changes."
+        return `Generated the following diffs for the user to apply: <diffs>${JSON.stringify(allDiffs, null, 2)}</diffs>`
       } catch (error) {
         log.error("Diff generation caught error:", error)
       }

@@ -4,7 +4,7 @@ import { log } from "@/lib/logger/logger"
 import { buildWorkoutCreationPrompt } from "../../prompts/prompts"
 import { myProvider } from "../../providers"
 import type { MyToolArgs } from "../../ui-message-types"
-import { aiWorkoutSchema } from "./response-schema"
+import { type AIWorkout, aiWorkoutSchema } from "./response-schema"
 
 export const generateNewWorkouts = ({
   existingWorkouts,
@@ -49,6 +49,7 @@ export const generateNewWorkouts = ({
         })
         log.console("Workout generation streaming.")
 
+        const allWorkouts: AIWorkout[] = []
         for await (const element of elementStream) {
           const workoutParsed = aiWorkoutSchema.safeParse(element)
           if (!workoutParsed.success) {
@@ -62,9 +63,10 @@ export const generateNewWorkouts = ({
             transient: true,
             data: workoutParsed.data,
           })
+          allWorkouts.push(workoutParsed.data)
         }
         log.consoleWithHeader("Finished elementStream iteration")
-        return "Done generating new workouts"
+        return `Generated the following workouts: <workouts>${JSON.stringify(allWorkouts, null, 2)}</workouts>`
       } catch (error) {
         log.error("Workout generation caught error:", error)
       }

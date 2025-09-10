@@ -13,7 +13,6 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
-import { Response } from "@/components/ai-elements/response"
 import { Sidebar, SidebarContent, SidebarFooter } from "@/components/ui/sidebar"
 import {
   useZEditorActions,
@@ -29,13 +28,13 @@ import type { MyUIMessage } from "@/lib/ai/ui-message-types"
 import type { ClientWithTrainerNotes } from "@/lib/domain/clients"
 import type { Block, Exercise } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
+import { isLive } from "@/lib/utils"
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
 } from "./ai-elements/conversation"
-import { Message, MessageContent } from "./ai-elements/message"
-import { Icons } from "./icons"
+import { ChatMessages } from "./chat-messages"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import {
@@ -112,7 +111,8 @@ export function ProgramEditorSidebar({
   })
 
   const [input, setInput] = useState("")
-  const [showDebugMessages, setShowDebugMessages] = useState(false)
+  const [showDebugMessagesLocal, setShowDebugMessages] = useState(false)
+  const showDebugMessages = showDebugMessagesLocal && !isLive()
   const handleToggleDebugMessages = () => {
     setShowDebugMessages((prev) => !prev)
   }
@@ -307,133 +307,11 @@ export function ProgramEditorSidebar({
         </div>
         <Conversation>
           <ConversationContent className="scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
-            {messages.map((message) => (
-              <Message from={message.role} key={message.id}>
-                {message.parts.map((part, partIdx) => {
-                  switch (part.type) {
-                    case "tool-generateProgramDiffs":
-                      // New states for streaming and error handling
-                      switch (part.state) {
-                        case "input-streaming":
-                        case "input-available":
-                          return (
-                            <div
-                              className="flex animate-pulse items-center gap-2 text-muted-foreground"
-                              key={part.toolCallId}
-                            >
-                              <Icons.wrench className="size-3" />
-                              <span>Generating changes...</span>
-                            </div>
-                          )
-                        case "output-error":
-                          return (
-                            <div key={part.toolCallId}>
-                              Error: {part.errorText}
-                            </div>
-                          )
-                        default:
-                          return null
-                      }
-                    case "text":
-                      return (
-                        <MessageContent key={`${message.id}-${partIdx}`}>
-                          <Response>{part.text}</Response>
-                        </MessageContent>
-                      )
-                    default:
-                      return null
-                  }
-                })}
-              </Message>
-            ))}
-
+            <ChatMessages messages={messages} />
             {status === "submitted" && <Thinking />}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
-        {/* <AIConversation className="size-full"> */}
-        {/*   <AIConversationContent className="space-y-4"> */}
-        {/*     {messages.map((message) => ( */}
-        {/*       <div */}
-        {/*         className={cn( */}
-        {/*           "flex gap-3", */}
-        {/*           message.role === "user" ? "justify-end" : "justify-start" */}
-        {/*         )} */}
-        {/*         key={message.id} */}
-        {/*       > */}
-        {/*         {message.role === "assistant" && ( */}
-        {/*           <Avatar className="size-8 shrink-0"> */}
-        {/*             <AvatarFallback className="border border-input bg-primary-foreground text-primary"> */}
-        {/*               <Icons.sparkles className="size-4" /> */}
-        {/*             </AvatarFallback> */}
-        {/*           </Avatar> */}
-        {/*         )} */}
-        {/**/}
-        {/*         {message.role === "assistant" && ( */}
-        {/*           <div className="flex flex-col gap-2 text-primary text-sm leading-relaxed"> */}
-        {/*             {message.parts.map((part) => { */}
-        {/*               switch (part.type) { */}
-        {/*                 case "tool-updateWorkoutProgram": */}
-        {/*                   // New states for streaming and error handling */}
-        {/*                   switch (part.state) { */}
-        {/*                     case "input-streaming": */}
-        {/*                     case "input-available": */}
-        {/*                       return ( */}
-        {/*                         <div */}
-        {/*                           className="flex animate-pulse items-center gap-2 text-muted-foreground" */}
-        {/*                           key={part.toolCallId} */}
-        {/*                         > */}
-        {/*                           <Icons.wrench className="size-3" /> */}
-        {/*                           <span>Running program update...</span> */}
-        {/*                         </div> */}
-        {/*                       ) */}
-        {/*                     case "output-available": */}
-        {/*                       return ( */}
-        {/*                         <div */}
-        {/*                           className="flex items-center gap-2 text-muted-foreground" */}
-        {/*                           key={part.toolCallId} */}
-        {/*                         > */}
-        {/*                           <Icons.wrench className="size-3" /> */}
-        {/*                           <span>Updates completed</span> */}
-        {/*                         </div> */}
-        {/*                       ) */}
-        {/*                     case "output-error": */}
-        {/*                       return ( */}
-        {/*                         <div key={part.toolCallId}> */}
-        {/*                           Error: {part.errorText} */}
-        {/*                         </div> */}
-        {/*                       ) */}
-        {/*                     default: */}
-        {/*                       return null */}
-        {/*                   } */}
-        {/*                 case "text": */}
-        {/*                   return ( */}
-        {/*                     <Markdown key={message.id}>{part.text}</Markdown> */}
-        {/*                   ) */}
-        {/*                 default: */}
-        {/*                   return null */}
-        {/*               } */}
-        {/*             })} */}
-        {/*           </div> */}
-        {/*         )} */}
-        {/**/}
-        {/*         {message.role === "user" && ( */}
-        {/*           <div className="ml-auto max-w-[80%] rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm leading-relaxed"> */}
-        {/*             {message.content} */}
-        {/*           </div> */}
-        {/*         )} */}
-        {/*       </div> */}
-        {/*     ))} */}
-        {/*     {status === "submitted" && ( */}
-        {/*       <div className="rounded-lg px-3 py-2 text-sm"> */}
-        {/*         <div className="flex animate-pulse items-center gap-2"> */}
-        {/*           <span className="text-muted-foreground">Thinking...</span> */}
-        {/*          </div> */}
-        {/*       </div> */}
-        {/*     )} */}
-        {/*   </AIConversationContent> */}
-        {/*   <AIConversationScrollButton /> */}
-        {/* </AIConversation> */}
       </SidebarContent>
       <SidebarFooter>
         <div className="space-y-3">

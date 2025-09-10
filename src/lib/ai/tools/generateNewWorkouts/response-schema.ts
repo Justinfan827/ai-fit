@@ -45,3 +45,4 @@ export const aiProgramSchema = z.object({
 export type AIBlock = z.infer<typeof aiBlockSchema>
 export type AIExerciseBlock = z.infer<typeof aiExerciseBlockSchema>
 export type AICircuitBlock = z.infer<typeof aiCircuitBlockSchema>
+export type AIWorkout = z.infer<typeof aiWorkoutSchema>

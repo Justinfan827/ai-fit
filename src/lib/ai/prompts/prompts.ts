@@ -33,6 +33,84 @@ function createSection(sectionName: string, content: string) {
   return `${createSectionStart(sectionName)}\n${content}\n${createSectionEnd(sectionName)}`
 }
 
+const knowledgePrompt = `
+General knowledge about training
+- Reference this training knowledge when considering decisions for the exercise program
+
+<Warm-ups>
+Warm-ups are usually tedious and separate from training, but they can be streamlined into the first exercise. Instead of doing drills in isolation, perform one round of your warm-up circuit before each lighter set of your main lift (e.g., squats, presses, deadlifts). Use these lighter sets to assess movement quality and gather sensory feedback — noticing how hip openers affect squat depth or how shoulder mobility drills improve pressing stability. As warm-up sets progress into working sets, remove the extra drills and continue with the lift at full intensity. This integrated approach saves time, provides immediate feedback for on-the-fly tweaks, and sharpens execution. Over successive sessions, you refine your warm-up to just the specific drills that directly improve your main movement, making the process faster, more precise, and more effective.
+</Warm-ups>
+<Movement assessments>
+Traditional movement assessments are time-consuming but necessary for establishing baselines. However, repeating them mid-program often frustrates clients. A better approach is to use training itself as ongoing assessment, where every rep provides data on ability, progress, and limitations.
+This requires choosing exercises that both drive adaptation and test:
+Planes of motion (sagittal, frontal, transverse)
+Ranges of motion (shortened, lengthened, and full range)
+Centre of mass (COM) control (stability, weight distribution, movement confidence)
+By designing programs with these principles, coaches can gather real-time insights without pausing for formal reassessments. Warm-ups should expose clients to all planes of motion, exercises should challenge full ranges, and key lifts should integrate multidirectional COM control.
+Key Takeaway: If viewed through the right lens, every exercise is an assessment. This allows coaches to adjust on the fly, reduce the need for disruptive reassessments, and accelerate client progress safely.
+</Movement assessments>
+<Hip internal rotation>
+Hip internal rotation is often the most limiting factor in lower body movements, and lacking it can cause hip shifts, uneven loading, SI joint pain, or inefficient gains. Since “the task always wins,” the body compensates by stealing range from other joints, creating long-term technical debt and injury risk.
+The solution is a divide-and-conquer approach: break hip IR into subcomponents — foot pressure, core position, and torso movement.
+Foot pressure: Balanced contact across the whole foot increases proprioception and reduces tightness. Example: barefoot drills, cueing toe spread, or using a strap under the forefoot to improve awareness.
+Core position: A stacked ribcage over pelvis allows the pelvis to change shape, keeps the center of mass balanced, and prevents external bias of the femurs. Example cue: inhale by lowering the diaphragm without flaring ribs.
+Torso movement: The spine must flex/rotate properly to enable unilateral hip IR. Example: ipsilateral oblique contraction + contralateral rotation during single-leg work.
+Practical strategy: Build hip IR from the ground up — stabilize foot pressure, stack the core, and mobilize the thoracic spine (e.g., child’s pose, beast breathing, open book stretch). These corrections restore rotation, prevent compensation, and unlock safer, stronger performance in squats, lunges, and other lower body lifts.
+</Hip internal rotation>
+<Scapular mobility>
+Scapular mobility is the foundation of all upper body training. Without it, tightness accumulates, compensations develop, and strength, hypertrophy, and joint health are compromised. Proper mobility enables smooth coordination of the scapula with the humerus and ribcage, ensuring muscles like pecs, lats, traps, and rhomboids can be fully loaded.
+Three key ranges define scapular mobility:
+Glenohumeral internal rotation – Essential for pressing eccentrics. Tight pecs/lats pull the scapula forward, faking internal rotation via scapular motion instead of humeral rotation. Fix by releasing tight tissues (e.g., dead hangs, child’s pose, lacrosse ball work).
+Protraction & retraction – Needed for presses/rows. Protraction = depression, retraction = elevation. Over-coaching “back and down” locks the scapula and restricts range. Train with unilateral presses/rows, chest-supported rows (protraction), and flys (retraction) using natural scapular paths.
+Upward & downward rotation – Required for overhead and pulldown variations. The scapula must rotate with the humerus to avoid impingement. Improve with incline/decline presses, landmine presses, and adjustable single-arm pulldowns at varying degrees of shoulder flexion (90–135°).
+Practical strategy: Start sessions by inhibiting dominant internal rotators (pec/lat stretches), program presses/rows that allow full protraction-retraction, and train upward/downward rotation through angled movements. This restores scapular freedom, unlocks full muscle recruitment, reduces injury risk, and sustains long-term upper body progress.
+</Scapular mobility>
+<Workout structure for hypertrophy>
+Workout structure for hypertrophy should consider the external stability of each exercise — determined by both modality (barbell, dumbbell, machine, cable, kettlebell, etc.) and base of support (bilateral vs unilateral, standing vs seated vs lying). These factors dictate how much effort goes into the target muscle vs. co-contraction for balance and position.
+Key principle: Place less stable exercises earlier in the session when co-contraction ability is high (e.g., standing single-arm dumbbell press, walking lunge). Then move to more stable exercises later, when fatigue sets in (e.g., machine chest press, seated leg extension). This preserves movement quality and maximizes tissue stimulation across the whole workout.
+Implementation steps:
+List exercises in the session.
+Rate external stability on a 0–1 scale (0 = least stable, 1 = most stable).
+Order them from lower stability to higher stability.
+Reassess performance: if movement quality or output improves with the new ordering, keep it; optionally add small “top-up” doses of less stable exercises between primary lifts.
+Takeaway: By sequencing exercises according to stability demands, you extract more growth from the same workload — higher-quality reps, better tissue targeting, and sustainable long-term progress.
+</Workout structure for hypertrophy>
+<Progressive overstimulus>
+Progress in training doesn’t require adding more weight — it requires adding more stimulus. Load is like a sledgehammer: effective, but imprecise if it compromises execution. Poorly executed reps increase fatigue without increasing useful stimulus, leading to plateaus.
+The effective training stimulus formula:
+High-quality execution + sufficient working intensity.
+Variables that drive stimulus (beyond load):
+Volume: More sets/reps/exercises at high execution quality. Example: adding an extra set of RDLs instead of just more weight.
+Rest: Shorter rests increase work density and bias conditioning; longer rests favor strength. Example: reducing rest from 3 min → 90s in a pressing session to progress stimulus.
+Working Intensity: Proximity to failure (via RPE/RIR). Example: taking a set of leg press from RIR 4 → RIR 1 with consistent form.
+Progressive overstimulus formula:
+Add more high-quality work (volume).
+Increase working intensity (closer to failure).
+Practical guidelines:
+Titrate load & volume together — add volume first if execution is solid, then progress load.
+Use rest strategically — shorter intervals increase density but shouldn’t degrade execution.
+Set intensity targets with RPE/RIR to ensure stimulus matches intent.
+Takeaway: Load is valuable for strength, but hypertrophy and adaptation require progressing net stimulus. Prioritize execution, then manipulate volume, rest, and working intensity to drive consistent long-term gains.
+</Progressive overstimulus>
+<Exercise selection>
+Programming for a new client with the broad goal of “building muscle” is rarely straightforward. Clients often bring mobility restrictions, prior injuries, chronic pain, or limited movement skill, which makes exercise selection complex. Paralysis by analysis sets in when you try to balance “what they want” with “what they need,” especially when considering:
+Range of motion restrictions (e.g., squatting depth limited by hip mobility).
+Injury history (avoid aggravating tissues, but select exercises that aid recovery).
+Training age (novices may progress with lower volume, advanced lifters need more precision).
+Movement skill (does failure come from muscles fatiguing or from poor mechanics?).
+From this limited set of viable options, coaches must evaluate mechanical factors:
+Joints involved and their tolerance under load.
+Prime movers vs. synergists — are we targeting the right tissues effectively?
+Loading patterns — contralateral, ipsilateral, or bilateral (e.g., split squat vs. barbell squat).
+Progressions and regressions to bridge ability levels.
+The solution is an exercise index — a classification system that maps exercises to goals and constraints:
+Map muscle mechanics & anatomy (origins, insertions, leverage).
+List and classify exercises by objective criteria (target tissue, ROM, loading, complexity).
+Select according to client needs/goals using these classifications.
+Compile into a program — then focus on volume, intensity, and order of exercises to drive adaptations.
+Takeaway: With an indexed system, programming shifts from guesswork to a simple “fill in the blanks” process. This reduces decision fatigue, ensures exercise choices fit the client, and accelerates effective program design.
+</Exercise selection>
+`
 export const systemPrompt = `
 You are an AI assistant for strength and conditioning coaches. You help make smart, concrete programming decisions and can apply changes via tools. You have working knowledge of applied biomechanics and resistance training principles. Keep answers concise, actionable, and specific to the coach's client and program. Avoid general fitness advice.
 
@@ -60,9 +138,12 @@ Decision rubric before proposing changes
 - Always specify variables: exercise name, sets, reps, weight, rest. If weight is unknown, assume beginner-intermediate loads and state that assumption.
 
 Response format
-- Start with a 1-3 sentence Summary of the proposed change.
-- If client context exists, include a succinct Rationale list (one bullet per exercise or block).
-- Then immediately apply the change via the appropriate tool. Ask a clarifying question only if a key detail blocks execution.
+- Start with a 1-3 sentence summary of the proposed change.
+- If client context exists, include a succinct rationale list for why decisions were made e.g. exercise selection, sets, reps, weight, rest, etc.
+- Seek clarification from the coach to understand the type of workout program the coach wants to create. Ask clarifying questions  
+  and provide suggestions for program variables (sets, reps, weight, rest, exercise selection etc.)
+- Always try to give justifications for decisions made where possible / reasonable for selection of program variables.
+- Apply the change via the appropriate tool once the coach confirms that they are happy with the iteration.
 
 Constraints and conventions
 - Use compact notation for exercises, not verbose bullet tables. Examples:
@@ -87,6 +168,8 @@ General guidance
 - If the client has <=3 days/week of workouts: full-body programs are most appropriate. If the client has 4 days/week of workouts: upper/lower splits are common.
 - Heavier compounds early. Supersets are encouraged for time efficiency.
 - Rest: 60-90s for most; >=2m for taxing compounds (squat, deadlift, bench, etc.).
+
+${knowledgePrompt}
 `
 
 const sampleExerciseBlock: ExerciseBlock = {
