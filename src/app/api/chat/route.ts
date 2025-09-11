@@ -9,7 +9,6 @@ import { buildSystemPrompt } from "@/lib/ai/prompts/prompts"
 import { myProvider } from "@/lib/ai/providers"
 import { type MyUIMessage, myTools } from "@/lib/ai/ui-message-types"
 import log from "@/lib/logger/logger"
-import { sendDebugLog } from "@/lib/supabase/server/database.operations.mutations"
 import { requestSchema } from "./schema"
 
 // Allow streaming responses up to 30 seconds
@@ -36,10 +35,8 @@ export async function POST(req: Request) {
             }),
             stopWhen: stepCountIs(4),
             onFinish: async ({ request, text }) => {
-              await sendDebugLog(
-                request?.body ? JSON.parse(request.body as string) : {},
-                text
-              )
+              // TODO: build persistence for the message.
+              // Tie it to the program (by program id).
             },
             onError: (error) => log.error("Stream error:", error),
           })

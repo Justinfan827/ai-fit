@@ -126,7 +126,7 @@ export function ProgramEditorSidebar({
     }
   }
 
-  const { messages, status, sendMessage } = useChat<MyUIMessage>({
+  const { messages, status, sendMessage, error } = useChat<MyUIMessage>({
     transport: new DefaultChatTransport({
       api: "/api/chat",
       body: {
@@ -274,7 +274,6 @@ export function ProgramEditorSidebar({
       </Badge>
     )
   }
-  console.log("rendering", status, messages)
 
   return (
     <Sidebar
@@ -297,6 +296,13 @@ export function ProgramEditorSidebar({
               {showDebugMessages ? "Hide" : "Show Messages"}
             </Button>
           </div>
+          {!isLive() && (
+            <div>
+              <p>chat status: {status}</p>
+              <p>messages: {messages.length}</p>
+              <p>error: {error ? error.message : "No error"}</p>
+            </div>
+          )}
           {showDebugMessages && (
             <div className="mt-2 overflow-auto rounded-md bg-muted p-2">
               <pre className="whitespace-pre-wrap break-words text-[11px] leading-relaxed">
