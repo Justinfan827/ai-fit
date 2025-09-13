@@ -38,7 +38,6 @@ export async function POST(req: Request) {
 
     // Get or create chat for this program
     const resolvedChatId = chatId || (await getOrCreateProgramChat(programId))
-
     // Upsert the incoming user message immediately
     await upsertMessage({
       chatId: resolvedChatId,
@@ -62,15 +61,28 @@ export async function POST(req: Request) {
     const stream = createUIMessageStream<MyUIMessage>({
       execute: ({ writer }) => {
         try {
-          // If the last message is a user message, create our own start step
+          // If the last message is from the user:
+          // Create a new "start step" to begin streaming the AI's response data.
+          //
+          // If the last message is from the assistant:
+          // Don't create a new step - instead, add any new
+          // data (like tool results) to the existing step.
+          //
+          // This ensures user messages always trigger new conversation steps,
+          // while assistant messages and their follow-up data (tool calls,
+          // results, etc.) stay grouped together in the same step.
+          //
+          // More info on the data stream protocol here:
+          // - https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol#message-start-part
           if (message.role === "user") {
             writer.write({
               type: "start",
               messageId: uuidv4(),
             })
-            writer.write({
-              type: "start-step",
-            })
+            // TODO: do I need this? I'm seeing dupes in the DB
+            // writer.write({
+            //   type: "start-step",
+            // })
           }
 
           const result = streamText({

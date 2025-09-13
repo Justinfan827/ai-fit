@@ -68,7 +68,7 @@ export const generateProgramDiffs = ({
           })
           allDiffs.push(diffWithId)
         }
-        return `Generated the following diffs for the user to apply: <diffs>${JSON.stringify(allDiffs, null, 2)}</diffs>`
+        return "Successfully generated the diffs for the user to apply."
       } catch (error) {
         log.error("Diff generation caught error:", error)
       }

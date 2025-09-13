@@ -138,12 +138,13 @@ export function ProgramEditorSidebar({
     sendMessage,
     error,
   } = useChat<MyUIMessage>({
-    id: chatId, // Use existing chat ID for persistence
+    id: chatId,
+    generateId: () => uuidv4(),
     messages: initialMessages, // Load existing messages using correct property name
     transport: new DefaultChatTransport({
       api: "/api/chat",
       // Only send the last message to reduce payload size (AI SDK best practice)
-      prepareSendMessagesRequest({ messages, id }) {
+      prepareSendMessagesRequest({ messages }) {
         return {
           body: {
             message: messages.at(-1), // Only last message
@@ -159,7 +160,7 @@ export function ProgramEditorSidebar({
             })),
             workouts,
             programId, // Include program ID for persistence
-            chatId: id, // Use the chat ID from useChat
+            chatId, // Use the chat ID from useChat
           },
         }
       },
