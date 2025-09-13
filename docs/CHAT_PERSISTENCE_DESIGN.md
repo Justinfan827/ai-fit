@@ -511,69 +511,43 @@ export function ProgramEditorSidebar({
 
 ## Security Considerations
 
-1. **RLS Policies**: Ensure coaches can access chats for programs they own OR have assigned to clients
+**Simplified RLS Approach**: The chat tables use simplified RLS policies that grant full access to all authenticated users. This allows us to focus on application-level access controls rather than complex database-level restrictions.
 
 ```sql
 -- ============================================================================
--- RLS POLICIES FOR CHAT TABLES
+-- SIMPLIFIED RLS POLICIES FOR CHAT TABLES
 -- ============================================================================
 
--- RLS for chats table
+-- Enable RLS on chat tables
 ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Coaches can access chats for programs they own or assigned" ON public.chats
-    FOR ALL USING (
-        user_id = auth.uid()
-        OR
-        -- Coach can access chats for programs they assigned to clients
-        EXISTS (
-            SELECT 1 FROM public.program_chats pc
-            JOIN public.trainer_assigned_programs tap ON pc.program_id = tap.program_id
-            WHERE pc.chat_id = chats.id
-            AND tap.trainer_id = auth.uid()
-        )
-    );
-
--- RLS for chat_messages table
 ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Coaches can access messages for chats they have access to" ON public.chat_messages
-    FOR ALL USING (
-        chat_id IN (
-            SELECT id FROM public.chats WHERE
-            user_id = auth.uid()
-            OR
-            EXISTS (
-                SELECT 1 FROM public.program_chats pc
-                JOIN public.trainer_assigned_programs tap ON pc.program_id = tap.program_id
-                WHERE pc.chat_id = chats.id
-                AND tap.trainer_id = auth.uid()
-            )
-        )
-    );
-
--- RLS for program_chats table
 ALTER TABLE public.program_chats ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Coaches can access program chats for programs they own or assigned" ON public.program_chats
-    FOR ALL USING (
-        -- Coach owns the program
-        program_id IN (
-            SELECT id FROM public.programs WHERE user_id = auth.uid()
-        )
-        OR
-        -- Coach assigned the program to a client
-        program_id IN (
-            SELECT program_id FROM public.trainer_assigned_programs
-            WHERE trainer_id = auth.uid()
-        )
-    );
+-- Simplified policies: All authenticated users have full access
+CREATE POLICY "chats_authenticated_policy" ON public.chats
+    FOR ALL
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+CREATE POLICY "chat_messages_authenticated_policy" ON public.chat_messages
+    FOR ALL
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+CREATE POLICY "program_chats_authenticated_policy" ON public.program_chats
+    FOR ALL
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
 ```
 
-2. **Access Patterns Covered**:
-   - **Coach-Owned Programs**: Coach can access chats for programs they created (`programs.user_id = auth.uid()`)
-   - **Coach-Assigned Programs**: Coach can access chats for programs they assigned to clients via `trainer_assigned_programs`
-   - **Client Programs**: Clients can access chats for programs assigned to them (program ownership transfers to client)
+**Access Control Strategy**:
+- **Database Level**: Simple authentication check only
+- **Application Level**: Business logic handles coach/client access patterns
+- **Benefits**: Reduced complexity, easier debugging, faster development iteration
+- **Security**: Authentication required, authorization handled in application code
 
 ## Testing Strategy
 
