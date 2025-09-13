@@ -13,6 +13,10 @@ ALTER TABLE public.workouts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trainer_assigned_programs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.debug_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trainer_client_notes ENABLE ROW LEVEL SECURITY;
+-- Enable RLS on chat tables
+ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.program_chats ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
 -- USERS TABLE POLICIES
@@ -498,3 +502,385 @@ CREATE POLICY "trainer_client_notes_delete_policy" ON public.trainer_client_note
     FOR DELETE
     TO authenticated
     USING ((SELECT auth.uid()) = trainer_id);
+
+-- ============================================================================
+-- CHAT TABLES RLS POLICIES
+-- ============================================================================
+-- Comprehensive security for chat persistence tables
+-- Supports coach/client access patterns and program ownership
+
+-- ============================================================================
+-- CHATS TABLE POLICIES
+-- ============================================================================
+
+-- Users can access chats they own or chats for programs they have access to
+CREATE POLICY "chats_select_policy" ON public.chats
+    FOR SELECT
+    TO authenticated
+    USING (
+        -- User owns the chat
+        (SELECT auth.uid()) = user_id
+        OR
+        -- User has access to programs linked to this chat
+        EXISTS (
+            SELECT 1 FROM public.program_chats pc
+            JOIN public.programs p ON pc.program_id = p.id
+            WHERE pc.chat_id = chats.id
+            AND (
+                -- User owns the program
+                p.user_id = (SELECT auth.uid())
+                OR
+                -- User is a trainer who assigned this program to a client
+                EXISTS (
+                    SELECT 1 FROM public.trainer_assigned_programs tap
+                    WHERE tap.program_id = p.id
+                    AND tap.trainer_id = (SELECT auth.uid())
+                )
+            )
+        )
+    );
+
+-- Users can create their own chats
+CREATE POLICY "chats_insert_policy" ON public.chats
+    FOR INSERT
+    TO authenticated
+    WITH CHECK ((SELECT auth.uid()) = user_id);
+
+-- Users can update chats they have access to
+CREATE POLICY "chats_update_policy" ON public.chats
+    FOR UPDATE
+    TO authenticated
+    USING (
+        -- User owns the chat
+        (SELECT auth.uid()) = user_id
+        OR
+        -- User has access to programs linked to this chat
+        EXISTS (
+            SELECT 1 FROM public.program_chats pc
+            JOIN public.programs p ON pc.program_id = p.id
+            WHERE pc.chat_id = chats.id
+            AND (
+                -- User owns the program
+                p.user_id = (SELECT auth.uid())
+                OR
+                -- User is a trainer who assigned this program to a client
+                EXISTS (
+                    SELECT 1 FROM public.trainer_assigned_programs tap
+                    WHERE tap.program_id = p.id
+                    AND tap.trainer_id = (SELECT auth.uid())
+                )
+            )
+        )
+    )
+    WITH CHECK (
+        -- User owns the chat
+        (SELECT auth.uid()) = user_id
+        OR
+        -- User has access to programs linked to this chat
+        EXISTS (
+            SELECT 1 FROM public.program_chats pc
+            JOIN public.programs p ON pc.program_id = p.id
+            WHERE pc.chat_id = chats.id
+            AND (
+                -- User owns the program
+                p.user_id = (SELECT auth.uid())
+                OR
+                -- User is a trainer who assigned this program to a client
+                EXISTS (
+                    SELECT 1 FROM public.trainer_assigned_programs tap
+                    WHERE tap.program_id = p.id
+                    AND tap.trainer_id = (SELECT auth.uid())
+                )
+            )
+        )
+    );
+
+-- Users can delete chats they have access to
+CREATE POLICY "chats_delete_policy" ON public.chats
+    FOR DELETE
+    TO authenticated
+    USING (
+        -- User owns the chat
+        (SELECT auth.uid()) = user_id
+        OR
+        -- User has access to programs linked to this chat
+        EXISTS (
+            SELECT 1 FROM public.program_chats pc
+            JOIN public.programs p ON pc.program_id = p.id
+            WHERE pc.chat_id = chats.id
+            AND (
+                -- User owns the program
+                p.user_id = (SELECT auth.uid())
+                OR
+                -- User is a trainer who assigned this program to a client
+                EXISTS (
+                    SELECT 1 FROM public.trainer_assigned_programs tap
+                    WHERE tap.program_id = p.id
+                    AND tap.trainer_id = (SELECT auth.uid())
+                )
+            )
+        )
+    );
+
+-- ============================================================================
+-- CHAT MESSAGES TABLE POLICIES
+-- ============================================================================
+
+-- Users can access messages for chats they have access to
+CREATE POLICY "chat_messages_select_policy" ON public.chat_messages
+    FOR SELECT
+    TO authenticated
+    USING (
+        chat_id IN (
+            SELECT id FROM public.chats WHERE
+            -- User owns the chat
+            user_id = (SELECT auth.uid())
+            OR
+            -- User has access to programs linked to this chat
+            EXISTS (
+                SELECT 1 FROM public.program_chats pc
+                JOIN public.programs p ON pc.program_id = p.id
+                WHERE pc.chat_id = chats.id
+                AND (
+                    -- User owns the program
+                    p.user_id = (SELECT auth.uid())
+                    OR
+                    -- User is a trainer who assigned this program to a client
+                    EXISTS (
+                        SELECT 1 FROM public.trainer_assigned_programs tap
+                        WHERE tap.program_id = p.id
+                        AND tap.trainer_id = (SELECT auth.uid())
+                    )
+                )
+            )
+        )
+    );
+
+-- Users can insert messages into chats they have access to
+CREATE POLICY "chat_messages_insert_policy" ON public.chat_messages
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        chat_id IN (
+            SELECT id FROM public.chats WHERE
+            -- User owns the chat
+            user_id = (SELECT auth.uid())
+            OR
+            -- User has access to programs linked to this chat
+            EXISTS (
+                SELECT 1 FROM public.program_chats pc
+                JOIN public.programs p ON pc.program_id = p.id
+                WHERE pc.chat_id = chats.id
+                AND (
+                    -- User owns the program
+                    p.user_id = (SELECT auth.uid())
+                    OR
+                    -- User is a trainer who assigned this program to a client
+                    EXISTS (
+                        SELECT 1 FROM public.trainer_assigned_programs tap
+                        WHERE tap.program_id = p.id
+                        AND tap.trainer_id = (SELECT auth.uid())
+                    )
+                )
+            )
+        )
+    );
+
+-- Users can update messages in chats they have access to
+CREATE POLICY "chat_messages_update_policy" ON public.chat_messages
+    FOR UPDATE
+    TO authenticated
+    USING (
+        chat_id IN (
+            SELECT id FROM public.chats WHERE
+            -- User owns the chat
+            user_id = (SELECT auth.uid())
+            OR
+            -- User has access to programs linked to this chat
+            EXISTS (
+                SELECT 1 FROM public.program_chats pc
+                JOIN public.programs p ON pc.program_id = p.id
+                WHERE pc.chat_id = chats.id
+                AND (
+                    -- User owns the program
+                    p.user_id = (SELECT auth.uid())
+                    OR
+                    -- User is a trainer who assigned this program to a client
+                    EXISTS (
+                        SELECT 1 FROM public.trainer_assigned_programs tap
+                        WHERE tap.program_id = p.id
+                        AND tap.trainer_id = (SELECT auth.uid())
+                    )
+                )
+            )
+        )
+    )
+    WITH CHECK (
+        chat_id IN (
+            SELECT id FROM public.chats WHERE
+            -- User owns the chat
+            user_id = (SELECT auth.uid())
+            OR
+            -- User has access to programs linked to this chat
+            EXISTS (
+                SELECT 1 FROM public.program_chats pc
+                JOIN public.programs p ON pc.program_id = p.id
+                WHERE pc.chat_id = chats.id
+                AND (
+                    -- User owns the program
+                    p.user_id = (SELECT auth.uid())
+                    OR
+                    -- User is a trainer who assigned this program to a client
+                    EXISTS (
+                        SELECT 1 FROM public.trainer_assigned_programs tap
+                        WHERE tap.program_id = p.id
+                        AND tap.trainer_id = (SELECT auth.uid())
+                    )
+                )
+            )
+        )
+    );
+
+-- Users can delete messages from chats they have access to
+CREATE POLICY "chat_messages_delete_policy" ON public.chat_messages
+    FOR DELETE
+    TO authenticated
+    USING (
+        chat_id IN (
+            SELECT id FROM public.chats WHERE
+            -- User owns the chat
+            user_id = (SELECT auth.uid())
+            OR
+            -- User has access to programs linked to this chat
+            EXISTS (
+                SELECT 1 FROM public.program_chats pc
+                JOIN public.programs p ON pc.program_id = p.id
+                WHERE pc.chat_id = chats.id
+                AND (
+                    -- User owns the program
+                    p.user_id = (SELECT auth.uid())
+                    OR
+                    -- User is a trainer who assigned this program to a client
+                    EXISTS (
+                        SELECT 1 FROM public.trainer_assigned_programs tap
+                        WHERE tap.program_id = p.id
+                        AND tap.trainer_id = (SELECT auth.uid())
+                    )
+                )
+            )
+        )
+    );
+
+-- ============================================================================
+-- PROGRAM CHATS TABLE POLICIES
+-- ============================================================================
+
+-- Users can access program-chat links for programs they have access to
+CREATE POLICY "program_chats_select_policy" ON public.program_chats
+    FOR SELECT
+    TO authenticated
+    USING (
+        -- User owns the program
+        program_id IN (
+            SELECT id FROM public.programs WHERE user_id = (SELECT auth.uid())
+        )
+        OR
+        -- User assigned the program to a client (trainer)
+        program_id IN (
+            SELECT program_id FROM public.trainer_assigned_programs
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+        OR
+        -- Program was assigned to the user (client)
+        program_id IN (
+            SELECT program_id FROM public.trainer_assigned_programs
+            WHERE client_id = (SELECT auth.uid())
+        )
+    );
+
+-- Users can link chats to programs they have access to
+CREATE POLICY "program_chats_insert_policy" ON public.program_chats
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        -- User owns the program
+        program_id IN (
+            SELECT id FROM public.programs WHERE user_id = (SELECT auth.uid())
+        )
+        OR
+        -- User assigned the program to a client (trainer)
+        program_id IN (
+            SELECT program_id FROM public.trainer_assigned_programs
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+        OR
+        -- Program was assigned to the user (client)
+        program_id IN (
+            SELECT program_id FROM public.trainer_assigned_programs
+            WHERE client_id = (SELECT auth.uid())
+        )
+    );
+
+-- Users can update program-chat links for programs they have access to
+CREATE POLICY "program_chats_update_policy" ON public.program_chats
+    FOR UPDATE
+    TO authenticated
+    USING (
+        -- User owns the program
+        program_id IN (
+            SELECT id FROM public.programs WHERE user_id = (SELECT auth.uid())
+        )
+        OR
+        -- User assigned the program to a client (trainer)
+        program_id IN (
+            SELECT program_id FROM public.trainer_assigned_programs
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+        OR
+        -- Program was assigned to the user (client)
+        program_id IN (
+            SELECT program_id FROM public.trainer_assigned_programs
+            WHERE client_id = (SELECT auth.uid())
+        )
+    )
+    WITH CHECK (
+        -- User owns the program
+        program_id IN (
+            SELECT id FROM public.programs WHERE user_id = (SELECT auth.uid())
+        )
+        OR
+        -- User assigned the program to a client (trainer)
+        program_id IN (
+            SELECT program_id FROM public.trainer_assigned_programs
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+        OR
+        -- Program was assigned to the user (client)
+        program_id IN (
+            SELECT program_id FROM public.trainer_assigned_programs
+            WHERE client_id = (SELECT auth.uid())
+        )
+    );
+
+-- Users can delete program-chat links for programs they have access to
+CREATE POLICY "program_chats_delete_policy" ON public.program_chats
+    FOR DELETE
+    TO authenticated
+    USING (
+        -- User owns the program
+        program_id IN (
+            SELECT id FROM public.programs WHERE user_id = (SELECT auth.uid())
+        )
+        OR
+        -- User assigned the program to a client (trainer)
+        program_id IN (
+            SELECT program_id FROM public.trainer_assigned_programs
+            WHERE trainer_id = (SELECT auth.uid())
+        )
+        OR
+        -- Program was assigned to the user (client)
+        program_id IN (
+            SELECT program_id FROM public.trainer_assigned_programs
+            WHERE client_id = (SELECT auth.uid())
+        )
+    );

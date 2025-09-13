@@ -483,3 +483,76 @@ CREATE TRIGGER update_trainer_client_notes_updated_at
     BEFORE UPDATE ON public.trainer_client_notes 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- CHAT PERSISTENCE TABLES
+-- ============================================================================
+-- Implementation of chat persistence design for program-specific AI conversations
+-- Following AI SDK UI Chatbot Message Persistence patterns
+
+-- ============================================================================
+-- CHATS TABLE
+-- ============================================================================
+-- Main chat entities that can be associated with programs
+CREATE TABLE public.chats (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    -- Optional: AI-generated chat title for display
+    title text,
+    -- Metadata for chat context (JSONB for flexibility)
+    metadata jsonb DEFAULT '{}'::jsonb
+);
+
+-- ============================================================================
+-- CHAT MESSAGES TABLE
+-- ============================================================================
+-- Individual messages within chats, storing complete UIMessage objects
+CREATE TABLE public.chat_messages (
+    -- Use the UIMessage id as primary key for consistency
+    id uuid NOT NULL PRIMARY KEY,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    chat_id uuid NOT NULL REFERENCES public.chats(id) ON DELETE CASCADE,
+    -- UIMessage.role: 'system' | 'user' | 'assistant'
+    role text NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
+    -- UIMessage.metadata: custom metadata (JSONB for flexibility)
+    metadata jsonb,
+    -- UIMessage.parts: array of message parts (text, tool calls, files, etc.)
+    parts jsonb NOT NULL
+);
+
+-- ============================================================================
+-- PROGRAM CHATS TABLE (Junction Table)
+-- ============================================================================
+-- Links programs to their associated chats
+CREATE TABLE public.program_chats (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    program_id uuid NOT NULL REFERENCES public.programs(id) ON DELETE CASCADE,
+    chat_id uuid NOT NULL REFERENCES public.chats(id) ON DELETE CASCADE,
+    -- Ensure each program-chat relationship is unique
+    UNIQUE(program_id, chat_id)
+);
+
+-- ============================================================================
+-- INDEXES FOR CHAT PERFORMANCE
+-- ============================================================================
+
+-- Index for finding chats by user
+CREATE INDEX idx_chats_user_id ON public.chats(user_id);
+
+-- Index for finding messages by chat (ordered by creation time)
+CREATE INDEX idx_chat_messages_chat_id_created ON public.chat_messages(chat_id, created_at);
+
+-- Index for finding chats by program (ordered by creation date for latest chat)
+CREATE INDEX idx_program_chats_program_id_created ON public.program_chats(program_id, created_at DESC);
+
+-- ============================================================================
+-- CHAT TRIGGERS
+-- ============================================================================
+
+-- Auto-update updated_at on chats
+CREATE TRIGGER update_chats_updated_at
+    BEFORE UPDATE ON public.chats
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
