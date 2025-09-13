@@ -50,6 +50,9 @@ interface ProgramEditorSidebarProps {
   exercises: Exercise[]
   client?: ClientWithTrainerNotes // Make client optional
   availableClients?: ClientWithTrainerNotes[] // List of available clients to choose from
+  programId: string // Required for chat persistence
+  initialMessages?: MyUIMessage[] // Existing chat history
+  chatId?: string // Existing chat ID
 }
 
 type ClientContextItem = {
@@ -96,9 +99,12 @@ const Thinking = () => {
 export function ProgramEditorSidebar({
   exercises: initialExercises,
   availableClients = [],
+  programId,
+  initialMessages = [],
+  chatId,
 }: ProgramEditorSidebarProps) {
   const workouts = useZProgramWorkouts()
-  const programId = useZProgramId()
+  const zustandProgramId = useZProgramId()
   const [contextItems, setContextItems] = useState<ContextItem[]>(() => {
     return [
       {
@@ -126,21 +132,36 @@ export function ProgramEditorSidebar({
     }
   }
 
-  const { messages, status, sendMessage, error } = useChat<MyUIMessage>({
+  const {
+    messages: uiMessages,
+    status,
+    sendMessage,
+    error,
+  } = useChat<MyUIMessage>({
+    id: chatId, // Use existing chat ID for persistence
+    messages: initialMessages, // Load existing messages using correct property name
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      body: {
-        contextItems: contextItems.map((item) => ({
-          type: item.type,
-          data:
-            item.type === "client"
-              ? item.data
-              : {
-                  exercises: item.data,
-                  title: item.label,
-                },
-        })),
-        workouts,
+      // Only send the last message to reduce payload size (AI SDK best practice)
+      prepareSendMessagesRequest({ messages, id }) {
+        return {
+          body: {
+            message: messages.at(-1), // Only last message
+            contextItems: contextItems.map((item) => ({
+              type: item.type,
+              data:
+                item.type === "client"
+                  ? item.data
+                  : {
+                      exercises: item.data,
+                      title: item.label,
+                    },
+            })),
+            workouts,
+            programId, // Include program ID for persistence
+            chatId: id, // Use the chat ID from useChat
+          },
+        }
       },
     }),
     onData: ({ data, type }) => {
@@ -163,7 +184,7 @@ export function ProgramEditorSidebar({
           }
           addWorkout({
             id: uuidv4(),
-            program_id: programId,
+            program_id: zustandProgramId,
             name: `Workout ${workouts.length + 1}`,
             program_order: workouts.length,
             blocks: workoutParsed.data.blocks.map(mapAIBlockToDomainBlock),
@@ -299,21 +320,21 @@ export function ProgramEditorSidebar({
           {!isLive() && (
             <div>
               <p>chat status: {status}</p>
-              <p>messages: {messages.length}</p>
+              <p>messages: {uiMessages.length}</p>
               <p>error: {error ? error.message : "No error"}</p>
             </div>
           )}
           {showDebugMessages && (
             <div className="mt-2 overflow-auto rounded-md bg-muted p-2">
               <pre className="whitespace-pre-wrap break-words text-[11px] leading-relaxed">
-                {JSON.stringify(messages, null, 2)}
+                {JSON.stringify(uiMessages, null, 2)}
               </pre>
             </div>
           )}
         </div>
         <Conversation>
           <ConversationContent className="scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
-            <ChatMessages messages={messages} />
+            <ChatMessages messages={uiMessages} />
             {status === "submitted" && <Thinking />}
           </ConversationContent>
           <ConversationScrollButton />

@@ -15,6 +15,7 @@ import {
   getCachedAllClientDetailsT,
   getCachedAllExercisesT,
 } from "@/lib/supabase/server/users/trainer-repo"
+import { loadProgramChat } from "@/lib/supabase/server/chat-operations"
 import { cn } from "@/lib/utils"
 import ProgramActions from "./program-edit-actions"
 import ProgramNameEditButton from "./program-name-edit-button"
@@ -26,11 +27,12 @@ export default async function Page({
 }) {
   const programid = (await params).programid
   const authUser = await getCachedAuthUserT()
-  const [user, exercises, clients, program] = await Promise.all([
+  const [user, exercises, clients, program, existingChat] = await Promise.all([
     getCachedUserT(),
     getCachedAllExercisesT(authUser.userId),
     getCachedAllClientDetailsT(),
     getCachedProgramByIdT(programid),
+    loadProgramChat(programid),
   ])
 
   const allExercises = exercises.custom.concat(exercises.base)
@@ -73,6 +75,9 @@ export default async function Page({
             availableClients={clients}
             exercises={exercises.custom}
             trainerId={user.id}
+            programId={programid}
+            initialMessages={existingChat?.messages || []}
+            chatId={existingChat?.chatId}
           />
           {/* 
           NOTE: If SidebarInset comes before the ProgramEditorSidebar in the DOM. This breaks. CSS peer selectors
