@@ -321,7 +321,7 @@ export default function ProgramEditor() {
                                 }
                                 return w
                               })
-                              setWorkouts(updatedWorkouts)
+                              setWorkouts([...updatedWorkouts])
                             }}
                             workout={workout}
                           />

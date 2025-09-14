@@ -108,7 +108,6 @@ export function createGridFromWorkoutWithChanges(
   workout: Workout,
   columns: Column[]
 ): Cell[][] {
-  console.log({ workout })
   const grid: Cell[][] = []
   let currentRowIndex = 0
 

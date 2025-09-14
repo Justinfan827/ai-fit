@@ -124,10 +124,25 @@ export function ProgramEditorSidebar({
   }
 
   const { addProposedChanges, addWorkout } = useZEditorActions()
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (input.trim()) {
-      sendMessage({ text: input })
+      const body = {
+        contextItems: contextItems.map((item) => ({
+          type: item.type,
+          data:
+            item.type === "client"
+              ? item.data
+              : {
+                  exercises: item.data,
+                  title: item.label,
+                },
+        })),
+        workouts,
+        programId,
+      }
+      sendMessage({ text: input.trim() }, { body })
       setInput("")
     }
   }
@@ -141,30 +156,7 @@ export function ProgramEditorSidebar({
     id: chatId,
     generateId: () => uuidv4(),
     messages: initialMessages, // Load existing messages using correct property name
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-      // Only send the last message to reduce payload size (AI SDK best practice)
-      prepareSendMessagesRequest({ messages }) {
-        return {
-          body: {
-            message: messages.at(-1), // Only last message
-            contextItems: contextItems.map((item) => ({
-              type: item.type,
-              data:
-                item.type === "client"
-                  ? item.data
-                  : {
-                      exercises: item.data,
-                      title: item.label,
-                    },
-            })),
-            workouts,
-            programId, // Include program ID for persistence
-            chatId, // Use the chat ID from useChat
-          },
-        }
-      },
-    }),
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
     onData: ({ data, type }) => {
       switch (type) {
         case "data-diff": {
