@@ -14,7 +14,7 @@ AI Fitness Workout Generator - A Next.js web application that creates personaliz
 pnpm dev          # Start development server with Turbopack
 pnpm build        # Production build
 pnpm start        # Start production server
-pnpm lint         # Run ESLint checks
+pnpm lint         # Run Biome checks
 pnpm check-types  # TypeScript type checking
 pnpm format:fix   # Format code with Prettier
 ```
@@ -46,10 +46,10 @@ pnpm ctl           # Custom development CLI tool
 
 ### Tech Stack
 
-- **Framework**: Next.js 15.4.4 with App Router and Turbopack
+- **Framework**: Next.js 15.5.0 with App Router and Turbopack
 - **Database**: Supabase (PostgreSQL) with type-safe operations
 - **AI**: OpenAI API for workout generation (via @ai-sdk/openai)
-- **Styling**: Tailwind CSS + shadcn/ui (New York style)
+- **Styling**: Tailwind CSS v4 + shadcn/ui (New York style)
 - **State**: Zustand stores + Server Actions
 - **Forms**: React Hook Form + Zod validation with next-safe-action
 - **Auth**: Supabase Auth with SSR support
@@ -65,6 +65,8 @@ pnpm ctl           # Custom development CLI tool
   - `supabase/` - Database client and server operations
   - `ai/` - OpenAI integration and workout prompts
   - `types/` - TypeScript type definitions
+- `src/hooks/` - Zustand stores and reusable hooks
+- `public/sw.js` - Service worker used for PWA/offline caching
 - `supabase/` - Database schema, migrations, and seed data
 
 ### Key Patterns
@@ -72,6 +74,12 @@ pnpm ctl           # Custom development CLI tool
 **Database Layer**: All database operations use type-safe Supabase client with generated types. Server Actions handle mutations while Server Components fetch data directly. Use `pnpm staging-types` to regenerate types after schema changes.
 
 **AI Integration**: OpenAI calls are centralized in `lib/ai/` with structured prompts for fitness expertise. Workout generation considers client profiles, goals, and exercise preferences.
+
+Key modules:
+
+- `src/lib/ai/tools/generateNewWorkouts/` - primary workout generation tool (schema + fn)
+- `src/lib/ai/tools/generateProgramDiffs/` - program diff generation (schema + fn)
+- `src/app/api/chat/route.ts` - streaming chat endpoint using `ai` SDK v5
 
 **Component Architecture**: Uses shadcn/ui design system (New York style) with custom components in `components/ui/`. Form components integrate React Hook Form with Zod validation schemas.
 
@@ -81,9 +89,10 @@ pnpm ctl           # Custom development CLI tool
 
 ### Configuration
 
-- `next.config.js` - Next.js configuration.
-- `tailwind.config.js` - Design tokens, custom animations
+- `next.config.js` - Next.js configuration (security headers, CSP for `sw.js`).
+- `postcss.config.js` - Tailwind CSS v4 via `@tailwindcss/postcss`.
 - `components.json` - shadcn/ui configuration
+- `biome.jsonc` - Biome linter configuration
 
 ## Development Workflows
 
