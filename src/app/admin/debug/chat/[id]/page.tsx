@@ -5,9 +5,10 @@ import { getChatWithMessages } from "@/lib/supabase/server/debug-queries"
 export default async function ChatDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const chat = await getChatWithMessages(params.id)
+  const id = (await params).id
+  const chat = await getChatWithMessages(id)
 
   if (!chat) {
     notFound()
@@ -20,7 +21,7 @@ export default async function ChatDetailPage({
           ← Back to Debug Dashboard
         </a>
       </div>
-      <h1 className="mb-4 font-bold text-xl">Chat: {params.id}</h1>
+      <h1 className="mb-4 font-bold text-xl">Chat: {id}</h1>
       <ScrollArea className="h-[500px] rounded bg-card p-4 text-sm">
         <pre className="overflow-auto ">{JSON.stringify(chat, null, 2)}</pre>
       </ScrollArea>

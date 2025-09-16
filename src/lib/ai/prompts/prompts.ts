@@ -475,7 +475,11 @@ export function buildExercisesContext(
   const exerciseNames = exercises.exercises.map((e) =>
     includeIDs ? `${e.name} (id: ${e.id})` : e.name
   )
-  return createSection(preferredExercisesSectionName, exerciseNames.join("\n"))
+  return createSection(
+    3,
+    preferredExercisesSectionName,
+    exerciseNames.join("\n")
+  )
 }
 
 /**

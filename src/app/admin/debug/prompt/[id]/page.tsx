@@ -4,9 +4,10 @@ import { getSystemPrompt } from "@/lib/supabase/server/debug-queries"
 export default async function PromptDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const prompt = await getSystemPrompt(params.id)
+  const id = (await params).id
+  const prompt = await getSystemPrompt(id)
 
   if (!prompt) {
     notFound()
@@ -20,7 +21,7 @@ export default async function PromptDetailPage({
         </a>
       </div>
 
-      <h1 className="mb-4 font-bold text-xl">Prompt: {params.id}</h1>
+      <h1 className="mb-4 font-bold text-xl">Prompt: {id}</h1>
 
       <pre className="overflow-auto rounded bg-gray-100 p-4 text-sm">
         {JSON.stringify(prompt, null, 2)}
