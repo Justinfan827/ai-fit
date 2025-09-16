@@ -1,5 +1,7 @@
 # Run tests first
 pnpm test:run
 
+pnpm format:fix
+
 # Run type checking on entire project
 pnpm check-types

@@ -6,7 +6,7 @@
     "ctl": "DOTENV_CONFIG_PATH=./.env.local tsx -r dotenv/config ./scripts/aictl.ts",
     "staging-types": "supabase gen types typescript --project-id \"pqoqayucjcexgjjcvqjz\" --schema public > ./src/lib/supabase/database.types.ts",
     "ctl-prod": "DOTENV_CONFIG_PATH=./.env.prod tsx -r dotenv/config ./scripts/aictl.ts",
-    "format:fix": "./node_modules/.bin/prettier --write .",
+    "format:fix": "biome format --write",
     "local-types": "npx supabase gen types typescript --local --schema public > ./src/lib/supabase/database.types.ts",
     "dev": "next dev --turbopack",
     "check-types": "npx tsc --noEmit --skipLibCheck",

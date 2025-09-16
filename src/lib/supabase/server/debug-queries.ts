@@ -65,7 +65,9 @@ export async function getAllChatsWithMetadata(): Promise<ChatWithMetadata[]> {
 /**
  * Get a specific chat with all its messages
  */
-export async function getChatWithMessages(chatId: string): Promise<ChatWithMessages | null> {
+export async function getChatWithMessages(
+  chatId: string
+): Promise<ChatWithMessages | null> {
   const client = await createServerClient()
 
   // Get chat metadata
@@ -129,7 +131,9 @@ export async function getAllSystemPrompts(): Promise<SystemPrompt[]> {
 /**
  * Get a specific system prompt by ID
  */
-export async function getSystemPrompt(promptId: string): Promise<SystemPrompt | null> {
+export async function getSystemPrompt(
+  promptId: string
+): Promise<SystemPrompt | null> {
   const client = await createServerClient()
 
   const { data: prompt, error } = await client

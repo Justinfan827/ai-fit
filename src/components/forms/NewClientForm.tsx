@@ -31,7 +31,8 @@ export const CreateClientFormScham = z
     email: z.email({
       error: "Please enter a valid email address.",
     }),
-    age: z.number()
+    age: z
+      .number()
       .min(1, {
         error: "Age must be at least 1.",
       })

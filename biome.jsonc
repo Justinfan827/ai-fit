@@ -1,40 +1,40 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
-	"extends": ["ultracite"],
-	"javascript": {
-		"formatter": {
-			"semicolons": "asNeeded",
-			"quoteStyle": "double"
-		}
-	},
+  "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
+  "extends": ["ultracite"],
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded",
+      "quoteStyle": "double"
+    }
+  },
 
-	"assist": {
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
-		}
-	},
-	"linter": {
-		"rules": {
-			"nursery": {
-				"useSortedClasses": {
-					"level": "error",
-					"fix": "safe"
-				}
-			},
-			"correctness": {
-				"noUnusedImports": {
-					"level": "error",
-					"fix": "safe"
-				}
-			},
-			"style": {
-				"useBlockStatements": "off"
-			},
-			"suspicious": {
-				"noConsole": "off"
-			}
-		}
-	}
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "rules": {
+      "nursery": {
+        "useSortedClasses": {
+          "level": "error",
+          "fix": "safe"
+        }
+      },
+      "correctness": {
+        "noUnusedImports": {
+          "level": "error",
+          "fix": "safe"
+        }
+      },
+      "style": {
+        "useBlockStatements": "off"
+      },
+      "suspicious": {
+        "noConsole": "off"
+      }
+    }
+  }
 }
