@@ -79,17 +79,16 @@ const editOperationSchema = z
     insertBeforeOpSchema,
     insertAtStartOpSchema,
     insertAtEndOpSchema,
+    // TODO: Test swap / rest of the operations
     swapOpSchema,
     removeOpSchema,
   ])
-  .describe("One edit operation to apply to the plan")
+  .describe("An edit operation to apply")
 
 const editWorkoutPlanActionsSchema = z
   .array(editOperationSchema)
   .min(1)
-  .describe(
-    "Batch of operations to apply sequentially. Use insertAtStart/insertAtEnd if the plan is empty."
-  )
+  .describe("Batch of operations to apply sequentially")
 
 type EditWorkoutPlanActions = z.infer<typeof editWorkoutPlanActionsSchema>
 type EditWorkoutPlanAction = z.infer<typeof editOperationSchema>

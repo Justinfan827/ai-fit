@@ -20,7 +20,7 @@ import {
   useZProgramWorkouts,
 } from "@/hooks/zustand/program-editor-state"
 import { type AIBlock, aiWorkoutSchema } from "@/lib/ai/tools/ai-only-schema"
-import { editWorkoutPlanActionsSchema } from "@/lib/ai/tools/editWorkoutPlan/schemas"
+import { editOperationSchema } from "@/lib/ai/tools/editWorkoutPlan/schemas"
 import { workoutChangeSchema } from "@/lib/ai/tools/generateProgramDiffs/diff-schema"
 import type { MyUIMessage } from "@/lib/ai/ui-message-types"
 import type { ClientWithTrainerNotes } from "@/lib/domain/clients"
@@ -167,6 +167,7 @@ export function ProgramEditorSidebar({
       },
     }),
     onData: ({ data, type }) => {
+      log.info("data received", data)
       switch (type) {
         case "data-diff": {
           log.info("workout-diff", data)
@@ -178,18 +179,18 @@ export function ProgramEditorSidebar({
           addProposedChanges([diffParsed.data])
           break
         }
-        case "data-editWorkoutPlanActions": {
-          log.info("edit-workout-plan-actions", data)
-          const editWorkoutPlanActionsParsed =
-            editWorkoutPlanActionsSchema.safeParse(data)
-          if (!editWorkoutPlanActionsParsed.success) {
+        case "data-editWorkoutPlanAction": {
+          log.info("edit-workout-plan-action", data)
+          const editWorkoutPlanActionParsed =
+            editOperationSchema.safeParse(data)
+          if (!editWorkoutPlanActionParsed.success) {
             log.error(
               "Edit workout plan actions generation caught error:",
-              editWorkoutPlanActionsParsed.error
+              editWorkoutPlanActionParsed.error
             )
             return
           }
-          applyEditWorkoutPlanActions(editWorkoutPlanActionsParsed.data)
+          applyEditWorkoutPlanActions([editWorkoutPlanActionParsed.data])
           break
         }
         case "data-newWorkouts": {

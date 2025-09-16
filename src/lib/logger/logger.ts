@@ -101,6 +101,7 @@ export const log = {
 
   child: (bindings: Record<string, unknown>) => logger.child(bindings),
   console: (...args: unknown[]) => console.log(...args),
+  consoleJSON: (arg: unknown) => console.log(JSON.stringify(arg, null, 2)),
   consoleWithHeader: (message: string, ...args: unknown[]) => {
     log.console(`\n<==========${message}==========>\n`)
     log.console(...args)

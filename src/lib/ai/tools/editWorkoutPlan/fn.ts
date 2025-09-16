@@ -1,3 +1,4 @@
+import { openai } from "@ai-sdk/openai"
 import { streamObject, tool } from "ai"
 import { stripIndents } from "common-tags"
 import { z } from "zod"
@@ -8,12 +9,8 @@ import {
   buildExercisesContext,
   buildWorkoutContext,
 } from "../../prompts/prompts"
-import { gatewayProviders } from "../../providers"
 import type { MyToolArgs } from "../../ui-message-types"
-import {
-  type EditWorkoutPlanActions,
-  editWorkoutPlanActionsSchema,
-} from "./schemas"
+import { type EditWorkoutPlanActions, editOperationSchema } from "./schemas"
 
 const streamObjectSystemPrompt = stripIndents`
 You are an assistant that translates a free-form, natural-language plan edit request into a
@@ -32,7 +29,7 @@ Critical requirements
 - For inserted workouts, construct blocks using the schemas below. Use the exercises list to populate exercise ids and canonical names. Use compact metadata strings.
 
 Block shapes
-<EXERCISE_BLOCK_EXAMPLE>
+# Exercise block example
 {
   "type": "exercise",
   "exercise": {
@@ -47,9 +44,8 @@ Block shapes
     }
   }
 }
-</EXERCISE_BLOCK_EXAMPLE>
 
-<CIRCUIT_BLOCK_EXAMPLE>
+# Circuit block example
 {
   "type": "circuit",
   "circuit": {
@@ -59,7 +55,6 @@ Block shapes
     "exercises": [ <exercise blocks as above> ]
   }
 }
-</CIRCUIT_BLOCK_EXAMPLE>
 
 Metadata formats
 - sets/reps: "12", "12, 10, 8", or ranges like "10-12"
@@ -103,13 +98,11 @@ const buildStreamObjectSystemPrompt = (
   return stripIndents`
 ${streamObjectSystemPrompt}
 
-<CURRENT_WORKOUTS_JSON>
+# Current workouts
 ${JSON.stringify(existingWorkouts, null, 2)}
-</CURRENT_WORKOUTS_JSON>
 
-<CURRENT_WORKOUTS_TEXT>
+# Current workouts text
 ${buildWorkoutContext(existingWorkouts)}
-</CURRENT_WORKOUTS_TEXT>
 
 ${buildExercisesContext(exercisesContextData, { includeIDs: true })}
   `
@@ -137,11 +130,18 @@ export const editWorkoutProgramTool = ({
       log.consoleWithHeader("Built system prompt:", builtSystemPrompt)
       try {
         const { elementStream } = streamObject({
-          model: gatewayProviders["chat-model"],
-          schema: editWorkoutPlanActionsSchema,
+          // This works better than ai gateway! Something wrong with discriminated unions?
+          model: openai.chat("gpt-4.1"),
+          schema: editOperationSchema,
           output: "array",
           system: builtSystemPrompt,
           prompt: editDescription,
+          onFinish: ({ response }) => {
+            log.consoleWithHeader(
+              "Workout plan edit operation generation finished:"
+            )
+            log.consoleJSON(response)
+          },
           onError: (error) => {
             log.error(
               "Workout plan edit operation generation caught error:",
@@ -150,9 +150,9 @@ export const editWorkoutProgramTool = ({
           },
         })
 
-        const allOperations: EditWorkoutPlanActions[] = []
+        const allOperations: EditWorkoutPlanActions = []
         for await (const element of elementStream) {
-          const workoutParsed = editWorkoutPlanActionsSchema.safeParse(element)
+          const workoutParsed = editOperationSchema.safeParse(element)
           if (!workoutParsed.success) {
             log.error(
               "Workout plan edit operation generation caught error:",
@@ -168,12 +168,15 @@ export const editWorkoutProgramTool = ({
           allOperations.push(workoutParsed.data)
           console.log("generated valid edit output!", workoutParsed.data)
           writer.write({
-            type: "data-editWorkoutPlanActions",
+            type: "data-editWorkoutPlanAction",
             transient: true,
             data: workoutParsed.data,
           })
         }
-        log.consoleWithHeader("Finished elementStream iteration")
+        log.console("Finished elementStream iteration")
+        if (allOperations.length === 0) {
+          return "No operations were generated. Something likely went wrong with the request."
+        }
         return "The requested changes were applied successfully"
       } catch (error) {
         log.error("Workout plan edit caught error:", error)
