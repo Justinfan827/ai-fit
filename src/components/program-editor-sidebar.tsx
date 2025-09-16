@@ -19,10 +19,8 @@ import {
   useZProgramId,
   useZProgramWorkouts,
 } from "@/hooks/zustand/program-editor-state"
-import {
-  type AIBlock,
-  aiWorkoutSchema,
-} from "@/lib/ai/tools/generateNewWorkouts/response-schema"
+import { type AIBlock, aiWorkoutSchema } from "@/lib/ai/tools/ai-only-schema"
+import { editWorkoutPlanActionsSchema } from "@/lib/ai/tools/editWorkoutPlan/schemas"
 import { workoutChangeSchema } from "@/lib/ai/tools/generateProgramDiffs/diff-schema"
 import type { MyUIMessage } from "@/lib/ai/ui-message-types"
 import type { ClientWithTrainerNotes } from "@/lib/domain/clients"
@@ -123,7 +121,8 @@ export function ProgramEditorSidebar({
     setShowDebugMessages((prev) => !prev)
   }
 
-  const { addProposedChanges, addWorkout } = useZEditorActions()
+  const { addProposedChanges, addWorkout, applyEditWorkoutPlanActions } =
+    useZEditorActions()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -156,7 +155,17 @@ export function ProgramEditorSidebar({
     id: chatId,
     generateId: () => uuidv4(),
     messages: initialMessages, // Load existing messages using correct property name
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      prepareSendMessagesRequest: ({ body, messages }) => {
+        return {
+          body: {
+            message: messages.at(-1),
+            ...body,
+          },
+        }
+      },
+    }),
     onData: ({ data, type }) => {
       switch (type) {
         case "data-diff": {
@@ -167,6 +176,20 @@ export function ProgramEditorSidebar({
             return
           }
           addProposedChanges([diffParsed.data])
+          break
+        }
+        case "data-editWorkoutPlanActions": {
+          log.info("edit-workout-plan-actions", data)
+          const editWorkoutPlanActionsParsed =
+            editWorkoutPlanActionsSchema.safeParse(data)
+          if (!editWorkoutPlanActionsParsed.success) {
+            log.error(
+              "Edit workout plan actions generation caught error:",
+              editWorkoutPlanActionsParsed.error
+            )
+            return
+          }
+          applyEditWorkoutPlanActions(editWorkoutPlanActionsParsed.data)
           break
         }
         case "data-newWorkouts": {

@@ -2,6 +2,7 @@ import { openai } from "@ai-sdk/openai"
 import {
   customProvider,
   defaultSettingsMiddleware,
+  type LanguageModel,
   wrapLanguageModel,
 } from "ai"
 
@@ -25,3 +26,7 @@ export const myProvider = customProvider({
     // }),
   },
 })
+
+export const gatewayProviders: Record<string, LanguageModel> = {
+  "chat-model": "openai/gpt-4.1",
+}

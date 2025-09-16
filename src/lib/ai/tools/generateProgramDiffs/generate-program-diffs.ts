@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid"
 import { z } from "zod"
 import { log } from "@/lib/logger/logger"
 import { buildWorkoutModificationPrompt } from "../../prompts/prompts"
-import { myProvider } from "../../providers"
+import { gatewayProviders } from "../../providers"
 import type { MyToolArgs } from "../../ui-message-types"
 import { type WorkoutChange, workoutChangeAISchema } from "./diff-schema"
 
@@ -37,7 +37,7 @@ export const generateProgramDiffs = ({
       try {
         // Step 2: Convert text changes to structured diff
         const { elementStream } = streamObject({
-          model: myProvider.languageModel("chat-model"),
+          model: gatewayProviders["chat-model"],
           schema: workoutChangeAISchema,
           output: "array",
           system: systemPrompt,

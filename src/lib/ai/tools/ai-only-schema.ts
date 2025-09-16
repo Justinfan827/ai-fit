@@ -1,4 +1,9 @@
 import z from "zod"
+/**
+ * This file contains the schema for the AI only requests / responses.
+ * NOT to be used outside of the ai tools.
+ *
+ */
 
 // Define exercise block schema that can have pending status
 export const aiExerciseBlockSchema = z.object({

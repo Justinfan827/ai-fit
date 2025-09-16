@@ -333,6 +333,24 @@ export type Database = {
           },
         ]
       }
+      system_prompts: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       trainer_assigned_programs: {
         Row: {
           client_id: string

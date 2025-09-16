@@ -18,6 +18,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useSignOut } from "@/hooks/use-sign-out"
 import { Icons } from "./icons"
 
 export function NavUser({
@@ -30,6 +31,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { signOut, isPending } = useSignOut()
 
   return (
     <SidebarMenu>
@@ -87,9 +89,17 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              aria-label="Log out"
+              disabled={isPending}
+              onClick={(e) => {
+                e.preventDefault()
+                signOut()
+              }}
+            >
               <IconLogout />
               Log out
+              {isPending && <Icons.spinner className="animate-spin" />}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

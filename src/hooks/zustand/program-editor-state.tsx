@@ -3,6 +3,8 @@ import Fuse from "fuse.js"
 import { createContext, useContext, useEffect, useState } from "react"
 import { create, type StoreApi, type UseBoundStore, useStore } from "zustand"
 import { mergeWorkoutWithProposedChanges } from "@/components/grid/workout-merge"
+import { applyWorkoutPlanOperations } from "@/lib/ai/tools/editWorkoutPlan/apply-operations"
+import type { EditWorkoutPlanActions } from "@/lib/ai/tools/editWorkoutPlan/schemas"
 import type { WorkoutChange } from "@/lib/ai/tools/generateProgramDiffs/diff-schema"
 import type {
   CircuitBlock,
@@ -52,6 +54,7 @@ type WorkoutActions = {
   setProposedChanges: (changes: WorkoutChange[]) => void
   // add to the proposed changes array
   addProposedChanges: (changes: WorkoutChange[]) => void
+  applyEditWorkoutPlanActions: (actions: EditWorkoutPlanActions) => void
   setCurrentChangeId: (changeId: string | null) => void
   applyPendingProposalById: (proposalId: string) => void
   rejectPendingProposalById: (proposalId: string) => void
@@ -388,6 +391,45 @@ const EditorProgramProvider = ({
           set({
             proposedChanges: sortProposedChanges(changes),
           })
+        },
+        applyEditWorkoutPlanActions: (actions: EditWorkoutPlanActions) => {
+          const { workouts, workoutHistories } = get()
+
+          try {
+            // Apply operations using the pure utility function
+            const updatedWorkouts = applyWorkoutPlanOperations(
+              workouts,
+              actions
+            )
+
+            // Initialize workout histories for any new workouts
+            const updatedHistories = { ...workoutHistories }
+            for (const workout of updatedWorkouts) {
+              if (!updatedHistories[workout.id]) {
+                updatedHistories[workout.id] = {
+                  history: [workout],
+                  currentIndex: 0,
+                }
+              }
+            }
+
+            // Update the state with new workouts and histories
+            set({
+              workouts: updatedWorkouts,
+              workoutHistories: updatedHistories,
+            })
+
+            log.info("Successfully applied workout plan actions", {
+              actionsCount: actions.length,
+              workoutsCount: updatedWorkouts.length,
+            })
+          } catch (error) {
+            log.error("Failed to apply workout plan actions", {
+              error,
+              actions,
+            })
+            // Don't update state if operations failed
+          }
         },
         setCurrentChangeId: (changeId: string | null) => {
           set({ currentChangeId: changeId })

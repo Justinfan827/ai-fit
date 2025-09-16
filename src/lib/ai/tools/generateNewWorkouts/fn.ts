@@ -2,9 +2,9 @@ import { streamObject, tool } from "ai"
 import { z } from "zod"
 import { log } from "@/lib/logger/logger"
 import { buildWorkoutCreationPrompt } from "../../prompts/prompts"
-import { myProvider } from "../../providers"
+import { gatewayProviders } from "../../providers"
 import type { MyToolArgs } from "../../ui-message-types"
-import { type AIWorkout, aiWorkoutSchema } from "./response-schema"
+import { type AIWorkout, aiWorkoutSchema } from "../ai-only-schema"
 
 export const generateNewWorkouts = ({
   existingWorkouts,
@@ -38,7 +38,7 @@ export const generateNewWorkouts = ({
 
       try {
         const { elementStream } = streamObject({
-          model: myProvider.languageModel("chat-model"),
+          model: gatewayProviders["chat-model"],
           schema: aiWorkoutSchema,
           output: "array",
           system: systemPrompt,

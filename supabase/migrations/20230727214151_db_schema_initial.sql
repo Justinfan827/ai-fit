@@ -556,3 +556,14 @@ CREATE INDEX idx_program_chats_program_id_created ON public.program_chats(progra
 CREATE TRIGGER update_chats_updated_at
     BEFORE UPDATE ON public.chats
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- SYSTEM PROMPTS TABLE
+-- ============================================================================
+-- Stores system prompts that have been used in chats for debugging purposes
+CREATE TABLE public.system_prompts (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    content text NOT NULL
+);
+

@@ -1,12 +1,9 @@
 "use client"
 
 import type { VariantProps } from "class-variance-authority"
-import { useRouter } from "next/navigation"
 import type React from "react"
-import { useState } from "react"
-import { toast } from "sonner"
 import type { buttonVariants } from "@/components/ui/button"
-import { useSupabase } from "@/lib/supabase/use-supabase"
+import { useSignOut } from "@/hooks/use-sign-out"
 import LoadingButton from "./loading-button"
 
 export interface SignOutButtonProps
@@ -16,26 +13,28 @@ export interface SignOutButtonProps
 export default function SignOutButton({
   className,
   variant = "ghost",
+  size,
+  type = "button",
+  children,
+  ...rest
 }: SignOutButtonProps) {
-  const [isLoading, setLoading] = useState(false)
-  const router = useRouter()
-  const { supabase } = useSupabase()
-  const handleOnClick = async () => {
-    setLoading(true)
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      toast(error.message)
-    }
-    router.push("/login")
+  const { signOut, isPending } = useSignOut()
+
+  const handleOnClick = async (_: React.MouseEvent) => {
+    await signOut()
   }
+
   return (
     <LoadingButton
       className={className}
-      isLoading={isLoading}
+      isLoading={isPending}
       onClick={handleOnClick}
+      size={size}
+      type={type}
       variant={variant}
+      {...rest}
     >
-      Sign out
+      {children ?? "Sign out"}
     </LoadingButton>
   )
 }

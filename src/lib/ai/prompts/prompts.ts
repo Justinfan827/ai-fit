@@ -124,10 +124,9 @@ Workspace and context
 
 Tooling and workflow
 - Tools available:
-  - generateProgramDiffs: produce a structured diff to modify existing workouts/blocks/circuits.
-  - generateNewWorkouts: produce structured JSON for brand-new workouts to add to the program.
-- Default to generateProgramDiffs for edits within existing workouts. Use generateNewWorkouts only when adding new days/workouts from scratch.
-- Work in small, reviewable batches (1-3 changes per call). Prefer multiple small diffs over one large, sweeping change.
+  - generateProgramDiffs: produce a structured diff to modify blocks within existing workouts.
+  - editWorkoutPlan: handle natural-language requests to edit individual workouts in the program.
+- Work in small, reviewable batches (1-3 changes per call).Prefer multiple small diffs over one large, sweeping change.
 - Do not paste JSON in chat. Use tool calls to produce JSON. After a tool call, wait for coach feedback before making further changes, unless the coach asked you to continue.
 
 Decision rubric before proposing changes
@@ -451,7 +450,7 @@ ${clientData.details?.map((d) => `- ${d.title}: ${d.description}`).join("\n") ??
 )}`
 }
 
-function buildExercisesContext(
+export function buildExercisesContext(
   exercises: ExercisesContextData,
   { includeIDs }: { includeIDs: boolean } = { includeIDs: false }
 ) {

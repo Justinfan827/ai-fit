@@ -7,7 +7,7 @@ import {
 } from "ai"
 import { v4 as uuidv4 } from "uuid"
 import { buildSystemPrompt } from "@/lib/ai/prompts/prompts"
-import { myProvider } from "@/lib/ai/providers"
+import { gatewayProviders, myProvider } from "@/lib/ai/providers"
 import { type MyUIMessage, myTools } from "@/lib/ai/ui-message-types"
 import log from "@/lib/logger/logger"
 import {
@@ -23,6 +23,7 @@ export const maxDuration = 30
 export async function POST(req: Request) {
   try {
     const body = await req.json()
+    console.log("body", body)
     const {
       message,
       contextItems = [],
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
           }
 
           const result = streamText({
-            model: myProvider.languageModel("chat-model"),
+            model: gatewayProviders["chat-model"],
             system: systemPrompt,
             messages: modelMessages,
             tools: myTools({
