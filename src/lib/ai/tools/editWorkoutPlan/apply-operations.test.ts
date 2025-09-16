@@ -152,10 +152,10 @@ describe("applyWorkoutPlanOperations", () => {
     it("should insert workout at the beginning of the plan", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "insertAtStart",
-            workout: createNewWorkout(),
-          },
+        {
+          type: "insertAtStart",
+          workout: createNewWorkout(),
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -173,10 +173,10 @@ describe("applyWorkoutPlanOperations", () => {
     it("should work with empty workout array", () => {
       const workouts: Workout[] = []
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "insertAtStart",
-            workout: createNewWorkout(),
-          },
+        {
+          type: "insertAtStart",
+          workout: createNewWorkout(),
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -193,10 +193,10 @@ describe("applyWorkoutPlanOperations", () => {
     it("should insert workout at the end of the plan", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "insertAtEnd",
-            workout: createNewWorkout(),
-          },
+        {
+          type: "insertAtEnd",
+          workout: createNewWorkout(),
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -214,10 +214,10 @@ describe("applyWorkoutPlanOperations", () => {
     it("should work with empty workout array", () => {
       const workouts: Workout[] = []
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "insertAtEnd",
-            workout: createNewWorkout(),
-          },
+        {
+          type: "insertAtEnd",
+          workout: createNewWorkout(),
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -232,11 +232,11 @@ describe("applyWorkoutPlanOperations", () => {
     it("should swap positions of two workouts", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "swap",
-            aWorkoutId: "workout-1",
-            bWorkoutId: "workout-3",
-          },
+        {
+          type: "swap",
+          aWorkoutId: "workout-1",
+          bWorkoutId: "workout-3",
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -253,11 +253,11 @@ describe("applyWorkoutPlanOperations", () => {
     it("should swap adjacent workouts", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "swap",
-            aWorkoutId: "workout-1",
-            bWorkoutId: "workout-2",
-          },
+        {
+          type: "swap",
+          aWorkoutId: "workout-1",
+          bWorkoutId: "workout-2",
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -271,11 +271,11 @@ describe("applyWorkoutPlanOperations", () => {
     it("should throw error if first workout not found", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "swap",
-            aWorkoutId: "nonexistent",
-            bWorkoutId: "workout-2",
-          },
+        {
+          type: "swap",
+          aWorkoutId: "nonexistent",
+          bWorkoutId: "workout-2",
+        },
       ]
 
       expect(() => applyWorkoutPlanOperations(workouts, actions)).toThrow(
@@ -286,11 +286,11 @@ describe("applyWorkoutPlanOperations", () => {
     it("should throw error if second workout not found", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "swap",
-            aWorkoutId: "workout-1",
-            bWorkoutId: "nonexistent",
-          },
+        {
+          type: "swap",
+          aWorkoutId: "workout-1",
+          bWorkoutId: "nonexistent",
+        },
       ]
 
       expect(() => applyWorkoutPlanOperations(workouts, actions)).toThrow(
@@ -303,10 +303,10 @@ describe("applyWorkoutPlanOperations", () => {
     it("should remove workout from the plan", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "remove",
-            workoutId: "workout-2",
-          },
+        {
+          type: "remove",
+          workoutId: "workout-2",
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -322,10 +322,10 @@ describe("applyWorkoutPlanOperations", () => {
     it("should remove first workout", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "remove",
-            workoutId: "workout-1",
-          },
+        {
+          type: "remove",
+          workoutId: "workout-1",
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -339,10 +339,10 @@ describe("applyWorkoutPlanOperations", () => {
     it("should remove last workout", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "remove",
-            workoutId: "workout-3",
-          },
+        {
+          type: "remove",
+          workoutId: "workout-3",
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -356,10 +356,10 @@ describe("applyWorkoutPlanOperations", () => {
     it("should throw error if workout not found", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "remove",
-            workoutId: "nonexistent",
-          },
+        {
+          type: "remove",
+          workoutId: "nonexistent",
+        },
       ]
 
       expect(() => applyWorkoutPlanOperations(workouts, actions)).toThrow(
@@ -372,19 +372,19 @@ describe("applyWorkoutPlanOperations", () => {
     it("should apply multiple operations in sequence", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "remove",
-            workoutId: "workout-2",
-          },
-          {
-            type: "insertAtEnd",
-            workout: { name: "New End Workout", blocks: [] } as TestWorkout,
-          },
-          {
-            type: "swap",
-            aWorkoutId: "workout-1",
-            bWorkoutId: "workout-3",
-          },
+        {
+          type: "remove",
+          workoutId: "workout-2",
+        },
+        {
+          type: "insertAtEnd",
+          workout: { name: "New End Workout", blocks: [] } as TestWorkout,
+        },
+        {
+          type: "swap",
+          aWorkoutId: "workout-1",
+          bWorkoutId: "workout-3",
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -402,16 +402,16 @@ describe("applyWorkoutPlanOperations", () => {
     it("should handle complex sequence with insertAfter and insertBefore", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "insertAfter",
-            anchorWorkoutId: "workout-1",
-            workout: { name: "After Workout 1", blocks: [] } as TestWorkout,
-          },
-          {
-            type: "insertBefore",
-            anchorWorkoutId: "workout-3",
-            workout: { name: "Before Workout 3", blocks: [] } as TestWorkout,
-          },
+        {
+          type: "insertAfter",
+          anchorWorkoutId: "workout-1",
+          workout: { name: "After Workout 1", blocks: [] } as TestWorkout,
+        },
+        {
+          type: "insertBefore",
+          anchorWorkoutId: "workout-3",
+          workout: { name: "Before Workout 3", blocks: [] } as TestWorkout,
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -430,10 +430,10 @@ describe("applyWorkoutPlanOperations", () => {
     it("should generate ID for workout without ID", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "insertAtEnd",
-            workout: { name: "No ID Workout", blocks: [] } as TestWorkout,
-          },
+        {
+          type: "insertAtEnd",
+          workout: { name: "No ID Workout", blocks: [] } as TestWorkout,
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -448,14 +448,14 @@ describe("applyWorkoutPlanOperations", () => {
     it("should use provided ID if present", () => {
       const workouts = createMockWorkouts()
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "insertAtEnd",
-            workout: {
-              id: "custom-id",
-              name: "Custom ID Workout",
-              blocks: [],
-            } as TestWorkout,
-          },
+        {
+          type: "insertAtEnd",
+          workout: {
+            id: "custom-id",
+            name: "Custom ID Workout",
+            blocks: [],
+          } as TestWorkout,
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -469,10 +469,10 @@ describe("applyWorkoutPlanOperations", () => {
     it("should generate program_id when no existing workouts", () => {
       const workouts: Workout[] = []
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "insertAtStart",
-            workout: { name: "First Workout", blocks: [] } as TestWorkout,
-          },
+        {
+          type: "insertAtStart",
+          workout: { name: "First Workout", blocks: [] } as TestWorkout,
+        },
       ]
 
       const result = applyWorkoutPlanOperations(workouts, actions)
@@ -498,10 +498,10 @@ describe("applyWorkoutPlanOperations", () => {
       const workouts = createMockWorkouts()
       const originalWorkouts = JSON.parse(JSON.stringify(workouts))
       const actions: EditWorkoutPlanActions = [
-          {
-            type: "insertAtEnd",
-            workout: createNewWorkout(),
-          },
+        {
+          type: "insertAtEnd",
+          workout: createNewWorkout(),
+        },
       ]
 
       applyWorkoutPlanOperations(workouts, actions)

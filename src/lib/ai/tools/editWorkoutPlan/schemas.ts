@@ -84,9 +84,12 @@ const editOperationSchema = z
   ])
   .describe("One edit operation to apply to the plan")
 
-const editWorkoutPlanActionsSchema = z.array(editOperationSchema).min(1).describe(
-  "Batch of operations to apply sequentially. Use insertAtStart/insertAtEnd if the plan is empty."
-)
+const editWorkoutPlanActionsSchema = z
+  .array(editOperationSchema)
+  .min(1)
+  .describe(
+    "Batch of operations to apply sequentially. Use insertAtStart/insertAtEnd if the plan is empty."
+  )
 
 type EditWorkoutPlanActions = z.infer<typeof editWorkoutPlanActionsSchema>
 type EditWorkoutPlanAction = z.infer<typeof editOperationSchema>
