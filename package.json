@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@ag-grid-community/core": "^32.3.3",
+    "@ai-sdk-tools/devtools": "^0.6.1",
     "@ai-sdk/openai": "^2.0.20",
     "@ai-sdk/react": "^2.0.23",
     "@dnd-kit/core": "^6.3.1",
