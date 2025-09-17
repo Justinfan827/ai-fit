@@ -40,6 +40,5 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/login"
     return NextResponse.redirect(url)
   }
-
   return supabaseResponse
 }

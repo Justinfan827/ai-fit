@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import { getSystemPrompt } from "@/lib/supabase/server/debug-queries"
+import { PromptViewer } from "./prompt-viewer"
 
 export default async function PromptDetailPage({
   params,
@@ -21,11 +22,20 @@ export default async function PromptDetailPage({
         </a>
       </div>
 
-      <h1 className="mb-4 font-bold text-xl">Prompt: {id}</h1>
+      <div className="mb-6">
+        <h1 className="mb-2 font-bold text-xl">System Prompt</h1>
+        <div className="text-gray-600 text-sm">
+          <p>
+            <strong>ID:</strong> {prompt.id}
+          </p>
+          <p>
+            <strong>Created:</strong>{" "}
+            {new Date(prompt.created_at).toLocaleString()}
+          </p>
+        </div>
+      </div>
 
-      <pre className="overflow-auto rounded bg-gray-100 p-4 text-sm">
-        {JSON.stringify(prompt, null, 2)}
-      </pre>
+      <PromptViewer content={prompt.content} />
     </div>
   )
 }

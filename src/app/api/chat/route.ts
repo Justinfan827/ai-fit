@@ -5,9 +5,10 @@ import {
   stepCountIs,
   streamText,
 } from "ai"
+import { after } from "next/server"
 import { v4 as uuidv4 } from "uuid"
 import { buildSystemPrompt } from "@/lib/ai/prompts/prompts"
-import { gatewayProviders, myProvider } from "@/lib/ai/providers"
+import { gatewayProviders } from "@/lib/ai/providers"
 import { type MyUIMessage, myTools } from "@/lib/ai/ui-message-types"
 import log from "@/lib/logger/logger"
 import {
@@ -15,6 +16,7 @@ import {
   loadChatMessages,
   upsertMessage,
 } from "@/lib/supabase/server/chat-operations"
+import { createSystemPrompt } from "@/lib/supabase/server/debug-queries"
 import { requestSchema } from "./schema"
 
 // Allow streaming responses up to 30 seconds
@@ -53,6 +55,13 @@ export async function POST(req: Request) {
     const systemPrompt = buildSystemPrompt(contextItems, workouts)
     const modelMessages = convertToModelMessages(messages)
 
+    after(async () => {
+      try {
+        await createSystemPrompt(systemPrompt)
+      } catch (error) {
+        log.error("Failed to log system prompt:", error)
+      }
+    })
     log.consoleWithHeader("System prompt", systemPrompt)
     log.consoleWithHeader(
       "Message history",

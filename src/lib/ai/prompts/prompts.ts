@@ -418,6 +418,9 @@ BW, BW+10, BW+20 (bodyweight + added weight)
 `
 
 export const buildWorkoutContext = (workouts: Workout[]): string => {
+  if (workouts.length === 0) {
+    return "No workouts in the program! Help the coach create an amazing program!"
+  }
   return workouts
     .map(
       (workout, i) => `Workout ${i + 1}: ${workout.name} 
@@ -477,7 +480,7 @@ export function buildExercisesContext(
   { includeIDs }: { includeIDs: boolean } = { includeIDs: false }
 ) {
   const exerciseNames = exercises.exercises.map((e) =>
-    includeIDs ? `${e.name} (id: ${e.id})` : e.name
+    includeIDs ? `- ${e.name} (id: ${e.id})` : `- ${e.name}`
   )
   return `${exerciseNames.join("\n")}`
 }
