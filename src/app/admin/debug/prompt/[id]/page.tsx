@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { PromptEvaluator } from "@/components/prompt-evaluator"
 import { getSystemPrompt } from "@/lib/supabase/server/debug-queries"
 import { PromptViewer } from "./prompt-viewer"
 
@@ -35,7 +36,10 @@ export default async function PromptDetailPage({
         </div>
       </div>
 
-      <PromptViewer content={prompt.content} />
+      <div className="space-y-6">
+        <PromptViewer content={prompt.content} />
+        <PromptEvaluator systemPrompt={prompt.content} />
+      </div>
     </div>
   )
 }

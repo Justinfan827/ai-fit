@@ -26,7 +26,7 @@ type withAuthBodyHandler<T> = (params: {
   req: NextRequest
   user: AuthUser
   body: T
-}) => Promise<NextResponse>
+}) => Promise<Response>
 
 export const withPublic = (handler: withPublicHandler) => {
   return (req: NextRequest) => {
