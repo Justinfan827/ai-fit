@@ -417,18 +417,24 @@ BW, BW+10, BW+20 (bodyweight + added weight)
 30s, 1m, 2m30s (rest periods in seconds, minutes, or minutes and seconds)
 `
 
-export const buildWorkoutContext = (workouts: Workout[]): string => {
+export const buildWorkoutContext = (
+  workouts: Workout[],
+  { includeIDs }: { includeIDs: boolean } = { includeIDs: false }
+): string => {
   if (workouts.length === 0) {
     return "No workouts in the program! Help the coach create an amazing program!"
   }
   return workouts
     .map(
-      (workout, i) => `Workout ${i + 1}: ${workout.name} 
+      (
+        workout,
+        i
+      ) => `Workout ${i + 1}: Name: ${workout.name} ${includeIDs ? `(id: ${workout.id})` : ""}
 ${workout.blocks
   .map((block) => {
     if (block.type === "exercise") {
       const { exercise } = block
-      return `- ${exercise.name} 
+      return `- ${exercise.name} ${includeIDs ? `(id: ${exercise.id})` : ""}
   Sets: ${exercise.metadata.sets}
   Reps: ${exercise.metadata.reps}
   Weight: ${exercise.metadata.weight}
@@ -442,7 +448,9 @@ ${workout.blocks
   Exercises:
   ${circuit.exercises
     .map(
-      (ex: ExerciseBlock) => `  - ${ex.exercise.name} 
+      (
+        ex: ExerciseBlock
+      ) => `  - ${includeIDs ? `(id: ${ex.exercise.id}) ` : ""}${ex.exercise.name} 
     Sets: ${ex.exercise.metadata.sets}
     Reps: ${ex.exercise.metadata.reps}
     Weight: ${ex.exercise.metadata.weight}

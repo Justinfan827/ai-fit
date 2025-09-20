@@ -54,7 +54,7 @@ Be constructive, specific, and actionable in your feedback. Focus on improvement
 
 export const POST = withAuthBodySchema(
   { schema: evaluatePromptRequestSchema },
-  async ({ body: { systemPrompt } }) => {
+  ({ body: { systemPrompt } }) => {
     try {
       log.consoleWithHeader("Prompt evaluation request", {
         promptLength: systemPrompt.length,

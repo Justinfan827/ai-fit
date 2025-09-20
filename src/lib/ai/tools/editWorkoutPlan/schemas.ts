@@ -1,11 +1,26 @@
 import { z } from "zod"
 import { aiWorkoutSchema } from "../ai-only-schema"
 
+const insertAfterOpName = z.literal("insertAfter")
+const insertBeforeOpName = z.literal("insertBefore")
+const insertAtStartOpName = z.literal("insertAtStart")
+const insertAtEndOpName = z.literal("insertAtEnd")
+const swapOpName = z.literal("swap")
+const removeOpName = z.literal("remove")
+const availableOpNames = z.union([
+  insertAfterOpName,
+  insertBeforeOpName,
+  insertAtStartOpName,
+  insertAtEndOpName,
+  swapOpName,
+  removeOpName,
+])
+
 const insertAfterOpSchema = z
   .object({
-    type: z
-      .literal("insertAfter")
-      .describe("Insert a new workout immediately after the anchor workout"),
+    type: insertAfterOpName.describe(
+      "Insert a new workout immediately after the anchor workout"
+    ),
     anchorWorkoutId: z
       .uuid()
       .describe("Existing workoutId to insert after (must exist in the plan)"),
@@ -17,9 +32,9 @@ const insertAfterOpSchema = z
 
 const insertBeforeOpSchema = z
   .object({
-    type: z
-      .literal("insertBefore")
-      .describe("Insert a new workout immediately before the anchor workout"),
+    type: insertBeforeOpName.describe(
+      "Insert a new workout immediately before the anchor workout"
+    ),
     anchorWorkoutId: z
       .uuid()
       .describe("Existing workoutId to insert before (must exist in the plan)"),
@@ -32,9 +47,9 @@ const insertBeforeOpSchema = z
 // New: anchorless inserts
 const insertAtStartOpSchema = z
   .object({
-    type: z
-      .literal("insertAtStart")
-      .describe("Insert a workout at the beginning of the plan"),
+    type: insertAtStartOpName.describe(
+      "Insert a workout at the beginning of the plan"
+    ),
     workout: aiWorkoutSchema.describe(
       "The full workout to insert; an id will be assigned if missing"
     ),
@@ -43,9 +58,7 @@ const insertAtStartOpSchema = z
 
 const insertAtEndOpSchema = z
   .object({
-    type: z
-      .literal("insertAtEnd")
-      .describe("Insert a workout at the end of the plan"),
+    type: insertAtEndOpName.describe("Insert a workout at the end of the plan"),
     workout: aiWorkoutSchema.describe(
       "The full workout to insert; an id will be assigned if missing"
     ),
@@ -54,9 +67,7 @@ const insertAtEndOpSchema = z
 
 const swapOpSchema = z
   .object({
-    type: z
-      .literal("swap")
-      .describe("Swap the positions of two workouts by id"),
+    type: swapOpName.describe("Swap the positions of two workouts by id"),
     aWorkoutId: z.uuid().describe("First workoutId to swap (must exist)"),
     bWorkoutId: z.uuid().describe("Second workoutId to swap (must exist)"),
   })
@@ -68,7 +79,7 @@ const swapOpSchema = z
 
 const removeOpSchema = z
   .object({
-    type: z.literal("remove").describe("Remove a workout from the plan by id"),
+    type: removeOpName.describe("Remove a workout from the plan by id"),
     workoutId: z.uuid().describe("Existing workoutId to remove"),
   })
   .describe("Remove a workout")
@@ -85,12 +96,26 @@ const editOperationSchema = z
   ])
   .describe("An edit operation to apply")
 
+// root object must not be anyof and must be an object
+// https://platform.openai.com/docs/guides/structured-outputs/root-objects-must-not-be-anyof#root-objects-must-not-be-anyof-and-must-be-an-object
+const editOperationWrappedSchema = z.object({
+  operationToUse: availableOpNames,
+  // these must match availableOpNames
+  insertAfter: insertAfterOpSchema.nullable(),
+  insertBefore: insertBeforeOpSchema.nullable(),
+  insertAtStart: insertAtStartOpSchema.nullable(),
+  insertAtEnd: insertAtEndOpSchema.nullable(),
+  swap: swapOpSchema.nullable(),
+  remove: removeOpSchema.nullable(),
+})
+
 const editWorkoutPlanActionsSchema = z
   .array(editOperationSchema)
   .min(1)
   .describe("Batch of operations to apply sequentially")
 
 type EditWorkoutPlanActions = z.infer<typeof editWorkoutPlanActionsSchema>
+type EditWorkoutPlanActionWrapped = z.infer<typeof editOperationWrappedSchema>
 type EditWorkoutPlanAction = z.infer<typeof editOperationSchema>
 type EditWorkoutPlanInsertAfterAction = z.infer<typeof insertAfterOpSchema>
 type EditWorkoutPlanInsertBeforeAction = z.infer<typeof insertBeforeOpSchema>
@@ -102,6 +127,7 @@ type EditWorkoutPlanRemoveAction = z.infer<typeof removeOpSchema>
 export {
   editOperationSchema,
   editWorkoutPlanActionsSchema,
+  editOperationWrappedSchema,
   type EditWorkoutPlanAction,
   type EditWorkoutPlanActions,
   type EditWorkoutPlanInsertAfterAction,
@@ -110,4 +136,5 @@ export {
   type EditWorkoutPlanInsertAtEndAction,
   type EditWorkoutPlanSwapAction,
   type EditWorkoutPlanRemoveAction,
+  type EditWorkoutPlanActionWrapped,
 }

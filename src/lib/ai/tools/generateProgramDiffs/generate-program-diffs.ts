@@ -1,4 +1,5 @@
 import { streamObject, tool } from "ai"
+import { stripIndents } from "common-tags"
 import { v4 as uuidv4 } from "uuid"
 import { z } from "zod"
 import { log } from "@/lib/logger/logger"
@@ -68,7 +69,9 @@ export const generateProgramDiffs = ({
           })
           allDiffs.push(diffWithId)
         }
-        return "Successfully generated the diffs for the user to apply."
+        return stripIndents`Suggest diffs were transformed into JSON successfully. 
+        The client might not have chosen to apply the suggested diffs. Refer to the system prompt for the current
+        state of the workout program`
       } catch (error) {
         log.error("Diff generation caught error:", error)
       }
