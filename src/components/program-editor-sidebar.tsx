@@ -331,7 +331,8 @@ export function ProgramEditorSidebar({
             <ChatMessages messages={uiMessages} />
             {status === "submitted" && <Thinking />}
           </ConversationContent>
-          <ConversationScrollButton className="z-100 bg-slate-500" />
+          {/* TODO: IDK. Fix the colors here? */}
+          <ConversationScrollButton className="dark:border-input dark:bg-primary-background dark:hover:bg-primary-foreground" />
         </Conversation>
       </SidebarContent>
       <SidebarFooter>

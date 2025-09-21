@@ -12,7 +12,6 @@ export default async function DebugPage() {
   return (
     <div className="container mx-auto space-y-8 p-6">
       <h1 className="mb-4 font-bold text-2xl">Debug Dashboard</h1>
-
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div>
           <h2 className="mb-4 font-semibold text-xl">Chats ({chats.length})</h2>
