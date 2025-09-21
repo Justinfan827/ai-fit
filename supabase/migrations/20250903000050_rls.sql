@@ -17,6 +17,7 @@ ALTER TABLE public.trainer_client_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.program_chats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.system_prompts ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
 -- USERS TABLE POLICIES
@@ -163,6 +164,16 @@ CREATE POLICY "chat_messages_authenticated_policy" ON public.chat_messages
 
 -- Simplified: All authenticated users have full access
 CREATE POLICY "program_chats_authenticated_policy" ON public.program_chats
+    FOR ALL
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+-- ============================================================================
+-- SYSTEM PROMPTS TABLE POLICIES
+-- ============================================================================
+
+CREATE POLICY "system_prompts_authenticated_policy" ON public.system_prompts
     FOR ALL
     TO authenticated
     USING (true)

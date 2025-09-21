@@ -4,11 +4,17 @@ import { infoLog } from "./utils"
 
 export default async function runUserCreation({
   email,
+  password,
+  first,
+  last,
   supabaseURL,
   supabaseServiceRoleKey,
   opts: { isTrainer, setTrainerId } = { isTrainer: false },
 }: {
   email: string
+  password: string
+  first: string
+  last: string
   supabaseURL: string
   supabaseServiceRoleKey: string
   opts?: {
@@ -41,7 +47,7 @@ export default async function runUserCreation({
       const { data: userData, error: createUserErr } =
         await adminAuthClient.createUser({
           email,
-          password: email,
+          password,
           email_confirm: true,
           app_metadata: {
             provider: "email",
@@ -63,7 +69,7 @@ export default async function runUserCreation({
   const { data, error: rpcErr } = await sb.rpc("set_claim", {
     uid: authUserUUID,
     claim: "USER_ROLE",
-    value: isTrainer ? "TRAINER" : "CLIENT",
+    value: role,
   })
   if (rpcErr) {
     throw new Error(rpcErr.message)
@@ -72,19 +78,17 @@ export default async function runUserCreation({
     throw new Error(data)
   }
 
-  {
-    const { error: setTrainerErr } = await sb
-      .from("users")
-      .update({
-        trainer_id: setTrainerId ? setTrainerId : null,
-        first_name: isTrainer ? "Trainer" : "Client",
-        last_name: "Fan",
-      })
-      .eq("id", authUserUUID)
-    if (setTrainerErr) {
-      throw new Error(`${setTrainerErr}`)
-    }
+  const { error: setTrainerErr } = await sb
+    .from("users")
+    .update({
+      trainer_id: setTrainerId ? setTrainerId : null,
+      first_name: first,
+      last_name: last,
+    })
+    .eq("id", authUserUUID)
+  if (setTrainerErr) {
+    throw new Error(`${setTrainerErr}`)
   }
 
-  return authUserUUID
+  return { userId: authUserUUID }
 }
