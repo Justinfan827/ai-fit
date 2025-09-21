@@ -3,8 +3,14 @@
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { Dumbbell, Plus, UserIcon, X } from "lucide-react"
-import { type ChangeEvent, type FormEvent, useState } from "react"
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useState,
+  useTransition,
+} from "react"
 import { v4 as uuidv4 } from "uuid"
+import { clearChatHistoryAction } from "@/actions/clear-chat-history"
 import {
   PromptInput,
   PromptInputButton,
@@ -150,6 +156,7 @@ export function ProgramEditorSidebar({
     messages: uiMessages,
     status,
     sendMessage,
+    setMessages,
     error,
   } = useChat<MyUIMessage>({
     id: chatId,
@@ -313,6 +320,15 @@ export function ProgramEditorSidebar({
     )
   }
 
+  const [isClearing, startClear] = useTransition()
+  const handleClearChat = () => {
+    if (!chatId) return
+    startClear(async () => {
+      await clearChatHistoryAction({ chatId, programId })
+      setMessages([])
+    })
+  }
+
   return (
     <Sidebar
       className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
@@ -321,34 +337,47 @@ export function ProgramEditorSidebar({
       variant="inset"
     >
       <SidebarContent className="flex flex-col ">
-        <div className="border-b px-4 py-2">
-          <div className="flex items-center justify-between">
-            <Button
-              aria-pressed={showDebugMessages}
-              className="h-7 px-2 text-xs"
-              onClick={handleToggleDebugMessages}
-              size="sm"
-              type="button"
-              variant={showDebugMessages ? "default" : "outline"}
-            >
-              {showDebugMessages ? "Hide" : "Show Messages"}
-            </Button>
-          </div>
-          {!isLive() && (
+        {!isLive() && (
+          <div className="border-b px-4 py-2">
+            <div className="flex items-center justify-between">
+              {chatId && (
+                <Button
+                  aria-label="Clear chat history"
+                  className="mr-2"
+                  disabled={isClearing}
+                  onClick={handleClearChat}
+                  type="button"
+                  variant="destructive"
+                >
+                  {isClearing ? "Clearing..." : "Clear chat history"}
+                </Button>
+              )}
+              <Button
+                aria-pressed={showDebugMessages}
+                className="h-7 px-2 text-xs"
+                onClick={handleToggleDebugMessages}
+                size="sm"
+                type="button"
+                variant={showDebugMessages ? "default" : "outline"}
+              >
+                {showDebugMessages ? "Hide" : "Show Messages"}
+              </Button>
+            </div>
             <div>
               <p>chat status: {status}</p>
               <p>messages: {uiMessages.length}</p>
               <p>error: {error ? error.message : "No error"}</p>
             </div>
-          )}
-          {showDebugMessages && (
-            <div className="mt-2 overflow-auto rounded-md bg-muted p-2">
-              <pre className="whitespace-pre-wrap break-words text-[11px] leading-relaxed">
-                {JSON.stringify(uiMessages, null, 2)}
-              </pre>
-            </div>
-          )}
-        </div>
+            {showDebugMessages && (
+              <div className="mt-2 overflow-auto rounded-md bg-muted p-2">
+                <pre className="whitespace-pre-wrap break-words text-[11px] leading-relaxed">
+                  {JSON.stringify(uiMessages, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
+
         <Conversation>
           <ConversationContent className="scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             <ChatMessages messages={uiMessages} />

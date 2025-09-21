@@ -439,7 +439,7 @@ ${workout.blocks
   Reps: ${exercise.metadata.reps}
   Weight: ${exercise.metadata.weight}
   Rest: ${exercise.metadata.rest}
-  ${exercise.metadata.notes ? `Notes: ${exercise.metadata.notes}` : ""}`
+  Notes: ${exercise.metadata.notes ?? ""}`
     }
     const { circuit } = block
     return `- Circuit: ${circuit.name}
@@ -455,7 +455,7 @@ ${workout.blocks
     Reps: ${ex.exercise.metadata.reps}
     Weight: ${ex.exercise.metadata.weight}
     Rest: ${ex.exercise.metadata.rest}
-    ${ex.exercise.metadata.notes ? `Notes: ${ex.exercise.metadata.notes}` : ""}`
+    Notes: ${ex.exercise.metadata.notes ?? ""}`
     )
     .join("\n  ")}`
   })

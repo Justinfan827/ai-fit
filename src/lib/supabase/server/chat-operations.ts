@@ -160,3 +160,47 @@ export async function upsertMessage({
     throw new Error(`Failed to update chat timestamp: ${chatError.message}`)
   }
 }
+
+/**
+ * Clear all messages for a specific chat.
+ * Validates chat ownership before deletion.
+ *
+ * @param chatId - The UUID of the chat
+ * @param userId - The UUID of the user requesting the operation
+ * @returns Promise that resolves when messages are cleared
+ */
+export async function clearChatMessages(
+  chatId: string,
+  userId: string
+): Promise<void> {
+  const client = await createServerClient()
+
+  // Verify chat ownership
+  const { data: chat, error: chatError } = await client
+    .from("chats")
+    .select("id, user_id")
+    .eq("id", chatId)
+    .maybeSingle()
+
+  if (chatError) {
+    throw new Error(`Failed to fetch chat: ${chatError.message}`)
+  }
+
+  if (!chat) {
+    throw new Error("Chat not found")
+  }
+
+  if (chat.user_id !== userId) {
+    throw new Error("Unauthorized: You can only clear your own chats")
+  }
+
+  // Delete all messages for this chat
+  const { error: deleteError } = await client
+    .from("chat_messages")
+    .delete()
+    .eq("chat_id", chatId)
+
+  if (deleteError) {
+    throw new Error(`Failed to clear chat messages: ${deleteError.message}`)
+  }
+}

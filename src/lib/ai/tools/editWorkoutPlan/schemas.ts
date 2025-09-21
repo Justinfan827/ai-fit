@@ -71,10 +71,6 @@ const swapOpSchema = z
     aWorkoutId: z.uuid().describe("First workoutId to swap (must exist)"),
     bWorkoutId: z.uuid().describe("Second workoutId to swap (must exist)"),
   })
-  .refine((v) => v.aWorkoutId !== v.bWorkoutId, {
-    message: "swap requires two distinct workoutIds",
-    path: ["bWorkoutId"],
-  })
   .describe("Swap two workouts in the plan")
 
 const removeOpSchema = z
@@ -90,7 +86,6 @@ const editOperationSchema = z
     insertBeforeOpSchema,
     insertAtStartOpSchema,
     insertAtEndOpSchema,
-    // TODO: Test swap / rest of the operations
     swapOpSchema,
     removeOpSchema,
   ])
@@ -101,13 +96,26 @@ const editOperationSchema = z
 const editOperationWrappedSchema = z.object({
   operationToUse: availableOpNames,
   // these must match availableOpNames
-  insertAfter: insertAfterOpSchema.nullable(),
-  insertBefore: insertBeforeOpSchema.nullable(),
-  insertAtStart: insertAtStartOpSchema.nullable(),
-  insertAtEnd: insertAtEndOpSchema.nullable(),
-  swap: swapOpSchema.nullable(),
-  remove: removeOpSchema.nullable(),
+  insertAfter: insertAfterOpSchema.omit({ type: true }).optional(),
+  insertBefore: insertBeforeOpSchema.omit({ type: true }).optional(),
+  insertAtStart: insertAtStartOpSchema.omit({ type: true }).optional(),
+  insertAtEnd: insertAtEndOpSchema.omit({ type: true }).optional(),
+  swap: swapOpSchema.omit({ type: true }).optional(),
+  remove: removeOpSchema.omit({ type: true }).optional(),
 })
+
+const editOperationDUSchema = z
+  .object({
+    operationToUse: z.discriminatedUnion("type", [
+      insertAfterOpSchema,
+      insertBeforeOpSchema,
+      insertAtStartOpSchema,
+      insertAtEndOpSchema,
+      swapOpSchema,
+      removeOpSchema,
+    ]),
+  })
+  .describe("An edit operation to apply")
 
 const editWorkoutPlanActionsSchema = z
   .array(editOperationSchema)
@@ -123,11 +131,13 @@ type EditWorkoutPlanInsertAtStartAction = z.infer<typeof insertAtStartOpSchema>
 type EditWorkoutPlanInsertAtEndAction = z.infer<typeof insertAtEndOpSchema>
 type EditWorkoutPlanSwapAction = z.infer<typeof swapOpSchema>
 type EditWorkoutPlanRemoveAction = z.infer<typeof removeOpSchema>
+type EditWorkoutPlanActionDUSchema = z.infer<typeof editOperationDUSchema>
 
 export {
   editOperationSchema,
   editWorkoutPlanActionsSchema,
   editOperationWrappedSchema,
+  editOperationDUSchema,
   type EditWorkoutPlanAction,
   type EditWorkoutPlanActions,
   type EditWorkoutPlanInsertAfterAction,
@@ -137,4 +147,5 @@ export {
   type EditWorkoutPlanSwapAction,
   type EditWorkoutPlanRemoveAction,
   type EditWorkoutPlanActionWrapped,
+  type EditWorkoutPlanActionDUSchema,
 }

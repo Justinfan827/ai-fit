@@ -16,7 +16,7 @@ export const aiExerciseBlockSchema = z.object({
       reps: z.string(),
       weight: z.string(),
       rest: z.string(),
-      notes: z.string().optional(),
+      notes: z.string(),
     }),
   }),
 })

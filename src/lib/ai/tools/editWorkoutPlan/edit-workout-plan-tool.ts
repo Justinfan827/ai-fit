@@ -1,3 +1,4 @@
+import { openai } from "@ai-sdk/openai"
 import { streamObject, tool } from "ai"
 import { stripIndents } from "common-tags"
 import { z } from "zod"
@@ -8,9 +9,9 @@ import {
   buildExercisesContext,
   buildWorkoutContext,
 } from "../../prompts/prompts"
-import { gatewayProviders } from "../../providers"
 import type { MyToolArgs } from "../../ui-message-types"
 import {
+  type EditWorkoutPlanAction,
   type EditWorkoutPlanActions,
   editOperationWrappedSchema,
 } from "./schemas"
@@ -47,29 +48,12 @@ For example, if the operationToUse is insertAfter, the insertAfter field will be
 the swap field will be populated. If the operationToUse is remove, the remove field will be populated:
 
 ## Examples of valid edit operations
-{
-  "operationToUse": "insertAfter",
-  "insertAfter": {
-    "workoutIndex": 0,
-    "workoutId": "123"
-  }
-}
-
-{
-  "operationToUse": "swap",
-  "swap": {
-    "workoutIndex": 0,
-    "workoutId": "123"
-  }
-}
-
-{
-  "operationToUse": "remove",
-  "remove": {
-    "workoutIndex": 0,
-    "workoutId": "123"
-  }
-}
+{ "operationToUse": "swap", "swap": { "aWorkoutId": "<uuid>", "bWorkoutId": "<uuid>" } }
+{ "operationToUse": "remove", "remove": { "workoutId": "<uuid>" } }
+{ "operationToUse": "insertAtStart", "insertAtStart": { "workout": "<workout to insert>" } }
+{ "operationToUse": "insertAtEnd", "insertAtEnd": { "workout": "<workout to insert>" } }
+{ "operationToUse": "insertBefore", "insertBefore": { "anchorWorkoutId": "<uuid>", "workout": "<workout to insert>" } }
+ { "operationToUse": "insertAfter", "insertAfter": { "anchorWorkoutId": "<uuid>", "workout": "<workout to insert>" } }
 
 # Training variables and notation
 - Reps and weights can be represented as:
@@ -180,7 +164,7 @@ export const editWorkoutProgramTool = ({
       log.consoleWithHeader("Built system prompt:", builtSystemPrompt)
       try {
         const { elementStream } = streamObject({
-          model: gatewayProviders["chat-model"],
+          model: openai("gpt-4.1-mini"),
           // Note that we use the 'wrapped' schema here because openai
           // does not support discriminated unions at the root level
           // https://platform.openai.com/docs/guides/structured-outputs/root-objects-must-not-be-anyof#root-objects-must-not-be-anyof-and-must-be-an-object
@@ -227,13 +211,15 @@ export const editWorkoutProgramTool = ({
             )
             continue
           }
-
-          allOperations.push(editOperation)
-          log.consoleWithHeader("generated valid edit output!", editOperation)
+          const completeOperation = {
+            ...editOperation,
+            type: operation,
+          } as EditWorkoutPlanAction
+          allOperations.push(completeOperation)
           writer.write({
             type: "data-editWorkoutPlanAction",
             transient: true,
-            data: editOperation,
+            data: completeOperation,
           })
         }
         log.console("Finished elementStream iteration")
