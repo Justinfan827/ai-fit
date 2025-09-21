@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { SparseProgram } from "./workouts"
+import type { SparseProgram } from "./workouts"
 
 export const basicClientSchema = z.object({
   id: z.string(),

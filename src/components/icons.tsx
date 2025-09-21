@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   BadgeInfo,
   Bird,
+  Bug,
   Calendar,
   Check,
   CheckCircle,
@@ -60,6 +61,7 @@ import {
 } from "lucide-react"
 
 export const Icons = {
+  bug: Bug,
   ellipsis: Ellipsis,
   ellipsisVertical: EllipsisVertical,
   send: Send,

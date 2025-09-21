@@ -8,21 +8,27 @@ import { gatewayProviders } from "../../providers"
 import type { MyToolArgs } from "../../ui-message-types"
 import { type WorkoutChange, workoutChangeAISchema } from "./diff-schema"
 
+const toolDescription = stripIndents`
+Take a text description of a change to the workout program and generate a 
+structured diff of the change to apply to the workout program.
+`
+
+const toolSchema = z.object({
+  suggestedChangeText: z
+    .string()
+    .describe(
+      "A text description of the change to make to the workout program."
+    ),
+})
+
 export const generateProgramDiffs = ({
   existingWorkouts,
   contextItems,
   writer,
 }: MyToolArgs) => {
   return tool({
-    description:
-      "Take a text description of a change to the workout program and generate a structured diff of the change to apply to the workout program.",
-    inputSchema: z.object({
-      suggestedChangeText: z
-        .string()
-        .describe(
-          "A text description of the change to make to the workout program."
-        ),
-    }),
+    description: toolDescription,
+    inputSchema: toolSchema,
     outputSchema: z.string(),
     execute: async ({ suggestedChangeText }) => {
       const systemPrompt = buildWorkoutModificationPrompt(

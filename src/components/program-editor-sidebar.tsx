@@ -3,14 +3,8 @@
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { Dumbbell, Plus, UserIcon, X } from "lucide-react"
-import {
-  type ChangeEvent,
-  type FormEvent,
-  useState,
-  useTransition,
-} from "react"
+import { type ChangeEvent, type FormEvent, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { clearChatHistoryAction } from "@/actions/clear-chat-history"
 import {
   PromptInput,
   PromptInputButton,
@@ -19,6 +13,7 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
+import { ChatDebugTools } from "@/components/chat-debug-tools"
 import { Sidebar, SidebarContent, SidebarFooter } from "@/components/ui/sidebar"
 import {
   useZEditorActions,
@@ -32,7 +27,6 @@ import type { MyUIMessage } from "@/lib/ai/ui-message-types"
 import type { ClientWithTrainerNotes } from "@/lib/domain/clients"
 import type { Block, Exercise } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
-import { isLive } from "@/lib/utils"
 import {
   Conversation,
   ConversationContent,
@@ -121,11 +115,6 @@ export function ProgramEditorSidebar({
   })
 
   const [input, setInput] = useState("")
-  const [showDebugMessagesLocal, setShowDebugMessages] = useState(false)
-  const showDebugMessages = showDebugMessagesLocal && !isLive()
-  const handleToggleDebugMessages = () => {
-    setShowDebugMessages((prev) => !prev)
-  }
 
   const { addProposedChanges, addWorkout, applyEditWorkoutPlanActions } =
     useZEditorActions()
@@ -320,15 +309,6 @@ export function ProgramEditorSidebar({
     )
   }
 
-  const [isClearing, startClear] = useTransition()
-  const handleClearChat = () => {
-    if (!chatId) return
-    startClear(async () => {
-      await clearChatHistoryAction({ chatId, programId })
-      setMessages([])
-    })
-  }
-
   return (
     <Sidebar
       className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
@@ -337,53 +317,21 @@ export function ProgramEditorSidebar({
       variant="inset"
     >
       <SidebarContent className="flex flex-col ">
-        {!isLive() && (
-          <div className="border-b px-4 py-2">
-            <div className="flex items-center justify-between">
-              {chatId && (
-                <Button
-                  aria-label="Clear chat history"
-                  className="mr-2"
-                  disabled={isClearing}
-                  onClick={handleClearChat}
-                  type="button"
-                  variant="destructive"
-                >
-                  {isClearing ? "Clearing..." : "Clear chat history"}
-                </Button>
-              )}
-              <Button
-                aria-pressed={showDebugMessages}
-                className="h-7 px-2 text-xs"
-                onClick={handleToggleDebugMessages}
-                size="sm"
-                type="button"
-                variant={showDebugMessages ? "default" : "outline"}
-              >
-                {showDebugMessages ? "Hide" : "Show Messages"}
-              </Button>
-            </div>
-            <div>
-              <p>chat status: {status}</p>
-              <p>messages: {uiMessages.length}</p>
-              <p>error: {error ? error.message : "No error"}</p>
-            </div>
-            {showDebugMessages && (
-              <div className="mt-2 overflow-auto rounded-md bg-muted p-2">
-                <pre className="whitespace-pre-wrap break-words text-[11px] leading-relaxed">
-                  {JSON.stringify(uiMessages, null, 2)}
-                </pre>
-              </div>
-            )}
-          </div>
-        )}
+        <ChatDebugTools
+          chatId={chatId}
+          error={error ?? null}
+          onMessagesCleared={() => setMessages([])}
+          programId={programId}
+          status={status}
+          uiMessages={uiMessages}
+        />
 
         <Conversation>
           <ConversationContent className="scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             <ChatMessages messages={uiMessages} />
             {status === "submitted" && <Thinking />}
           </ConversationContent>
-          <ConversationScrollButton />
+          <ConversationScrollButton className="z-100 bg-slate-500" />
         </Conversation>
       </SidebarContent>
       <SidebarFooter>

@@ -409,12 +409,22 @@ Each exercise comes with a metadata object. The metadata object has the followin
 - rest: the rest period between sets
 - notes: any additional notes about the exercise. This can be an empty string.
 
-Metadata fields are strings that follow specific formats:
-12, 10, 8 (comma-separated)
-12-15, 10-12, 8-10 (comma-separated ranges)
-E/S, E, or ES (each side)
-BW, BW+10, BW+20 (bodyweight + added weight)
-30s, 1m, 2m30s (rest periods in seconds, minutes, or minutes and seconds)
+# Training variables and notation
+- Reps and weights can be represented as:
+  - Comma separated values e.g. "12, 10, 8"
+  - Ranges e.g. "10-12"
+  - Range and comma values e.g. "10-12, 10-16, 8-10"
+- The "Each Side" (ES or E/S) annotation is used to represent exercises that are performed on each side. e.g. 12ES, 12-15E/S
+- Rest periods use the "s" suffix to represent seconds, "m" to represent minutes e.g. "30s", "1m", "2m30s"
+- Weight can be represented as:
+  - Numeric values e.g. "135" (DO NOT INCLUDE UNITS when generating JSON)
+  - Bodyweight (BW) e.g. "BW"
+  - Bodyweight plus a value e.g. "BW+10"
+  - Bodyweight plus a range e.g. "BW+10-20"
+  - Bodyweight plus a range and a comma separated values e.g. "BW+10-20"
+- Exercise circuits are represented using the "A1,A2,A3...An" notation. E.g. a circuit with 3 exercises would be represented as 
+  "A1:Exercise1,A2:Exercise2,A3:Exercise3".
+- AMRAP is a special notation for exercises that are performed "As Many Reps As Possible".
 `
 
 export const buildWorkoutContext = (
