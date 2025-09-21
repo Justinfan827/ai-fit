@@ -749,7 +749,7 @@ describe("Structured output", () => {
     }
   })
 
-  it.only("ai sdk supports an insertAfter operation with generate object", async () => {
+  it("ai sdk supports an insertAfter operation with generate object", async () => {
     try {
       const response = await generateObject({
         model: openai(defaultModelLarger),
