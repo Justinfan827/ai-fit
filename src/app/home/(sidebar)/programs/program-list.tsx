@@ -41,7 +41,7 @@ export function ProgramsList({ programs }: { programs: Program[] }) {
       const { data, error } = await createProgramAction({
         created_at: new Date().toISOString(),
         name: "New Program",
-        type: "weekly",
+        type: "splits",
         workouts: [],
       })
       if (error) {

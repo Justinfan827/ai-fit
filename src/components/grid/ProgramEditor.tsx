@@ -240,7 +240,7 @@ export default function ProgramEditor() {
                 {/* TODO: support weekly programs */}
                 {programType === "weekly" && (
                   <div
-                    className="debug flex items-center justify-between gap-4 pr-[52px] pb-3"
+                    className="flex items-center justify-between gap-4 pr-[52px] pb-3"
                     id="program-ui-header"
                   >
                     <Badge

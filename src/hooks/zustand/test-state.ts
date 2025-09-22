@@ -85,7 +85,11 @@ const newTestProposedChanges = (exercises: Exercise[]): WorkoutChange[] => {
   return changes
 }
 
-const newTestInitialProgram = (exercises: Exercise[]): Program => {
+const newInitialBlocks = (exercises: Exercise[]): Blocks => {
+  if (exercises.length === 0) {
+    return []
+  }
+
   const exerciseBlocks: Blocks = exercises
     .slice(0, 2)
     .map((exercise): Block => {
@@ -188,6 +192,10 @@ const newTestInitialProgram = (exercises: Exercise[]): Program => {
     },
   }
 
+  return [...exerciseBlocks, circuitBlock, circuitBlock2]
+}
+
+const newTestInitialProgram = (exercises: Exercise[]): Program => {
   return {
     id: uuidv4().toString(),
     created_at: new Date().toISOString(),
@@ -199,7 +207,7 @@ const newTestInitialProgram = (exercises: Exercise[]): Program => {
         name: "workout 1",
         program_id: uuidv4().toString(),
         program_order: 0,
-        blocks: [...exerciseBlocks, circuitBlock, circuitBlock2],
+        blocks: newInitialBlocks(exercises),
       },
     ],
   }
