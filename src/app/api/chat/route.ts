@@ -11,6 +11,7 @@ import { buildSystemPrompt } from "@/lib/ai/prompts/prompts"
 import { gatewayProviders } from "@/lib/ai/providers"
 import { type MyUIMessage, myTools } from "@/lib/ai/ui-message-types"
 import log from "@/lib/logger/logger"
+import { createServerClient } from "@/lib/supabase/create-server-client"
 import {
   getOrCreateProgramChat,
   loadChatMessages,
@@ -50,9 +51,10 @@ export const POST = withAuthBodySchema(
       const systemPrompt = buildSystemPrompt(contextItems, workouts)
       const modelMessages = convertToModelMessages(messages)
 
+      const sbClient = await createServerClient()
       after(async () => {
         try {
-          await createSystemPrompt(systemPrompt)
+          await createSystemPrompt(sbClient, systemPrompt)
         } catch (error) {
           log.error("Failed to log system prompt:", error)
         }

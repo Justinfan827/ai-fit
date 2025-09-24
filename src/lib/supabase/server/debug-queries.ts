@@ -1,5 +1,6 @@
 import "server-only"
 
+import type { SupabaseClient } from "@supabase/supabase-js"
 import type { MyUIMessage } from "@/lib/ai/ui-message-types"
 import { createServerClient } from "../create-server-client"
 import type { Database } from "../database.types"
@@ -153,9 +154,10 @@ export async function getSystemPrompt(
  * Store a new system prompt
  * Returns the ID of the created system prompt
  */
-export async function createSystemPrompt(content: string): Promise<string> {
-  const client = await createServerClient()
-
+export async function createSystemPrompt(
+  client: SupabaseClient,
+  content: string
+): Promise<string> {
   const { data: newPrompt, error } = await client
     .from("system_prompts")
     .insert({ content })

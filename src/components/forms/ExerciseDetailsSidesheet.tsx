@@ -158,7 +158,7 @@ export const ExerciseDetailsSidesheet = ({
       notes: exercise.notes || "",
       video_url:
         // TODO: remove default here.
-        exercise.videoURL || "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        exercise.videoURL || "",
       category_assignments: initialCategoryAssignments,
     },
   })
