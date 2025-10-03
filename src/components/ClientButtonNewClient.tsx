@@ -7,10 +7,7 @@ import {
   type CreateClientInput,
   createClientAction,
 } from "@/actions/create-client"
-import {
-  type CreateClientFormType,
-  NewClientForm,
-} from "@/components/forms/NewClientForm"
+import { NewClientForm } from "@/components/forms/NewClientForm"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -29,7 +26,7 @@ export default function ClientButtonNewClient() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
-  const onSubmit = (data: CreateClientFormType) => {
+  const onSubmit = (data: CreateClientInput) => {
     startTransition(async () => {
       // map data to CreateClientInput
       const input: CreateClientInput = {
@@ -38,16 +35,33 @@ export default function ClientButtonNewClient() {
         email: data.email,
         age: data.age,
         // if ft-in, conver heightFeet and heightInches to a inches value
-        ...(data.heightUnit === "in"
+        ...(data.height.unit === "in"
           ? {
-              height: (data.heightFeet || 0) * 12 + (data.heightInches || 0),
+              height: {
+                unit: "in",
+                feet: data.height.feet || 0,
+                inches: data.height.inches || 0,
+              },
             }
           : {
-              height: data.heightValue,
+              height: {
+                unit: "cm",
+                cm: data.height.cm,
+              },
             }),
-        heightUnit: data.heightUnit,
-        weight: data.weightValue,
-        weightUnit: data.weightUnit,
+        ...(data.weight.unit === "lbs"
+          ? {
+              weight: {
+                unit: "lbs",
+                lbs: data.weight.lbs,
+              },
+            }
+          : {
+              weight: {
+                unit: "kg",
+                kg: data.weight.kg,
+              },
+            }),
       }
       const { error, data: client } = await createClientAction(input)
       if (error) {

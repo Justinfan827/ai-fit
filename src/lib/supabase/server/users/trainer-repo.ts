@@ -124,10 +124,25 @@ type CreateClientParams = {
     lastName: string
     email: string
     age: number
-    height: number
-    weight: number
-    heightUnit: string
-    weightUnit: string
+    height:
+      | {
+          unit: "in"
+          feet: number
+          inches: number
+        }
+      | {
+          unit: "cm"
+          cm: number
+        }
+    weight:
+      | {
+          unit: "lbs"
+          lbs: number
+        }
+      | {
+          unit: "kg"
+          kg: number
+        }
   }
 }
 
@@ -150,16 +165,7 @@ async function createClientT({
  */
 async function createClient({
   trainerId,
-  newClient: {
-    firstName,
-    lastName,
-    email,
-    age,
-    height,
-    weight,
-    heightUnit,
-    weightUnit,
-  },
+  newClient: { firstName, lastName, email, age, height, weight },
 }: CreateClientParams): Promise<Maybe<ClientBasic>> {
   const { data, error } = await createUserMutation(email)
   if (error) {
@@ -184,10 +190,10 @@ async function createClient({
       first_name: firstName,
       last_name: lastName,
       age,
-      height_value: height,
-      weight_value: weight,
-      height_unit: heightUnit,
-      weight_unit: weightUnit,
+      height_value: height.unit === "in" ? height.feet * 12 + height.inches : height.cm,
+      weight_value: weight.unit === "lbs" ? weight.lbs : weight.kg,
+      height_unit: height.unit,
+      weight_unit: weight.unit,
     }
   )
   if (insertErr) {

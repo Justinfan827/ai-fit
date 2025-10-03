@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
+import type { CreateClientInput } from "@/actions/create-client"
 import {
   Form,
   FormControl,
@@ -31,47 +31,75 @@ export const CreateClientFormScham = z
     email: z.email({
       error: "Please enter a valid email address.",
     }),
-    age: z
-      .number()
-      .min(1, {
-        error: "Age must be at least 1.",
-      })
-      .max(120, {
-        error: "Age must be less than 120.",
-      }),
-    heightValue: z.number().min(1, {
-      error: "Height must be greater than 0.",
-    }),
+    age: z.string(),
+    heightValue: z.string(),
     heightUnit: z.enum(["cm", "in"], {
       error: "Please select a height unit.",
     }),
-    heightFeet: z.number().min(1).max(8).optional(),
-    heightInches: z.number().min(0).max(11).optional(),
-    weightValue: z.number().min(1, {
-      error: "Weight must be greater than 0.",
-    }),
+    heightFeet: z.string().optional(),
+    heightInches: z.string().optional(),
+    weightValue: z.string(),
     weightUnit: z.enum(["kg", "lbs"], {
       error: "Please select a weight unit.",
     }),
   })
-  .refine(
-    (data) => {
-      if (data.heightUnit === "in") {
-        return data.heightFeet !== undefined && data.heightInches !== undefined
+  .superRefine((data, ctx) => {
+    if (data.heightUnit === "in") {
+      const feet = Number.parseInt(data.heightFeet || "", 10)
+      const inches = Number.parseFloat(data.heightInches || "")
+      if (Number.isNaN(feet) || feet < 0 || feet > 8) {
+        ctx.addIssue({
+          code: "invalid_type",
+          expected: "number",
+          message: "Please provide a valid feet value",
+          path: ["heightFeet"],
+        })
       }
-      return true
-    },
-    {
-      message: "Please provide both feet and inches",
-      path: ["heightFeet"],
+      if (Number.isNaN(inches) || inches < 0 || inches > 12) {
+        ctx.addIssue({
+          code: "invalid_type",
+          expected: "number",
+          message: "Please provide a valid value for inches",
+          path: ["heightInches"],
+        })
+      }
     }
-  )
+    if (data.heightUnit === "cm") {
+      const height = Number.parseFloat(data.heightValue || "")
+      if (Number.isNaN(height) || height < 1 || height > 300) {
+        ctx.addIssue({
+          code: "invalid_type",
+          expected: "number",
+          message: "Please provide a valid height value",
+          path: ["heightValue"],
+        })
+      }
+    }
+    const age = Number.parseInt(data.age || "", 10)
+    if (Number.isNaN(age) || age < 1 || age > 120) {
+      ctx.addIssue({
+        code: "invalid_type",
+        expected: "number",
+        message: "Please provide a valid age value",
+        path: ["age"],
+      })
+    }
+    const weight = Number.parseFloat(data.weightValue || "")
+    if (Number.isNaN(weight) || weight < 1 || weight > 1000) {
+      ctx.addIssue({
+        code: "invalid_type",
+        expected: "number",
+        message: "Please provide a valid weight value",
+        path: ["weightValue"],
+      })
+    }
+  })
 
-export type CreateClientFormType = z.infer<typeof CreateClientFormScham>
+type CreateClientFormType = z.infer<typeof CreateClientFormScham>
 
 type NewClientFormProps = {
   formName: string
-  onSubmit: (data: CreateClientFormType) => void
+  onSubmit: (data: CreateClientInput) => void
 }
 
 export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
@@ -79,13 +107,44 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
     firstName: "",
     lastName: "",
     email: "",
-    age: 25,
-    heightValue: 170,
+    age: "",
+    heightValue: "",
     heightUnit: "cm" as const,
-    heightFeet: 5,
-    heightInches: 7,
-    weightValue: 70,
+    heightFeet: "",
+    heightInches: "",
+    weightValue: "",
     weightUnit: "kg" as const,
+  }
+  const _onSubmit = (data: CreateClientFormType) => {
+    onSubmit({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      age: Number.parseInt(data.age || "", 10),
+      weight: {
+        ...(data.weightUnit === "lbs"
+          ? {
+              unit: "lbs",
+              lbs: Number.parseFloat(data.weightValue || ""),
+            }
+          : {
+              unit: "kg",
+              kg: Number.parseFloat(data.weightValue || ""),
+            }),
+      },
+      height: {
+        ...(data.heightUnit === "in"
+          ? {
+              unit: "in",
+              inches: Number.parseFloat(data.heightInches || ""),
+              feet: Number.parseInt(data.heightFeet || "", 10),
+            }
+          : {
+              unit: "cm",
+              cm: Number.parseFloat(data.heightValue || ""),
+            }),
+      },
+    })
   }
   const form = useForm<CreateClientFormType>({
     resolver: zodResolver(CreateClientFormScham),
@@ -98,7 +157,7 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
       <form
         className="space-y-6"
         id={formName}
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(_onSubmit)}
       >
         {/* First Name Field */}
         <FormField
@@ -162,7 +221,7 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
             <FormItem>
               <FormLabel>Age</FormLabel>
               <FormControl>
-                <Input max="120" min="1" type="number" {...field} />
+                <Input max="120" min="1" step="1" type="number" {...field} />
               </FormControl>
               <FormDescription className="sr-only">
                 Client&apos;s age in years
@@ -171,10 +230,8 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
             </FormItem>
           )}
         />
-
-        {/* Height Fields */}
-        {form.watch("heightUnit") === "cm" ? (
-          <div className="flex items-start gap-4">
+        <div className="flex items-start gap-4">
+          {form.watch("heightUnit") === "cm" ? (
             <FormField
               control={form.control}
               name="heightValue"
@@ -191,110 +248,79 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="heightUnit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Unit</FormLabel>
-                  <Select
-                    defaultValue={field.value}
-                    onValueChange={field.onChange}
-                  >
+          ) : (
+            <>
+              <FormField
+                control={form.control}
+                name="heightFeet"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Feet</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
+                      <Input
+                        max="8"
+                        min="4"
+                        step="1"
+                        type="number"
+                        {...field}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="cm">Centimeters (cm)</SelectItem>
-                      <SelectItem value="in">Feet & Inches</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription className="sr-only">
-                    Unit for height measurement
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        ) : (
-          <div className="flex gap-4">
-            <FormField
-              control={form.control}
-              name="heightFeet"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormLabel>Feet</FormLabel>
-                  <FormControl>
-                    <Input
-                      max="8"
-                      min="1"
-                      step="0.01"
-                      type="number"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription className="sr-only">
-                    Client&apos;s height in feet
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="heightInches"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Inches</FormLabel>
-                  <FormControl>
-                    <Input
-                      max="11"
-                      min="0"
-                      step="0.01"
-                      type="number"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription className="sr-only">
-                    Client&apos;s height in inches
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="heightUnit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Height Unit</FormLabel>
-                  <Select
-                    defaultValue={field.value}
-                    onValueChange={field.onChange}
-                  >
+                    <FormDescription className="sr-only">
+                      Client&apos;s height in feet
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="heightInches"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Inches</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
+                      <Input
+                        max="12"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        {...field}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="cm">Centimeters (cm)</SelectItem>
-                      <SelectItem value="in">Feet & Inches</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription className="sr-only">
-                    Unit for height measurement
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
-
+                    <FormDescription className="sr-only">
+                      Client&apos;s height in inches
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+          <FormField
+            control={form.control}
+            name="heightUnit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unit</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="cm">Centimeters (cm)</SelectItem>
+                    <SelectItem value="in">Feet & Inches</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription className="sr-only">
+                  Unit for height measurement
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         {/* Weight Fields */}
         <div className="flex items-start gap-4">
           <FormField
@@ -304,7 +330,13 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
               <FormItem className="flex-1">
                 <FormLabel>Weight</FormLabel>
                 <FormControl>
-                  <Input min="1" step="0.1" type="number" {...field} />
+                  <Input
+                    max="1000"
+                    min="1"
+                    step="0.01"
+                    type="number"
+                    {...field}
+                  />
                 </FormControl>
                 <FormDescription className="sr-only">
                   Client&apos;s weight in selected unit
@@ -320,10 +352,7 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Unit</FormLabel>
-                <Select
-                  defaultValue={field.value}
-                  onValueChange={field.onChange}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select unit" />

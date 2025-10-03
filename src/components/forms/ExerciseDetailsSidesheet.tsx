@@ -302,11 +302,7 @@ function ExerciseDetailsForm({
             <FormItem>
               <FormLabel>Video URL</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  type="url"
-                />
+                <Input {...field} placeholder="" type="url" />
               </FormControl>
               <FormMessage />
             </FormItem>

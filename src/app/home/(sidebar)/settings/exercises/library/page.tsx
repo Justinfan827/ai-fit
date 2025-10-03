@@ -6,11 +6,8 @@ import { ClientExercisesPage } from "./ClientExercisesPage"
 
 export default async function SettingsExercisesPage() {
   const authUser = await getCachedAuthUserT()
-
-  // Fetch exercises and categories in parallel
   const exercisesP = getCachedAllExercisesT(authUser.userId)
   const categoriesP = getCachedUserCategoriesT()
-
   return (
     <>
       <SiteHeader left={"Exercises"} />
