@@ -1,5 +1,9 @@
 # run formatting
 pnpm format:fix
+
+# Add reformatted files back to staging
+git add -u
+
 # Run type checking
 pnpm check-types
 # Run tests

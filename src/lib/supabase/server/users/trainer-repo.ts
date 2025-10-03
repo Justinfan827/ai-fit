@@ -190,7 +190,8 @@ async function createClient({
       first_name: firstName,
       last_name: lastName,
       age,
-      height_value: height.unit === "in" ? height.feet * 12 + height.inches : height.cm,
+      height_value:
+        height.unit === "in" ? height.feet * 12 + height.inches : height.cm,
       weight_value: weight.unit === "lbs" ? weight.lbs : weight.kg,
       height_unit: height.unit,
       weight_unit: weight.unit,
