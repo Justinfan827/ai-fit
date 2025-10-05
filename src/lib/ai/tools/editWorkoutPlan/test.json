@@ -1,0 +1,103 @@
+{
+  "operationToUse": "insertAtEnd",
+  "insertAtEnd": {
+    "workout": {
+      "blocks": [
+        {
+          "type": "exercise",
+          "exercise": {
+            "id": "9b6de57e-3aa2-4548-8209-d44eea4db1c4",
+            "name": "Squats",
+            "metadata": {
+              "sets": "3",
+              "reps": "8-10",
+              "weight": "135-165",
+              "rest": "2m"
+            }
+          }
+        },
+        {
+          "type": "circuit",
+          "circuit": {
+            "name": "A Circuit",
+            "description": "Superset A1 and A2",
+            "metadata": {
+              "sets": "3",
+              "rest": "90s",
+              "notes": ""
+            },
+            "exercises": [
+              {
+                "type": "exercise",
+                "exercise": {
+                  "id": "723ba1af-7151-4db1-9a8a-9627bdc5e3b6",
+                  "name": "Bench Press",
+                  "metadata": {
+                    "sets": "3",
+                    "reps": "8-10",
+                    "weight": "95-135",
+                    "rest": "0s"
+                  }
+                }
+              },
+              {
+                "type": "exercise",
+                "exercise": {
+                  "id": "fb3e6501-1950-4d8a-8e55-1da21c2f6683",
+                  "name": "Chest Supported DB Rows",
+                  "metadata": {
+                    "sets": "3",
+                    "reps": "10-12",
+                    "weight": "35-50",
+                    "rest": "90s"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "circuit",
+          "circuit": {
+            "name": "B Circuit",
+            "description": "Superset B1 and B2",
+            "metadata": {
+              "sets": "3",
+              "rest": "60s",
+              "notes": ""
+            },
+            "exercises": [
+              {
+                "type": "exercise",
+                "exercise": {
+                  "id": "960fbc21-e182-4bd9-b243-1328f7a06c4b",
+                  "name": "Box Step Ups",
+                  "metadata": {
+                    "sets": "3",
+                    "reps": "12-15",
+                    "weight": "BW+25",
+                    "rest": "0s"
+                  }
+                }
+              },
+              {
+                "type": "exercise",
+                "exercise": {
+                  "id": "622c8978-090a-4699-a36b-cd29e66227a8",
+                  "name": "Crunches",
+                  "metadata": {
+                    "sets": "3",
+                    "reps": "15-20",
+                    "weight": "BW",
+                    "rest": "60s"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "name": "Full Body A"
+    }
+  }
+}

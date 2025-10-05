@@ -32,6 +32,7 @@ the relevant schemas for the JSON response.
 - Allowed operations only: insertAfter, insertBefore, insertAtStart, insertAtEnd, swap, remove. DO NOT modify individual blocks inside existing workouts here.
 - For newly inserted workouts, make sure the individual blocks adhere to the schemas. Use the exercises list to populate exercise ids
   and canonical names. For exercise details, MAKE SURE to follow the training variables and notation as described below.
+- For the 'notes' field in the structured response, ALWAYS return a string. If there are no notes, just return an empty string.
 
 # Explaining an edit operation:
 
