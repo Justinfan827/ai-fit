@@ -24,7 +24,7 @@ import { type AIBlock, aiWorkoutSchema } from "@/lib/ai/tools/ai-only-schema"
 import { editOperationSchema } from "@/lib/ai/tools/editWorkoutPlan/schemas"
 import { workoutChangeSchema } from "@/lib/ai/tools/generateProgramDiffs/diff-schema"
 import type { MyUIMessage } from "@/lib/ai/ui-message-types"
-import type { ClientWithTrainerNotes } from "@/lib/domain/clients"
+import type { ClientDetailed } from "@/lib/domain/clients"
 import type { Block, Exercise } from "@/lib/domain/workouts"
 import log from "@/lib/logger/logger"
 import {
@@ -46,8 +46,8 @@ import { Separator } from "./ui/separator"
 interface ProgramEditorSidebarProps {
   trainerId: string
   exercises: Exercise[]
-  client?: ClientWithTrainerNotes // Make client optional
-  availableClients?: ClientWithTrainerNotes[] // List of available clients to choose from
+  client?: ClientDetailed // Make client optional
+  availableClients?: ClientDetailed[] // List of available clients to choose from
   programId: string // Required for chat persistence
   initialMessages?: MyUIMessage[] // Existing chat history
   chatId?: string // Existing chat ID
@@ -56,7 +56,7 @@ interface ProgramEditorSidebarProps {
 type ClientContextItem = {
   type: "client"
   label: string
-  data: ClientWithTrainerNotes
+  data: ClientDetailed
 }
 
 type ExercisesContextItem = {
@@ -218,7 +218,7 @@ export function ProgramEditorSidebar({
       addExercisesContext(payload.data)
     }
   }
-  const addClientContext = (selectedClient: ClientWithTrainerNotes) => {
+  const addClientContext = (selectedClient: ClientDetailed) => {
     const clientItem: ContextItem = {
       type: "client",
       label: `${selectedClient.firstName} ${selectedClient.lastName}`,
@@ -281,7 +281,7 @@ export function ProgramEditorSidebar({
               e.stopPropagation()
               removeContextItem(item.label)
             }}
-            size="noSize"
+            size="none"
             variant="ghost"
           >
             <X className="size-3" />
@@ -300,7 +300,7 @@ export function ProgramEditorSidebar({
         <Button
           className="hover:bg-transparent"
           onClick={() => removeContextItem(item.label)}
-          size="noSize"
+          size="none"
           variant="ghost"
         >
           <X className="size-3" />
@@ -367,7 +367,7 @@ interface SidebarInputProps {
   onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void
   value: string
   state: {
-    clients: ClientWithTrainerNotes[]
+    clients: ClientDetailed[]
     exercises: Exercise[]
     contextItems: ContextItem[]
   }
@@ -376,7 +376,7 @@ interface SidebarInputProps {
 
 type ClientContextAddPayload = {
   type: "client"
-  data: ClientWithTrainerNotes
+  data: ClientDetailed
 }
 
 type ExercisesContextAddPayload = {

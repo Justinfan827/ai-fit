@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 import { assignProgramAction } from "@/actions/assign-program"
-import LoadingButton from "@/components/loading-button"
+import MLoadingButton from "@/components/massor/buttons/m-buttons"
 import { ProgramPicker } from "@/components/program-dropdown-picker"
 import { Button } from "@/components/ui/button"
 import {
@@ -71,7 +71,7 @@ export default function AssignProgramButton({ clientId, programs }: Props) {
   return (
     <Dialog onOpenChange={setIsOpen} open={isOpen}>
       <DialogTrigger asChild>
-        <LoadingButton
+        <MLoadingButton
           isLoading={form.formState.isSubmitting}
           onClick={() => {
             setIsOpen(true)
@@ -79,7 +79,7 @@ export default function AssignProgramButton({ clientId, programs }: Props) {
           variant="outline"
         >
           Assign program
-        </LoadingButton>
+        </MLoadingButton>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

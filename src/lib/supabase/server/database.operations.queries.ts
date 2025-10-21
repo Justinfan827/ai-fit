@@ -1,7 +1,7 @@
 import "server-only"
 
 import { cache } from "react"
-import type { Client } from "@/lib/domain/clients"
+import type { ClientBasic } from "@/lib/domain/clients"
 import {
   type Blocks,
   type Program,
@@ -15,7 +15,7 @@ import type { Category } from "../types"
 import { getAuthUser } from "./auth-utils"
 import { resolveProgram, resolvePrograms } from "./programs/utils"
 
-export async function getCurrentUserClients(): Promise<Maybe<Client[]>> {
+export async function getCurrentUserClients(): Promise<Maybe<ClientBasic[]>> {
   const client = await createServerClient()
 
   const { user, error: getUserError } = await getAuthUser()
@@ -33,6 +33,7 @@ export async function getCurrentUserClients(): Promise<Maybe<Client[]>> {
   return {
     data: clients.map((c) => ({
       id: c.id,
+      avatarURL: "",
       email: c.email || "",
       firstName: c.first_name || "",
       lastName: c.last_name || "",

@@ -4,7 +4,7 @@ import type { VariantProps } from "class-variance-authority"
 import type React from "react"
 import type { buttonVariants } from "@/components/ui/button"
 import { useSignOut } from "@/hooks/use-sign-out"
-import LoadingButton from "./loading-button"
+import MLoadingButton from "./massor/buttons/m-buttons"
 
 export interface SignOutButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -25,7 +25,7 @@ export default function SignOutButton({
   }
 
   return (
-    <LoadingButton
+    <MLoadingButton
       className={className}
       isLoading={isPending}
       onClick={handleOnClick}
@@ -35,6 +35,6 @@ export default function SignOutButton({
       {...rest}
     >
       {children ?? "Sign out"}
-    </LoadingButton>
+    </MLoadingButton>
   )
 }

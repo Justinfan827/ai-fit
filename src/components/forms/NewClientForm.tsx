@@ -32,6 +32,9 @@ export const CreateClientFormScham = z
       error: "Please enter a valid email address.",
     }),
     age: z.string(),
+    gender: z.enum(["male", "female"], {
+      error: "Please select a gender.",
+    }),
     heightValue: z.string(),
     heightUnit: z.enum(["cm", "in"], {
       error: "Please select a height unit.",
@@ -108,6 +111,7 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
     lastName: "",
     email: "",
     age: "",
+    gender: "male" as const,
     heightValue: "",
     heightUnit: "cm" as const,
     heightFeet: "",
@@ -121,6 +125,7 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
       lastName: data.lastName,
       email: data.email,
       age: Number.parseInt(data.age || "", 10),
+      gender: data.gender,
       weight: {
         ...(data.weightUnit === "lbs"
           ? {
@@ -226,6 +231,27 @@ export function NewClientForm({ formName, onSubmit }: NewClientFormProps) {
               <FormDescription className="sr-only">
                 Client&apos;s age in years
               </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="gender"
+          render={({ field }) => (
+            <FormItem className="">
+              <FormLabel>Gender</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

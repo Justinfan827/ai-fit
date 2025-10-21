@@ -157,6 +157,8 @@ export const workoutInstanceSchema = z.object({
   blocks: z.array(workoutInstanceBlockSchema),
 })
 
+export const sparseProgramSchema = programSchema.omit({ workouts: true })
+
 export type ExerciseBlock = z.infer<typeof exerciseBlockSchema>
 export type CircuitBlock = z.infer<typeof circuitBlockSchema>
 export type Block = z.infer<typeof blockSchema>
@@ -165,7 +167,7 @@ export type Exercise = z.infer<typeof exerciseSchema>
 export type ExerciseBlockSchema = z.infer<typeof exerciseBlockSchema>
 export type ExerciseInstance = z.infer<typeof exerciseInstanceSchema>
 export type Program = z.infer<typeof programSchema>
-export type SparseProgram = Omit<Program, "workouts">
+export type SparseProgram = z.infer<typeof sparseProgramSchema>
 export type Workout = z.infer<typeof workoutSchema>
 export type WorkoutExercise = z.infer<typeof workoutExerciseSchema>
 export type WorkoutInstance = z.infer<typeof workoutInstanceSchema>

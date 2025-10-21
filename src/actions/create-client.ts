@@ -41,6 +41,9 @@ const schema = z.object({
     .number()
     .min(1, { error: "Age must be at least 1." })
     .max(120, { error: "Age must be less than 120." }),
+  gender: z.enum(["male", "female"], {
+    error: "Please select a valid gender.",
+  }),
   height: heightSchema,
   weight: weightSchema,
 })
@@ -53,7 +56,7 @@ export const createClientAction = withAuthInput<CreateClientInput, ClientBasic>(
   },
   async ({ input, user }) => {
     // Extract basic client info
-    const { firstName, lastName, email, age, height, weight } = input
+    const { firstName, lastName, email, age, gender, height, weight } = input
 
     const userData = await createClientT({
       trainerId: user.userId,
@@ -62,6 +65,7 @@ export const createClientAction = withAuthInput<CreateClientInput, ClientBasic>(
         lastName,
         email,
         age,
+        gender,
         height,
         weight,
       },

@@ -3,8 +3,8 @@ import "server-only"
 import { cache } from "react"
 import type {
   ClientBasic,
+  ClientDetailed,
   ClientHomePage,
-  ClientWithTrainerNotes,
   TrainerNote,
 } from "@/lib/domain/clients"
 import type { Exercise } from "@/lib/domain/workouts"
@@ -124,6 +124,7 @@ type CreateClientParams = {
     lastName: string
     email: string
     age: number
+    gender: "male" | "female"
     height:
       | {
           unit: "in"
@@ -165,7 +166,7 @@ async function createClientT({
  */
 async function createClient({
   trainerId,
-  newClient: { firstName, lastName, email, age, height, weight },
+  newClient: { firstName, lastName, email, age, gender, height, weight },
 }: CreateClientParams): Promise<Maybe<ClientBasic>> {
   const { data, error } = await createUserMutation(email)
   if (error) {
@@ -190,6 +191,7 @@ async function createClient({
       first_name: firstName,
       last_name: lastName,
       age,
+      gender,
       height_value:
         height.unit === "in" ? height.feet * 12 + height.inches : height.cm,
       weight_value: weight.unit === "lbs" ? weight.lbs : weight.kg,
@@ -204,6 +206,8 @@ async function createClient({
   return {
     data: {
       id: data.user.id,
+      avatarURL: "",
+      createdAt: data.user.created_at,
       email: data.user.email || "",
       firstName,
       lastName,
@@ -313,7 +317,7 @@ const getCachedAllClientDetailsT = cache(async () => {
   List all clients for a trainer, including their details.
   This is currently used to populate the client list in the program editor sidebar.
   */
-async function getAllClientDetails(): Promise<Maybe<ClientWithTrainerNotes[]>> {
+async function getAllClientDetails(): Promise<Maybe<ClientDetailed[]>> {
   const { user, error } = await getAuthUser()
   if (error) {
     return { data: null, error }
@@ -327,26 +331,30 @@ async function getAllClientDetails(): Promise<Maybe<ClientWithTrainerNotes[]>> {
     return { data: null, error: clientError }
   }
 
-  const clients: ClientWithTrainerNotes[] = clientsData.map((c) => {
+  const clients: ClientDetailed[] = clientsData.map((c) => {
     return {
       id: c.id,
+      avatarURL: "",
       email: c.email || "",
       firstName: c.first_name || "",
       lastName: c.last_name || "",
       createdAt: c.created_at || "",
       programs: [],
       age: c.age || 0,
-      gender: c.gender || "",
-      // TODO: convert to weight + units
+      gender: c.gender as "male" | "female",
       weight: {
         value: c.weight_value || 0,
-        unit: c.weight_unit || "",
+        unit: c.weight_unit as "kg" | "lbs",
       },
       height: {
         value: c.height_value || 0,
-        unit: c.height_unit || "",
+        unit: c.height_unit as "cm" | "in",
       },
-      trainerNotes: c.trainer_client_notes as TrainerNote[],
+      trainerNotes: c.trainer_client_notes.map((tn) => ({
+        id: tn.id,
+        title: tn.title,
+        description: tn.description,
+      })),
     }
   })
 
@@ -392,26 +400,31 @@ async function getClientHomePageData(
   return {
     data: {
       id: client.id,
+      avatarURL: "",
       email: client.email || "",
       firstName: client.first_name || "",
       lastName: client.last_name || "",
       createdAt: client.created_at || "",
       age: client.age || 0,
-      gender: client.gender || "",
+      gender: client.gender as "male" | "female",
       weight: {
         value: client.weight_value || 0,
-        unit: client.weight_unit || "",
+        unit: client.weight_unit as "kg" | "lbs",
       },
       height: {
         value: client.height_value || 0,
-        unit: client.height_unit || "",
+        unit: client.height_unit as "cm" | "in",
       },
       // TODO: snake case? but lots of fields to map. Update later.
       programs: client.programs.map((p) => ({
         ...p,
         type: p.type as "weekly" | "splits",
       })),
-      trainerNotes: client.trainer_client_notes,
+      trainerNotes: client.trainer_client_notes.map((tn) => ({
+        id: tn.id,
+        title: tn.title,
+        description: tn.description,
+      })),
     },
     error: null,
   }
@@ -423,7 +436,6 @@ export {
   deleteClientById,
   deleteTrainerNoteById,
   createTrainerNote,
-  getAllClientDetails,
   getCachedAllExercisesT,
   getCachedAllClientDetailsT,
   createClientT,

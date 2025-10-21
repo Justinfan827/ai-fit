@@ -44,7 +44,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { YouTubeVideo } from "@/components/ui/youtube-video"
 import type { Exercise } from "@/lib/domain/workouts"
 import type { CategoryWithValues } from "@/lib/types/categories"
-import LoadingButton from "../loading-button"
+import MLoadingButton from "../massor/buttons/m-buttons"
 import { asTableExercise } from "../tables/exercise-table/utils"
 import { Alert, AlertTitle } from "../ui/alert"
 
@@ -245,14 +245,14 @@ export const ExerciseDetailsSidesheet = ({
           >
             Cancel
           </Button>
-          <LoadingButton
+          <MLoadingButton
             disabled={isPending}
             form="exercise-details-form"
             isLoading={isPending}
             type="submit"
           >
             Save
-          </LoadingButton>
+          </MLoadingButton>
         </SheetFooter>
       </SheetContent>
     </Sheet>

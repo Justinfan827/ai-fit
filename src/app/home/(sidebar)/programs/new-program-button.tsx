@@ -5,7 +5,7 @@ import { useTransition } from "react"
 import { toast } from "sonner"
 import { createProgramAction } from "@/actions/create-program"
 import { Icons } from "@/components/icons"
-import LoadingButton from "@/components/loading-button"
+import MLoadingButton from "@/components/massor/buttons/m-buttons"
 import {
   EditorProgramProvider,
   useZProgramWorkouts,
@@ -49,9 +49,9 @@ function NewProgramButtonContent() {
     })
   }
   return (
-    <LoadingButton isLoading={isPending} onClick={handleOnCreate}>
+    <MLoadingButton isLoading={isPending} onClick={handleOnCreate}>
       New program
       <Icons.sparkles className="h-5 w-5" />
-    </LoadingButton>
+    </MLoadingButton>
   )
 }

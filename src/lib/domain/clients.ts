@@ -1,45 +1,69 @@
 import { z } from "zod"
-import type { SparseProgram } from "./workouts"
+import { sparseProgramSchema } from "./workouts"
 
-export const basicClientSchema = z.object({
+const weightSchema = z.object({
+  value: z.number(),
+  unit: z.enum(["kg", "lbs"]),
+})
+
+const weightString = (weight: z.infer<typeof weightSchema>) => {
+  return `${weight.value} ${weight.unit}`
+}
+
+const heightSchema = z.object({
+  value: z.number(),
+  unit: z.enum(["cm", "in"]),
+})
+
+const heightString = (height: z.infer<typeof heightSchema>) => {
+  // if inches, return ft and inches
+  if (height.unit === "in") {
+    const feet = Math.floor(height.value / 12)
+    const inches = height.value % 12
+    return `${feet} ft ${inches} in`
+  }
+  // if cm, return cm
+  return `${Math.round(height.value)} cm`
+}
+
+const trainerNoteSchema = z.object({
   id: z.string(),
+  title: z.string(),
+  description: z.string(),
+})
+
+const clientBasicSchema = z.object({
+  id: z.string(),
+  avatarURL: z.string(),
+  createdAt: z.string(),
   email: z.string(),
   firstName: z.string(),
   lastName: z.string(),
 })
 
-export type ClientBasic = z.infer<typeof basicClientSchema>
+const clientDetailedSchema = clientBasicSchema.extend({
+  age: z.number(),
+  gender: z.enum(["male", "female"]),
+  weight: weightSchema,
+  height: heightSchema,
+  trainerNotes: z.array(trainerNoteSchema),
+})
 
-export interface Client {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  createdAt: string
-  // TODO: add avatarURL
-  avatarURL?: string
-}
+const clientHomePageSchema = clientDetailedSchema.extend({
+  programs: z.array(sparseProgramSchema),
+})
 
-export interface TrainerNote {
-  id: string
-  title: string
-  description: string
-}
+type TrainerNote = z.infer<typeof trainerNoteSchema>
+type ClientBasic = z.infer<typeof clientBasicSchema>
+type ValueWithUnit = z.infer<typeof weightSchema> | z.infer<typeof heightSchema>
+type ClientDetailed = z.infer<typeof clientDetailedSchema>
+type ClientHomePage = z.infer<typeof clientHomePageSchema>
 
-export interface ValueWithUnit {
-  value: number
-  unit: string
-}
-
-export interface ClientWithTrainerNotes extends Client {
-  trainerNotes: TrainerNote[]
-}
-
-export interface ClientHomePage extends Client {
-  programs: SparseProgram[]
-  age: number
-  gender: string
-  weight: ValueWithUnit
-  height: ValueWithUnit
-  trainerNotes: TrainerNote[]
+export { clientBasicSchema, clientDetailedSchema, heightString, weightString }
+export type {
+  TrainerNote,
+  ClientDetailed,
+  ValueWithUnit,
+  ClientBasic,
+  ClientHomePage,
 }

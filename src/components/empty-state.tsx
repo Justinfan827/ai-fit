@@ -4,7 +4,7 @@ import type { ReactNode } from "react"
 import { Logo } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import LoadingButton from "./loading-button"
+import MLoadingButton from "./massor/buttons/m-buttons"
 
 // Type definitions
 interface EmptyStateCardProps {
@@ -69,13 +69,13 @@ function EmptyStateCard({
         </div>
       )}
       {buttonAction && buttonText && (
-        <LoadingButton
+        <MLoadingButton
           isLoading={!!isActionPending}
           onClick={buttonAction}
           variant="outline"
         >
           {buttonText}
-        </LoadingButton>
+        </MLoadingButton>
       )}
       {actionComponent && actionComponent}
     </div>

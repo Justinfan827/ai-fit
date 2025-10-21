@@ -24,10 +24,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { Client } from "@/lib/domain/clients"
+import type { ClientBasic } from "@/lib/domain/clients"
 import { cn } from "@/lib/utils"
 
-export function ClientsList({ clients }: { clients: Client[] }) {
+export function ClientsList({ clients }: { clients: ClientBasic[] }) {
   const [optimisticClients, deleteOptimisticClient] = useOptimistic(
     clients,
     (state, clientId: string) => {
@@ -80,7 +80,7 @@ function ClientListItem({
   client,
   onDelete,
 }: {
-  client: Client
+  client: ClientBasic
   onDelete: (clientId: string) => void
 }) {
   return (
@@ -96,7 +96,10 @@ function ClientListItem({
       />
       <div className="flex items-center gap-4">
         <Avatar className="size-8 rounded-lg text-muted-foreground grayscale transition-all duration-200 ease-in-out group-hover:size-8.5 group-hover:text-primary">
-          <AvatarImage alt={client.firstName} src={client.avatarURL} />
+          <AvatarImage
+            alt={client.firstName}
+            src={client.avatarURL ?? undefined}
+          />
           <AvatarFallback className="rounded-lg">
             {client.firstName.charAt(0).toUpperCase()}
           </AvatarFallback>
@@ -120,7 +123,7 @@ function ClientListItemMenu({
   client,
   onDelete,
 }: {
-  client: Client
+  client: ClientBasic
   onDelete: (clientId: string) => void
 }) {
   const [isOpen, setIsOpen] = useState(false)

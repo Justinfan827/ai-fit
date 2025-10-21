@@ -1,3 +1,8 @@
+import {
+  type ClientDetailed,
+  heightString,
+  weightString,
+} from "@/lib/domain/clients"
 import type {
   CircuitBlock,
   ExerciseBlock,
@@ -12,11 +17,7 @@ import type {
   UpdateBlockAI,
   UpdateCircuitExerciseAI,
 } from "../tools/generateProgramDiffs/diff-schema"
-import type {
-  ClientContextData,
-  ContextItem,
-  ExercisesContextData,
-} from "./context-schema"
+import type { ContextItem, ExercisesContextData } from "./context-schema"
 
 const preferredExercisesSectionName = "Coach preferred exercises"
 const currentClientContextSectionName = "Client context"
@@ -128,7 +129,7 @@ export const systemPrompt = ({
 }: {
   workouts?: Workouts
   exercises?: ExercisesContextData
-  client?: ClientContextData
+  client?: ClientDetailed
 }) => `
 You are an expert at resistance training programming. You will assist a fitness coach in making smart, concrete decisions
 around exercise selection and training variables for a workout program. You understand that exercise selection and training variables
@@ -477,21 +478,20 @@ ${workout.blocks
     .join("\n")
 }
 
-function buildClientContext(client: ClientContextData) {
-  const clientData = client
+function buildClientContext(client: ClientDetailed) {
+  const { firstName, age, weight, height, gender, trainerNotes } = client
   return `
 ${createSection(
   3,
   currentClientContextSectionName,
   `
-- Name: ${clientData.firstName}
-- Age: ${clientData.age ?? "Not specified"}
-- Weight: ${clientData.weightKg ? `${clientData.weightKg} kg` : "Not specified"}
-- Height: ${clientData.heightCm ? `${clientData.heightCm} cm` : "Not specified"}
-- Lifting Experience: ${clientData.liftingExperienceMonths ? `${clientData.liftingExperienceMonths} months` : "Not specified"}
-- Gender: ${clientData.gender ?? "Not specified"}
+- Name: ${firstName}
+- Age: ${age ?? "Not specified"}
+- Weight: ${weight ? weightString(weight) : "Not specified"}
+- Height: ${height ? heightString(height) : "Not specified"}
+- Gender: ${gender ?? "Not specified"}
 
-${clientData.details?.map((d) => `- ${d.title}: ${d.description}`).join("\n") ?? "No additional details provided"}
+${trainerNotes?.map((t) => `- ${t.title}: ${t.description}`).join("\n") ?? "No additional notes provided"}
 `
 )}`
 }

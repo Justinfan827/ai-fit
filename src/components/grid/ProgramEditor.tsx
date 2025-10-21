@@ -24,7 +24,7 @@ import { type Program, programSchema } from "@/lib/domain/workouts"
 import { cn } from "@/lib/utils"
 import PlusButton from "../buttons/PlusButton"
 import { EmptyStateCard } from "../empty-state"
-import LoadingButton from "../loading-button"
+import MLoadingButton from "../massor/buttons/m-buttons"
 import { ProposedChangesMenu } from "../proposed-changes-menu"
 import { Badge } from "../ui/badge"
 import { useSidebar } from "../ui/sidebar"
@@ -194,14 +194,14 @@ export default function ProgramEditor() {
     <div className="flex items-center justify-center space-x-2">
       {/* TODO: uncomment when we support weekly programs */}
       {/* <ProgramSelect onValueChange={handleProgramSelect} value={programType} /> */}
-      <LoadingButton
+      <MLoadingButton
         className="w-20"
         isLoading={isPending}
         onClick={() => (isNewProgram ? handleOnCreate() : handleOnSave())}
         variant="outline"
       >
         {isNewProgram ? "Create" : "Save"}
-      </LoadingButton>
+      </MLoadingButton>
     </div>
   )
   const { open } = useSidebar()

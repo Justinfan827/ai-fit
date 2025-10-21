@@ -3,7 +3,7 @@ import { useTransition } from "react"
 import { toast } from "sonner"
 import { updateProgramAction } from "@/actions/save-program"
 import { Icons } from "@/components/icons"
-import LoadingButton from "@/components/loading-button"
+import MLoadingButton from "@/components/massor/buttons/m-buttons"
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import {
   useZProgramCreatedAt,
@@ -47,14 +47,14 @@ export default function ProgramActions() {
   }
   return (
     <div className="flex items-center justify-center space-x-2">
-      <LoadingButton
+      <MLoadingButton
         className="w-20"
         isLoading={isPending}
         onClick={handleSaveProgram}
         variant="outline"
       >
         Save
-      </LoadingButton>
+      </MLoadingButton>
       <SidebarTrigger
         className={cn(
           "size-9",

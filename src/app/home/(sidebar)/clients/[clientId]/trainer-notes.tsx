@@ -7,7 +7,7 @@ import { z } from "zod"
 import { createTrainerNoteAction } from "@/actions/create-trainer-note"
 import { deleteTrainerNoteAction } from "@/actions/delete-trainer-note"
 import { Icons } from "@/components/icons"
-import LoadingButton from "@/components/loading-button"
+import MLoadingButton from "@/components/massor/buttons/m-buttons"
 import { PageSectionHeader } from "@/components/page-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardFooter, CardHeader } from "@/components/ui/card"
@@ -218,9 +218,9 @@ function TrainerNoteForm({
             />
           </CardHeader>
           <CardFooter className="space-x-2 px-6 pb-6">
-            <LoadingButton isLoading={isPending} variant="default">
+            <MLoadingButton isLoading={isPending} variant="default">
               Save
-            </LoadingButton>
+            </MLoadingButton>
             <Button onClick={onCancel} type="button" variant="outline">
               Cancel
             </Button>

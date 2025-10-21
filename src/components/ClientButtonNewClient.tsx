@@ -19,7 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Icons } from "./icons"
-import LoadingButton from "./loading-button"
+import MLoadingButton from "./massor/buttons/m-buttons"
 
 export default function ClientButtonNewClient() {
   const formName = "new-client-form"
@@ -34,6 +34,7 @@ export default function ClientButtonNewClient() {
         lastName: data.lastName,
         email: data.email,
         age: data.age,
+        gender: data.gender,
         // if ft-in, conver heightFeet and heightInches to a inches value
         ...(data.height.unit === "in"
           ? {
@@ -90,9 +91,9 @@ export default function ClientButtonNewClient() {
           <NewClientForm formName={formName} onSubmit={onSubmit} />
         </div>
         <DialogFooter>
-          <LoadingButton form={formName} isLoading={isPending} type="submit">
+          <MLoadingButton form={formName} isLoading={isPending} type="submit">
             Create
-          </LoadingButton>
+          </MLoadingButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,23 +1,5 @@
 import { z } from "zod"
-
-const clientContextDataSchema = z.object({
-  id: z.string(),
-  firstName: z.string(),
-  age: z.number().optional(),
-  weightKg: z.number().optional(),
-  heightCm: z.number().optional(),
-  liftingExperienceMonths: z.number().optional(),
-  gender: z.string().optional(),
-  details: z
-    .array(
-      z.object({
-        id: z.string(),
-        title: z.string(),
-        description: z.string(),
-      })
-    )
-    .optional(),
-})
+import { clientDetailedSchema } from "@/lib/domain/clients"
 
 const exerciseContextDataSchema = z.object({
   id: z.string(),
@@ -34,7 +16,7 @@ const exercisesContextDataSchema = z.object({
 
 const clientContextSchema = z.object({
   type: z.literal("client"),
-  data: clientContextDataSchema,
+  data: clientDetailedSchema,
 })
 
 const exercisesContextSchema = z.object({
@@ -45,12 +27,10 @@ const exercisesContextSchema = z.object({
 const contextItemSchema = z.union([clientContextSchema, exercisesContextSchema])
 
 type ContextItem = z.infer<typeof contextItemSchema>
-type ClientContextData = z.infer<typeof clientContextDataSchema>
 type ExercisesContextData = z.infer<typeof exercisesContextDataSchema>
 
 export {
   type ContextItem,
-  type ClientContextData,
   type ExercisesContextData,
   clientContextSchema,
   exercisesContextSchema,
