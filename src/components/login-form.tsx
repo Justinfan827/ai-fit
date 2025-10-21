@@ -6,22 +6,15 @@ import { useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { createBrowserClient } from "@/lib/supabase/create-browser-client"
 import { isLive } from "@/lib/utils"
-import { Icons } from "./icons"
+import MLoadingButton from "./massor/buttons/m-buttons"
 import { PasswordInput } from "./password-input"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -92,58 +85,59 @@ export function LoginForm() {
     })
   }
   return (
-    <Card className="w-[400px] py-8">
-      <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
-        <CardDescription>
+    <div className="w-[400px] space-y-10">
+      <div className="flex flex-col items-center justify-center gap-4">
+        <h1 className="font-secondary text-3xl">Massor</h1>
+        <p className="text-center text-muted-foreground">
           Enter your email below to login to your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form
-            className="grid gap-6"
-            onSubmit={(...args) => form.handleSubmit(onSubmit)(...args)}
-          >
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="">Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <PasswordInput placeholder="••••••••••" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button disabled={isPending}>
-              {isPending && (
-                <Icons.spinner
-                  aria-hidden="true"
-                  className="mr-2 h-4 w-4 animate-spin"
-                />
-              )}
-              Login
-              <span className="sr-only hidden">Login</span>
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+        </p>
+      </div>
+      <Form {...form}>
+        <form
+          className="space-y-10"
+          id="login-form"
+          onSubmit={(...args) => form.handleSubmit(onSubmit)(...args)}
+        >
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="">Email</FormLabel>
+                <FormControl>
+                  <Input type="email" {...field} />
+                </FormControl>
+                <FormDescription>Enter your email address</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <PasswordInput placeholder="••••••••••" {...field} />
+                </FormControl>
+                <FormDescription>Enter your password</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </form>
+      </Form>
+      <div className="w-full">
+        <MLoadingButton
+          className="w-full"
+          form="login-form"
+          isLoading={isPending}
+          type="submit"
+        >
+          Sign in
+        </MLoadingButton>
+      </div>
+    </div>
   )
 }
