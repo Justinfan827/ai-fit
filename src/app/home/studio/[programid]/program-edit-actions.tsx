@@ -1,49 +1,49 @@
 "use client"
-import { useTransition } from "react"
+import { useMutation } from "convex/react"
+import { useState } from "react"
 import { toast } from "sonner"
-import { updateProgramAction } from "@/actions/save-program"
 import { Icons } from "@/components/icons"
 import MLoadingButton from "@/components/massor/buttons/m-buttons"
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import {
-  useZProgramCreatedAt,
   useZProgramId,
   useZProgramName,
-  useZProgramType,
   useZProgramWorkouts,
 } from "@/hooks/zustand/program-editor-state"
 import { cn } from "@/lib/utils"
 
 export default function ProgramActions() {
   const { open } = useSidebar()
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
   const programId = useZProgramId()
   const programName = useZProgramName()
-  const programType = useZProgramType()
   const workouts = useZProgramWorkouts()
-  const createdAt = useZProgramCreatedAt()
 
-  const handleSaveProgram = () => {
-    startTransition(async () => {
-      try {
-        const program = {
-          id: programId,
-          name: programName,
-          type: programType,
-          workouts,
-          created_at: createdAt,
-        }
+  const updateProgram = useMutation(api.programs.update)
 
-        const result = await updateProgramAction(program)
-        if (result.error) {
-          toast("Failed to save program. Please try again.")
-        } else {
-          toast("Program saved successfully!")
-        }
-      } catch (_) {
-        toast("Failed to save program. Please try again.")
-      }
-    })
+  const handleSaveProgram = async () => {
+    setIsPending(true)
+    try {
+      // Convert programId string to Convex ID format
+      const programIdAsId = programId as Id<"programs">
+      await updateProgram({
+        programId: programIdAsId,
+        name: programName,
+        workouts: workouts.map((w) => ({
+          name: w.name,
+          blocks: w.blocks,
+          programOrder: w.program_order,
+          week: w.week,
+        })),
+      })
+      toast.success("Program saved successfully!")
+    } catch {
+      toast.error("Failed to save program. Please try again.")
+    } finally {
+      setIsPending(false)
+    }
   }
   return (
     <div className="flex items-center justify-center space-x-2">

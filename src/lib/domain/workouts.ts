@@ -101,10 +101,10 @@ export const blockSchema = exerciseBlockSchema.or(circuitBlockSchema)
 export const blocksSchema = z.array(blockSchema)
 
 export const workoutSchema = z.object({
-  id: z.uuid(), // Validates a UUID string
+  id: z.string(), // Supports both UUID and Convex IDs
   program_order: z.number(),
   week: z.number().optional(), // Only present for weekly programs
-  program_id: z.uuid(),
+  program_id: z.string(), // Supports both UUID and Convex IDs
   name: z.string(),
   blocks: blocksSchema,
 })
@@ -112,7 +112,7 @@ export const workoutSchema = z.object({
 export const workoutsSchema = z.array(workoutSchema)
 
 export const programSchema = z.object({
-  id: z.uuid(),
+  id: z.string(), // Supports both UUID and Convex IDs
   created_at: z.iso.datetime({ offset: true }),
   name: z.string(),
   type: z.enum(["weekly", "splits"]),

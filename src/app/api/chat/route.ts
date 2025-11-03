@@ -1,29 +1,47 @@
-import {
-  convertToModelMessages,
-  createUIMessageStream,
-  createUIMessageStreamResponse,
-  stepCountIs,
-  streamText,
-} from "ai"
-import { after, NextResponse } from "next/server"
-import { v4 as uuidv4 } from "uuid"
-import { buildSystemPrompt } from "@/lib/ai/prompts/prompts"
-import { gatewayProviders } from "@/lib/ai/providers"
-import { type MyUIMessage, myTools } from "@/lib/ai/ui-message-types"
-import log from "@/lib/logger/logger"
-import { createServerClient } from "@/lib/supabase/create-server-client"
-import {
-  getOrCreateProgramChat,
-  loadChatMessages,
-  upsertMessage,
-} from "@/lib/supabase/server/chat-operations"
-import { createSystemPrompt } from "@/lib/supabase/server/debug-queries"
-import { withAuthBodySchema } from "../middleware/withAuth"
-import { requestSchema } from "./schema"
+import { createUIMessageStream, createUIMessageStreamResponse } from "ai"
+import type { MyUIMessage } from "@/lib/ai/ui-message-types"
+// Commented out imports - will be used when migrating to Convex
+// import {
+//   convertToModelMessages,
+//   stepCountIs,
+//   streamText,
+// } from "ai"
+// import { after, NextResponse } from "next/server"
+// import { v4 as uuidv4 } from "uuid"
+// import { buildSystemPrompt } from "@/lib/ai/prompts/prompts"
+// import { gatewayProviders } from "@/lib/ai/providers"
+// import { myTools } from "@/lib/ai/ui-message-types"
+// import log from "@/lib/logger/logger"
+// import { createServerClient } from "@/lib/supabase/create-server-client"
+// import {
+//   getOrCreateProgramChat,
+//   loadChatMessages,
+//   upsertMessage,
+// } from "@/lib/supabase/server/chat-operations"
+// import { createSystemPrompt } from "@/lib/supabase/server/debug-queries"
+// import { withAuthBodySchema } from "../middleware/withAuth"
+// import { requestSchema } from "./schema"
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30
 
+// Temporary stub: Return empty stream response (chat UI visible but non-functional)
+// TODO: Migrate chat functionality to Convex
+export function POST(_request: Request) {
+  // Create an empty stream that matches the AI SDK's expected format
+  const stream = createUIMessageStream<MyUIMessage>({
+    execute: () => {
+      // Empty - no actual processing
+    },
+    originalMessages: [],
+  })
+
+  return createUIMessageStreamResponse({ stream })
+}
+
+// COMMENTED OUT: Original implementation with auth and Supabase persistence
+// Will be migrated to Convex in the future
+/*
 export const POST = withAuthBodySchema(
   { schema: requestSchema },
   async ({
@@ -140,3 +158,4 @@ export const POST = withAuthBodySchema(
     }
   }
 )
+*/

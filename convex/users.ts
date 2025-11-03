@@ -24,6 +24,16 @@ const getAllByTrainerId = query({
       firstName: client.firstName,
       lastName: client.lastName,
       createdAt: client.createdAt,
+      age: client.age ?? 0,
+      gender: (client.gender ?? "male") as "male" | "female",
+      weight: {
+        value: client.weightValue ?? 0,
+        unit: (client.weightUnit ?? "kg") as "kg" | "lbs",
+      },
+      height: {
+        value: client.heightValue ?? 0,
+        unit: (client.heightUnit ?? "cm") as "cm" | "in",
+      },
     }))
   },
 })

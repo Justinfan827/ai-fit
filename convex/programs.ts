@@ -166,6 +166,117 @@ const create = mutation({
   },
 })
 
+const update = mutation({
+  args: {
+    programId: v.id("programs"),
+    name: v.string(),
+    workouts: v.array(
+      v.object({
+        name: v.string(),
+        blocks: v.any(),
+        programOrder: v.number(),
+        week: v.optional(v.number()),
+      })
+    ),
+  },
+  returns: v.union(
+    v.object({
+      id: v.string(),
+      created_at: v.string(),
+      name: v.string(),
+      type: v.union(v.literal("weekly"), v.literal("splits")),
+      workouts: v.array(
+        v.object({
+          id: v.string(),
+          program_order: v.number(),
+          program_id: v.string(),
+          name: v.string(),
+          blocks: v.any(),
+          week: v.optional(v.number()),
+        })
+      ),
+    }),
+    v.null()
+  ),
+  handler: async (ctx, { programId, name, workouts }) => {
+    const user = await throwIfNotAuthenticated(ctx)
+
+    const program = await ctx.db.get(programId)
+
+    if (!program) {
+      return null
+    }
+
+    // Validate ownership
+    if (program.userId !== user.id) {
+      throw new Error("Unauthorized")
+    }
+
+    // Update program name
+    await ctx.db.patch(programId, {
+      name,
+    })
+
+    // Delete existing workouts for this program
+    const existingWorkouts = await ctx.db
+      .query("workouts")
+      .withIndex("byProgramId", (q) => q.eq("programId", programId))
+      .collect()
+
+    await Promise.all(
+      existingWorkouts.map((workout) => ctx.db.delete(workout._id))
+    )
+
+    // Insert new workouts
+    const createdAt = new Date().toISOString()
+    const workoutIds = await Promise.all(
+      workouts.map((workout) =>
+        ctx.db.insert("workouts", {
+          programId,
+          name: workout.name,
+          blocks: workout.blocks,
+          programOrder: workout.programOrder,
+          week: workout.week,
+          createdAt,
+          userId: user.id,
+        })
+      )
+    )
+
+    // Fetch the updated program and workouts to return
+    const updatedProgram = await ctx.db.get(programId)
+    if (!updatedProgram) {
+      throw new Error("Failed to update program")
+    }
+
+    const createdWorkouts = await Promise.all(
+      workoutIds.map((id) => ctx.db.get(id))
+    )
+
+    const validWorkouts = createdWorkouts.filter(
+      (w): w is NonNullable<typeof w> => w !== null
+    )
+
+    // Sort workouts by programOrder
+    validWorkouts.sort((a, b) => a.programOrder - b.programOrder)
+
+    return {
+      id: updatedProgram._id,
+      created_at: updatedProgram.createdAt,
+      name: updatedProgram.name,
+      type: updatedProgram.type as "weekly" | "splits",
+      workouts: validWorkouts.map((workout) => ({
+        id: workout._id,
+        program_order: workout.programOrder,
+        program_id: workout.programId,
+        name: workout.name,
+        blocks: workout.blocks,
+        week: workout.week,
+      })),
+    }
+  },
+})
+
 const deleteProgram = mutation({
   args: {
     programId: v.id("programs"),
@@ -189,4 +300,4 @@ const deleteProgram = mutation({
   },
 })
 
-export { create, deleteProgram, getAll, getById }
+export { create, deleteProgram, getAll, getById, update }

@@ -2,8 +2,9 @@
 
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
+import { useQuery } from "convex/react"
 import { Dumbbell, Plus, UserIcon, X } from "lucide-react"
-import { type ChangeEvent, type FormEvent, useState } from "react"
+import { type ChangeEvent, type FormEvent, useEffect, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
 import {
   PromptInput,
@@ -15,6 +16,8 @@ import {
 } from "@/components/ai-elements/prompt-input"
 import { ChatDebugTools } from "@/components/chat-debug-tools"
 import { Sidebar, SidebarContent, SidebarFooter } from "@/components/ui/sidebar"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import {
   useZEditorActions,
   useZProgramId,
@@ -45,12 +48,7 @@ import { Separator } from "./ui/separator"
 
 interface ProgramEditorSidebarProps {
   trainerId: string
-  exercises: Exercise[]
-  client?: ClientDetailed // Make client optional
-  availableClients?: ClientDetailed[] // List of available clients to choose from
   programId: string // Required for chat persistence
-  initialMessages?: MyUIMessage[] // Existing chat history
-  chatId?: string // Existing chat ID
 }
 
 type ClientContextItem = {
@@ -95,24 +93,61 @@ const Thinking = () => {
 }
 
 export function ProgramEditorSidebar({
-  exercises: initialExercises,
-  availableClients = [],
+  trainerId,
   programId,
-  initialMessages = [],
-  chatId,
 }: ProgramEditorSidebarProps) {
+  // Fetch clients from Convex
+  const clients = useQuery(api.users.getAllByTrainerId)
+
+  // Fetch exercises from Convex
+  const exercisesData = useQuery(
+    api.exercises.getAllExercisesForUser,
+    trainerId ? { userId: trainerId as Id<"users"> } : "skip"
+  )
+
+  // Transform clients to match ClientDetailed type
+  const availableClients: ClientDetailed[] =
+    clients?.map((client) => ({
+      id: client.id, // Convex ID is compatible with string
+      avatarURL: client.avatarURL || "",
+      email: client.email,
+      firstName: client.firstName,
+      lastName: client.lastName,
+      createdAt: client.createdAt,
+      age: client.age,
+      gender: client.gender,
+      weight: client.weight,
+      height: client.height,
+      trainerNotes: [], // Not available from Convex query yet
+    })) || []
+
+  // Get custom exercises from the fetched data
+  const initialExercises = exercisesData?.custom || []
+
   const workouts = useZProgramWorkouts()
   const zustandProgramId = useZProgramId()
-  const [contextItems, setContextItems] = useState<ContextItem[]>(() => {
-    return [
-      {
-        id: "exercises-preferred",
-        type: "exercises",
-        label: `Exercises (${initialExercises.length})`,
-        data: initialExercises,
-      },
-    ]
-  })
+
+  // Initialize context items with exercises (update when exercises data loads)
+  const [contextItems, setContextItems] = useState<ContextItem[]>([])
+
+  // Update context items when exercises data is available
+  useEffect(() => {
+    if (initialExercises.length > 0) {
+      const hasExercisesContext = contextItems.some(
+        (item) => item.type === "exercises"
+      )
+      if (!hasExercisesContext) {
+        setContextItems((prev) => [
+          ...prev,
+          {
+            type: "exercises",
+            label: `Exercises (${initialExercises.length})`,
+            data: initialExercises,
+          },
+        ])
+      }
+    }
+  }, [initialExercises, contextItems])
 
   const [input, setInput] = useState("")
 
@@ -148,9 +183,10 @@ export function ProgramEditorSidebar({
     setMessages,
     error,
   } = useChat<MyUIMessage>({
-    id: chatId,
+    // id: chatId,
     generateId: () => uuidv4(),
-    messages: initialMessages, // Load existing messages using correct property name
+    messages: [],
+    // messages: initialMessages, // Load existing messages using correct property name
     transport: new DefaultChatTransport({
       api: "/api/chat",
       prepareSendMessagesRequest: ({ body, messages }) => {
@@ -318,7 +354,7 @@ export function ProgramEditorSidebar({
     >
       <SidebarContent className="flex flex-col ">
         <ChatDebugTools
-          chatId={chatId}
+          chatId={undefined}
           error={error ?? null}
           onMessagesCleared={() => setMessages([])}
           programId={programId}

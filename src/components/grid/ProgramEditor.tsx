@@ -1,18 +1,13 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
-import { toast } from "sonner"
+import { useEffect, useMemo } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { createProgramAction } from "@/actions/create-program"
-import { updateProgramAction } from "@/actions/save-program"
 import EditableTypography from "@/components/EditableTypeography"
 import { defaultBlocks, defaultColumns } from "@/components/grid/columns"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import {
   useZEditorActions,
-  useZIsNewProgram,
   useZProgramCreatedAt,
   useZProgramId,
   useZProgramName,
@@ -24,7 +19,6 @@ import { type Program, programSchema } from "@/lib/domain/workouts"
 import { cn } from "@/lib/utils"
 import PlusButton from "../buttons/PlusButton"
 import { EmptyStateCard } from "../empty-state"
-import MLoadingButton from "../massor/buttons/m-buttons"
 import { ProposedChangesMenu } from "../proposed-changes-menu"
 import { Badge } from "../ui/badge"
 import { useSidebar } from "../ui/sidebar"
@@ -33,8 +27,6 @@ import WorkoutGrid from "./WorkoutGrid"
 import { groupWorkoutsByWeek } from "./workout-utils"
 
 export default function ProgramEditor() {
-  const [isPending, setIsPending] = useState(false)
-  const router = useRouter()
   const workouts = useZProgramWorkouts()
   const programType = useZProgramType()
   const programName = useZProgramName()
@@ -44,7 +36,6 @@ export default function ProgramEditor() {
   const workoutsByWeek = groupWorkoutsByWeek(workouts)
 
   const proposedChanges = useZProposedChanges()
-  const isNewProgram = useZIsNewProgram()
 
   // Handle proposal actions (accept/reject)
   const handleProposalAction = (
@@ -116,25 +107,6 @@ export default function ProgramEditor() {
     setWorkouts(newWorkouts)
   }
 
-  const handleOnCreate = async () => {
-    setIsPending(true)
-    const { data: createdProgram, error: createError } =
-      await createProgramAction({
-        type: programType,
-        created_at: new Date().toISOString(),
-        name: programName,
-        workouts,
-      })
-    setIsPending(false)
-    if (createError) {
-      toast("Error creating workout")
-      return
-    }
-    router.push(`/home/studio/${createdProgram.id}`)
-    toast("Workout created")
-  }
-
-  const [error, setError] = useState(new Error())
   const domainProgram: Program = useMemo(
     () => ({
       id: programId,
@@ -149,33 +121,9 @@ export default function ProgramEditor() {
     const { error } = programSchema.safeParse(domainProgram)
     if (error) {
       // TODO: show error to user / highlight problematic fields!
-      setError(error)
-    } else {
-      setError(new Error())
+      console.error("Program validation error:", error.message)
     }
   }, [domainProgram])
-
-  const handleOnSave = async () => {
-    setIsPending(true)
-    const { error: updateError } = await updateProgramAction(domainProgram)
-    if (updateError) {
-      toast.error("Error", {
-        description: `Oops! We couldn't save your workout.Please try again`,
-      })
-      setIsPending(false)
-      return
-    }
-    toast.success("Success", {
-      description: `${programName} saved`,
-    })
-    setIsPending(false)
-    router.refresh()
-  }
-
-  // TODO: uncomment when we support weekly programs
-  // const handleProgramSelect = (v: "weekly" | "splits") => {
-  //   setProgramType(v)
-  // }
 
   // handle duplicating the current week to the next week
   const handleDuplicateWeek = (weekIdx: number) => {
@@ -189,21 +137,6 @@ export default function ProgramEditor() {
     setWorkouts([...workouts, ...dupeWorkouts])
   }
 
-  // Create header actions for the PageHeader
-  const headerActions = (
-    <div className="flex items-center justify-center space-x-2">
-      {/* TODO: uncomment when we support weekly programs */}
-      {/* <ProgramSelect onValueChange={handleProgramSelect} value={programType} /> */}
-      <MLoadingButton
-        className="w-20"
-        isLoading={isPending}
-        onClick={() => (isNewProgram ? handleOnCreate() : handleOnSave())}
-        variant="outline"
-      >
-        {isNewProgram ? "Create" : "Save"}
-      </MLoadingButton>
-    </div>
-  )
   const { open } = useSidebar()
   return (
     <div className="px-1 pt-2">
@@ -231,11 +164,15 @@ export default function ProgramEditor() {
             </div>
           )}
           {workoutsByWeek.map((weeksWorkouts, weekIdx) => {
+            const weekKey =
+              weeksWorkouts.length > 0
+                ? `week-${weekIdx}-workout-${weeksWorkouts[0].id}`
+                : `week-${weekIdx}-empty`
             return (
               <div
                 className="min-w-[1200px] space-y-4 pt-4 pr-4 [--action-menu-padding:--spacing(18)]"
                 id="program-ui"
-                key={`by-week-workout-${weekIdx}`}
+                key={weekKey}
               >
                 {/* TODO: support weekly programs */}
                 {programType === "weekly" && (
@@ -273,7 +210,7 @@ export default function ProgramEditor() {
                   className="w-full grow space-y-8"
                   id="program-grid-container"
                 >
-                  {weeksWorkouts.map((workout, workoutIdx) => {
+                  {weeksWorkouts.map((workout) => {
                     return (
                       <div className="flex gap-4" key={workout.id}>
                         <div className="grow space-y-4">
