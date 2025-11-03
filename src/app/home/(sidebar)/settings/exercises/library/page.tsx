@@ -2,6 +2,7 @@
 
 import { useQuery } from "convex/react"
 import { SiteHeader } from "@/components/site-header"
+import { BasicSkeleton } from "@/components/skeletons/basic-skeleton"
 import { api } from "@/convex/_generated/api"
 import { ClientExercisesPage } from "./ClientExercisesPage"
 
@@ -25,8 +26,8 @@ export default function SettingsExercisesPage() {
           className="@container/main scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent h-[calc(100svh-var(--header-height)-2*var(--inset-height))] overflow-y-auto rounded-xl py-4"
           id="exercises content"
         >
-          <div className="flex flex-col items-center justify-center gap-4 bg-background pb-4 md:gap-6 md:px-4">
-            <p className="text-muted-foreground">Loading exercises...</p>
+          <div className="pb-4 md:px-4">
+            <BasicSkeleton className="w-full" />
           </div>
         </div>
       </>

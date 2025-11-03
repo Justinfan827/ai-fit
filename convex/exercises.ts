@@ -81,6 +81,187 @@ export const createCategoryValue = mutation({
 })
 
 /**
+ * Update a category
+ */
+export const updateCategory = mutation({
+  args: {
+    categoryId: v.id("categories"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    userId: v.id("users"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const category = await ctx.db.get(args.categoryId)
+
+    if (!category) {
+      throw new Error("Category not found")
+    }
+
+    if (category.userId !== args.userId) {
+      throw new Error("Category not found or cannot be updated")
+    }
+
+    if (category.deletedAt) {
+      throw new Error("Cannot update a deleted category")
+    }
+
+    const now = new Date().toISOString()
+
+    // Check if another category with the same name exists (non-deleted)
+    const existing = await ctx.db
+      .query("categories")
+      .withIndex("by_user_id_and_name", (q) =>
+        q.eq("userId", args.userId).eq("name", args.name)
+      )
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .first()
+
+    if (existing && existing._id !== args.categoryId) {
+      throw new Error(`Category "${args.name}" already exists for this user`)
+    }
+
+    await ctx.db.patch(args.categoryId, {
+      name: args.name,
+      description: args.description,
+      updatedAt: now,
+    })
+
+    return null
+  },
+})
+
+/**
+ * Delete a category (soft delete)
+ */
+export const deleteCategory = mutation({
+  args: {
+    categoryId: v.id("categories"),
+    userId: v.id("users"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const category = await ctx.db.get(args.categoryId)
+
+    if (!category) {
+      throw new Error("Category not found")
+    }
+
+    if (category.userId !== args.userId) {
+      throw new Error("Category not found or cannot be deleted")
+    }
+
+    if (category.deletedAt) {
+      return null
+    }
+
+    const now = new Date().toISOString()
+
+    // Soft delete the category
+    await ctx.db.patch(args.categoryId, {
+      deletedAt: now,
+      updatedAt: now,
+    })
+
+    // Soft delete all values in this category
+    const values = await ctx.db
+      .query("categoryValues")
+      .withIndex("by_category_id", (q) => q.eq("categoryId", args.categoryId))
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect()
+
+    const deleteValuePromises = values.map(async (value) => {
+      await ctx.db.patch(value._id, {
+        deletedAt: now,
+        updatedAt: now,
+      })
+    })
+
+    await Promise.all(deleteValuePromises)
+
+    return null
+  },
+})
+
+/**
+ * Update a category value
+ */
+export const updateCategoryValue = mutation({
+  args: {
+    categoryValueId: v.id("categoryValues"),
+    name: v.string(),
+    description: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const categoryValue = await ctx.db.get(args.categoryValueId)
+
+    if (!categoryValue) {
+      throw new Error("Category value not found")
+    }
+
+    if (categoryValue.deletedAt) {
+      throw new Error("Cannot update a deleted category value")
+    }
+
+    const now = new Date().toISOString()
+
+    // Check if another value with the same name exists in this category (non-deleted)
+    const existing = await ctx.db
+      .query("categoryValues")
+      .withIndex("by_category_id_and_name", (q) =>
+        q.eq("categoryId", categoryValue.categoryId).eq("name", args.name)
+      )
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .first()
+
+    if (existing && existing._id !== args.categoryValueId) {
+      throw new Error(
+        `Category value "${args.name}" already exists in this category`
+      )
+    }
+
+    await ctx.db.patch(args.categoryValueId, {
+      name: args.name,
+      description: args.description,
+      updatedAt: now,
+    })
+
+    return null
+  },
+})
+
+/**
+ * Delete a category value (soft delete)
+ */
+export const deleteCategoryValue = mutation({
+  args: {
+    categoryValueId: v.id("categoryValues"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const categoryValue = await ctx.db.get(args.categoryValueId)
+
+    if (!categoryValue) {
+      throw new Error("Category value not found")
+    }
+
+    if (categoryValue.deletedAt) {
+      return null
+    }
+
+    const now = new Date().toISOString()
+
+    await ctx.db.patch(args.categoryValueId, {
+      deletedAt: now,
+      updatedAt: now,
+    })
+
+    return null
+  },
+})
+
+/**
  * Create an exercise
  */
 export const createExercise = mutation({

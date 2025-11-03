@@ -1,9 +1,11 @@
-import { Suspense } from "react"
+"use client"
+
+import { useQuery } from "convex/react"
 import { CategoryManager } from "@/components/categories/CategoryManager"
 import { SiteHeader } from "@/components/site-header"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getUserCategories } from "@/lib/supabase/server/database.operations.queries"
+import { api } from "@/convex/_generated/api"
 
 function CategoryManagerSkeleton() {
   return (
@@ -20,47 +22,75 @@ function CategoryManagerSkeleton() {
       </div>
 
       <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={`skeleton-${i}`}>
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-72" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-16" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-6 w-20" />
-                  <Skeleton className="h-6 w-24" />
-                  <Skeleton className="h-6 w-18" />
+        {Array.from({ length: 3 }, (_, i) => `skeleton-category-${i}`).map(
+          (key) => (
+            <Card key={key}>
+              <CardHeader>
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-72" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-16" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-6 w-20" />
+                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-6 w-18" />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          )
+        )}
       </div>
     </div>
   )
 }
 
-async function CategoryManagerWithData() {
-  const { data: categories, error } = await getUserCategories()
+export default function SettingsExercisesConfigurationPage() {
+  const user = useQuery(api.users.getCurrentUser)
+  const categoriesData = useQuery(
+    api.exercises.getCategoriesWithValues,
+    user ? { userId: user.id } : "skip"
+  )
 
-  if (error) {
-    throw new Error(`Failed to load categories: ${error.message}`)
+  // Show loading state while data is being fetched
+  if (!user || categoriesData === undefined) {
+    return (
+      <>
+        <SiteHeader left={<div>Configuration</div>} />
+        <div className="container mx-auto p-6">
+          <CategoryManagerSkeleton />
+        </div>
+      </>
+    )
   }
 
-  return <CategoryManager initialCategories={categories || []} />
-}
+  // Transform Convex data to match CategoryWithValues interface
+  const categories = categoriesData.map((category) => ({
+    id: category._id,
+    name: category.name,
+    description: category.description ?? null,
+    userId: category.userId,
+    createdAt: category.createdAt,
+    updatedAt: category.updatedAt,
+    deletedAt: category.deletedAt ?? null,
+    values: category.values.map((value) => ({
+      id: value._id,
+      categoryId: value.categoryId,
+      name: value.name,
+      description: value.description ?? null,
+      createdAt: value.createdAt,
+      updatedAt: value.updatedAt,
+      deletedAt: value.deletedAt ?? null,
+    })),
+  }))
 
-export default function SettingsExercisesConfigurationPage() {
   return (
     <>
       <SiteHeader left={<div>Configuration</div>} />
       <div className="container mx-auto p-6">
-        <Suspense fallback={<CategoryManagerSkeleton />}>
-          <CategoryManagerWithData />
-        </Suspense>
+        <CategoryManager initialCategories={categories} userId={user.id} />
       </div>
     </>
   )

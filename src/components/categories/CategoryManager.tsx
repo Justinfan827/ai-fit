@@ -2,16 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Edit2, Plus, Save, Trash2, X } from "lucide-react"
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { v4 as uuidv4 } from "uuid"
 import { z } from "zod"
-import {
-  type CategoryOperation,
-  manageCategoriesAction,
-  type ValueOperation,
-} from "@/actions/manage-categories"
+import { useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,6 +27,7 @@ import { EmptyStateCard } from "../empty-state"
 
 interface CategoryManagerProps {
   initialCategories: CategoryWithValues[]
+  userId: Id<"users">
 }
 
 // Form schema for category editing
@@ -65,7 +64,48 @@ interface UICategoryValue {
   description?: string
 }
 
-export function CategoryManager({ initialCategories }: CategoryManagerProps) {
+type CategoryOperation =
+  | {
+      operation: "create"
+      tempId: string
+      name: string
+      description?: string
+      values: ValueOperation[]
+    }
+  | {
+      operation: "update"
+      id: string
+      name: string
+      description?: string
+      values: ValueOperation[]
+    }
+  | {
+      operation: "delete"
+      id: string
+    }
+
+type ValueOperation =
+  | {
+      operation: "create"
+      tempId: string
+      name: string
+      description?: string
+    }
+  | {
+      operation: "update"
+      id: string
+      name: string
+      description?: string
+    }
+  | {
+      operation: "delete"
+      id: string
+    }
+
+export function CategoryManager({
+  initialCategories,
+  userId,
+}: CategoryManagerProps) {
   // Keep original state immutable for reference
   const [originalCategories] = useState<UICategory[]>(() =>
     initialCategories.map((cat) => ({
@@ -80,8 +120,22 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     }))
   )
 
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+
+  // Convex mutations
+  const createCategoryMutation = useMutation(api.exercises.createCategory)
+  const updateCategoryMutation = useMutation(api.exercises.updateCategory)
+  const deleteCategoryMutation = useMutation(api.exercises.deleteCategory)
+  const createCategoryValueMutation = useMutation(
+    api.exercises.createCategoryValue
+  )
+  const updateCategoryValueMutation = useMutation(
+    api.exercises.updateCategoryValue
+  )
+  const deleteCategoryValueMutation = useMutation(
+    api.exercises.deleteCategoryValue
+  )
 
   // Initialize form with current categories
   const form = useForm<CategoryFormData>({
@@ -155,32 +209,98 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     form.setValue("categories", updatedCategories)
   }
 
-  const handleSaveChanges = form.handleSubmit((data) => {
-    startTransition(async () => {
-      try {
-        // Temporarily set categories from form data for diff calculation
-        const formCategories = data.categories
-        const operations = createDiffWithData(formCategories)
+  const handleSaveChanges = form.handleSubmit(async (data) => {
+    setIsPending(true)
+    try {
+      // Temporarily set categories from form data for diff calculation
+      const formCategories = data.categories
+      const operations = createDiffWithData(formCategories)
 
-        if (operations.length === 0) {
-          toast.success("No changes to save")
-          setIsEditing(false)
-          return
-        }
-
-        const result = await manageCategoriesAction({
-          categories: operations,
-        })
-
-        if (result.error) {
-          throw new Error(result.error.message)
-        }
-        toast.success("Categories saved successfully")
+      if (operations.length === 0) {
+        toast.success("No changes to save")
         setIsEditing(false)
-      } catch {
-        toast.error("Failed to save categories")
+        setIsPending(false)
+        return
       }
-    })
+
+      // Process operations sequentially
+      // First, handle deletes (in reverse order to avoid issues)
+      for (const operation of operations) {
+        if (operation.operation === "delete") {
+          await deleteCategoryMutation({
+            categoryId: operation.id as Id<"categories">,
+            userId,
+          })
+        }
+      }
+
+      // Then, handle creates (create categories first, then values)
+      for (const operation of operations) {
+        if (operation.operation === "create") {
+          const categoryId = await createCategoryMutation({
+            name: operation.name,
+            description: operation.description,
+            userId,
+          })
+
+          // Create values for this category
+          for (const valueOp of operation.values) {
+            if (valueOp.operation === "create") {
+              await createCategoryValueMutation({
+                categoryId,
+                name: valueOp.name,
+                description: valueOp.description,
+              })
+            }
+          }
+        }
+      }
+
+      // Finally, handle updates (update categories, then process values)
+      for (const operation of operations) {
+        if (operation.operation === "update") {
+          // Update category
+          await updateCategoryMutation({
+            categoryId: operation.id as Id<"categories">,
+            name: operation.name,
+            description: operation.description,
+            userId,
+          })
+
+          // Process values for this category
+          for (const valueOp of operation.values) {
+            if (valueOp.operation === "create") {
+              await createCategoryValueMutation({
+                categoryId: operation.id as Id<"categories">,
+                name: valueOp.name,
+                description: valueOp.description,
+              })
+            } else if (valueOp.operation === "update") {
+              await updateCategoryValueMutation({
+                categoryValueId: valueOp.id as Id<"categoryValues">,
+                name: valueOp.name,
+                description: valueOp.description,
+              })
+            } else if (valueOp.operation === "delete") {
+              await deleteCategoryValueMutation({
+                categoryValueId: valueOp.id as Id<"categoryValues">,
+              })
+            }
+          }
+        }
+      }
+
+      toast.success("Categories saved successfully")
+      setIsEditing(false)
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to save categories"
+      )
+    } finally {
+      setIsPending(false)
+    }
   })
 
   // Helper functions to break down complex diff logic
