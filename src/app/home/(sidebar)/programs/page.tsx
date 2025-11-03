@@ -2,7 +2,6 @@ import { Suspense } from "react"
 import { SiteHeader } from "@/components/site-header"
 import { BasicSkeleton } from "@/components/skeletons/basic-skeleton"
 import { ButtonSkeleton } from "@/components/skeletons/button-skeleton"
-import NewProgramButtonWithData from "./new-program-button-with-data"
 import ProgramsListWithData from "./programs-list-with-data"
 
 export default function WorkoutsPage() {
@@ -12,7 +11,7 @@ export default function WorkoutsPage() {
         left={"Programs"}
         right={
           <Suspense fallback={<ButtonSkeleton />}>
-            <NewProgramButtonWithData />
+            {/* <NewProgramButtonWithData /> */}
           </Suspense>
         }
       />

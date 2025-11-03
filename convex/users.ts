@@ -1,7 +1,12 @@
 import type { UserJSON } from "@clerk/backend"
 import { type Validator, v } from "convex/values"
-import { v4 as uuidv4 } from "uuid"
-import { internalMutation, type QueryCtx, query } from "./_generated/server"
+import type { Id } from "./_generated/dataModel"
+import {
+  internalMutation,
+  mutation,
+  type QueryCtx,
+  query,
+} from "./_generated/server"
 import { throwIfNotAuthenticated } from "./auth"
 
 const getAllByTrainerId = query({
@@ -54,17 +59,67 @@ const getById = query({
   },
 })
 
+const getClientById = query({
+  args: {
+    clientId: v.string(),
+  },
+  handler: async (ctx, { clientId }) => {
+    const trainer = await throwIfNotAuthenticated(ctx)
+
+    // Convert string ID to Convex ID
+    const clientIdAsId = clientId as Id<"users">
+    const client = await ctx.db.get(clientIdAsId)
+
+    if (!client || client.trainerId !== trainer.id) {
+      return null
+    }
+
+    // Convert height value: if unit is "in", convert to total inches
+    // Note: heightValue is stored as total inches when unit is "in"
+    const heightValue = client.heightValue ?? 0
+    const heightUnit = client.heightUnit ?? "cm"
+
+    // Convert height value back to format expected by frontend
+    // If unit is "in", we need to convert total inches back to feet/inches format
+    // But the frontend expects { value: number, unit: "cm" | "in" }
+    // Where value for "in" is total inches
+    const height = {
+      value: heightValue,
+      unit: heightUnit as "cm" | "in",
+    }
+
+    const weight = {
+      value: client.weightValue ?? 0,
+      unit: (client.weightUnit ?? "kg") as "kg" | "lbs",
+    }
+
+    return {
+      id: client._id,
+      avatarURL: client.avatarURL || "",
+      createdAt: client.createdAt,
+      email: client.email,
+      firstName: client.firstName,
+      lastName: client.lastName,
+      age: client.age ?? 0,
+      gender: (client.gender ?? "male") as "male" | "female",
+      height,
+      weight,
+      programs: [], // Programs not yet migrated to Convex
+      trainerNotes: [], // Trainer notes not yet migrated to Convex
+    }
+  },
+})
+
 const upsertFromClerk = internalMutation({
   args: { data: v.any() as Validator<UserJSON> },
   async handler(ctx, { data }) {
     const user = await unauthedGetByExternalId(ctx, data.id)
     if (user === null) {
       await ctx.db.insert("users", {
-        id: uuidv4(),
         // ISO8601 date string of current UTC time
         createdAt: new Date().toISOString(),
         externalId: data.id,
-        trainerId: "",
+        trainerId: undefined,
         email: data.email_addresses[0]?.email_address || "",
         firstName: data.first_name || "",
         lastName: data.last_name || "",
@@ -104,6 +159,79 @@ async function unauthedGetByExternalId(ctx: QueryCtx, externalId: string) {
     .unique()
 }
 
+const createClient = mutation({
+  args: {
+    firstName: v.string(),
+    lastName: v.string(),
+    email: v.string(),
+    age: v.number(),
+    gender: v.union(v.literal("male"), v.literal("female")),
+    heightValue: v.number(),
+    heightUnit: v.union(v.literal("cm"), v.literal("in")),
+    weightValue: v.number(),
+    weightUnit: v.union(v.literal("kg"), v.literal("lbs")),
+  },
+  handler: async (ctx, args) => {
+    const trainer = await throwIfNotAuthenticated(ctx)
+
+    const userId = await ctx.db.insert("users", {
+      externalId: "",
+      trainerId: trainer.id,
+      email: args.email,
+      firstName: args.firstName,
+      lastName: args.lastName,
+      avatarURL: "",
+      age: args.age,
+      gender: args.gender,
+      heightValue: args.heightValue,
+      heightUnit: args.heightUnit,
+      weightValue: args.weightValue,
+      weightUnit: args.weightUnit,
+      createdAt: new Date().toISOString(),
+    })
+
+    const createdUser = await ctx.db.get(userId)
+    if (!createdUser) {
+      throw new Error("Failed to create client")
+    }
+
+    return {
+      id: createdUser._id,
+      avatarURL: createdUser.avatarURL || "",
+      createdAt: createdUser.createdAt,
+      email: createdUser.email,
+      firstName: createdUser.firstName,
+      lastName: createdUser.lastName,
+    }
+  },
+})
+
+const removeClientFromTrainer = mutation({
+  args: {
+    clientId: v.id("users"),
+  },
+  handler: async (ctx, { clientId }) => {
+    const trainer = await throwIfNotAuthenticated(ctx)
+
+    const client = await ctx.db.get(clientId)
+
+    if (!client) {
+      throw new Error("Client not found")
+    }
+
+    // Verify the client belongs to this trainer
+    if (client.trainerId !== trainer.id) {
+      throw new Error("Client not found or access denied")
+    }
+
+    // Remove the trainer association by setting trainerId to undefined
+    await ctx.db.patch(clientId, {
+      trainerId: undefined,
+      updatedAt: new Date().toISOString(),
+    })
+  },
+})
+
 export {
   // getters
   getAllByTrainerId,
@@ -111,6 +239,12 @@ export {
   getCurrentUser,
   // get user by id
   getById,
+  // get client by id
+  getClientById,
+  // create client
+  createClient,
+  // remove client from trainer
+  removeClientFromTrainer,
   // for clerk webhooks
   upsertFromClerk,
   deleteFromClerk,

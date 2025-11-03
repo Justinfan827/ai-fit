@@ -1,12 +1,16 @@
-import { getUserPrograms } from "@/lib/supabase/server/database.operations.queries"
+"use client"
+
+import { useQuery } from "convex/react"
+import { BasicSkeleton } from "@/components/skeletons/basic-skeleton"
+import { api } from "@/convex/_generated/api"
 import { ProgramsList } from "./program-list"
 
-export default async function ProgramsListWithData() {
-  const programs = await getUserPrograms()
+export default function ProgramsListWithData() {
+  const programs = useQuery(api.programs.getAll)
 
-  if (programs.error) {
-    return <div>Error: {programs.error.message}</div>
+  if (programs === undefined) {
+    return <BasicSkeleton />
   }
 
-  return <ProgramsList programs={programs.data} />
+  return <ProgramsList programs={programs} />
 }

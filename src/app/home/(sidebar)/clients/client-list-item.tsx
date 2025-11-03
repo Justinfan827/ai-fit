@@ -2,7 +2,7 @@
 
 import { useMutation } from "convex/react"
 import Link from "next/link"
-import { useOptimistic, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 import { EmptyStateCard } from "@/components/empty-state"
 import { Icons } from "@/components/icons"
@@ -31,18 +31,11 @@ import { cn } from "@/lib/utils"
 
 export function ClientsList({ clients }: { clients: ClientBasic[] }) {
   const removeClient = useMutation(api.users.removeClientFromTrainer)
-  const [optimisticClients, deleteOptimisticClient] = useOptimistic(
-    clients,
-    (state, clientId: string) => {
-      return state.filter((client) => client.id !== clientId)
-    }
-  )
 
   const onDelete = async (clientId: string) => {
+    const deletedClient = clients.find((client) => client.id === clientId)
     try {
-      const deletedClient = clients.find((client) => client.id === clientId)
-      deleteOptimisticClient(clientId)
-      await removeClient({ clientId: clientId as Id<"clients"> })
+      await removeClient({ clientId: clientId as Id<"users"> })
       toast.success("Client removed successfully", {
         description: (
           <code className="text-xs">
@@ -52,10 +45,11 @@ export function ClientsList({ clients }: { clients: ClientBasic[] }) {
       })
     } catch (error) {
       toast.error("Failed to remove client")
+      console.error(error)
     }
   }
 
-  if (optimisticClients.length === 0) {
+  if (clients.length === 0) {
     return (
       <EmptyStateCard
         className="w-full"
@@ -67,7 +61,7 @@ export function ClientsList({ clients }: { clients: ClientBasic[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {optimisticClients.map((client) => (
+      {clients.map((client) => (
         <ClientListItem client={client} key={client.id} onDelete={onDelete} />
       ))}
     </div>

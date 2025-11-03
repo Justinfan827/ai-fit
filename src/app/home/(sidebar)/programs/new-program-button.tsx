@@ -1,11 +1,12 @@
 "use client"
 
+import { useMutation } from "convex/react"
 import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 import { toast } from "sonner"
-import { createProgramAction } from "@/actions/create-program"
 import { Icons } from "@/components/icons"
 import MLoadingButton from "@/components/massor/buttons/m-buttons"
+import { api } from "@/convex/_generated/api"
 import {
   EditorProgramProvider,
   useZProgramWorkouts,
@@ -28,24 +29,33 @@ function NewProgramButtonContent() {
   const workouts = useZProgramWorkouts()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const createProgram = useMutation(api.programs.create)
+
   const handleOnCreate = () => {
     startTransition(async () => {
-      const { data, error } = await createProgramAction({
-        type: "splits",
-        name: "New Program",
-        created_at: new Date().toISOString(),
-        workouts,
-      })
-      if (error) {
+      try {
+        // Map workouts to the format expected by Convex mutation
+        const workoutsForMutation = workouts.map((workout, index) => ({
+          name: workout.name,
+          blocks: workout.blocks,
+          programOrder: workout.program_order ?? index,
+          week: workout.week,
+        }))
+
+        const data = await createProgram({
+          type: "splits",
+          name: "New Program",
+          workouts: workoutsForMutation,
+        })
+        router.push(`/home/studio/${data.id}`)
+        toast("Success", {
+          description: "Program created",
+        })
+      } catch {
         toast.error("Something went wrong", {
           description: "Please try again later!",
         })
-        return
       }
-      router.push(`/home/studio/${data.id}`)
-      toast("Success", {
-        description: "Program created",
-      })
     })
   }
   return (

@@ -1,0 +1,192 @@
+import { v } from "convex/values"
+import { mutation, query } from "./_generated/server"
+import { throwIfNotAuthenticated } from "./auth"
+
+const getAll = query({
+  handler: async (ctx) => {
+    const user = await throwIfNotAuthenticated(ctx)
+
+    // Get all programs for the current user
+    const programs = await ctx.db
+      .query("programs")
+      .withIndex("byUserId", (q) => q.eq("userId", user.id))
+      .collect()
+
+    // Sort programs by createdAt descending
+    programs.sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+
+    // Get workouts for each program
+    const programsWithWorkouts = await Promise.all(
+      programs.map(async (program) => {
+        const workouts = await ctx.db
+          .query("workouts")
+          .withIndex("byProgramIdOrder", (q) => q.eq("programId", program._id))
+          .collect()
+
+        // Sort workouts by programOrder
+        workouts.sort((a, b) => a.programOrder - b.programOrder)
+
+        return {
+          id: program._id,
+          created_at: program.createdAt,
+          name: program.name,
+          type: program.type as "weekly" | "splits",
+          workouts: workouts.map((workout) => ({
+            id: workout._id,
+            program_order: workout.programOrder,
+            program_id: workout.programId,
+            name: workout.name,
+            blocks: workout.blocks,
+            week: workout.week,
+          })),
+        }
+      })
+    )
+
+    return programsWithWorkouts
+  },
+})
+
+const getById = query({
+  args: {
+    programId: v.id("programs"),
+  },
+  handler: async (ctx, { programId }) => {
+    const user = await throwIfNotAuthenticated(ctx)
+
+    const program = await ctx.db.get(programId)
+
+    if (!program) {
+      return null
+    }
+
+    // Validate ownership
+    if (program.userId !== user.id) {
+      return null
+    }
+
+    // Get workouts for this program
+    const workouts = await ctx.db
+      .query("workouts")
+      .withIndex("byProgramIdOrder", (q) => q.eq("programId", programId))
+      .collect()
+
+    // Sort workouts by programOrder
+    workouts.sort((a, b) => a.programOrder - b.programOrder)
+
+    return {
+      id: program._id,
+      created_at: program.createdAt,
+      name: program.name,
+      type: program.type as "weekly" | "splits",
+      workouts: workouts.map((workout) => ({
+        id: workout._id,
+        program_order: workout.programOrder,
+        program_id: workout.programId,
+        name: workout.name,
+        blocks: workout.blocks,
+        week: workout.week,
+      })),
+    }
+  },
+})
+
+const create = mutation({
+  args: {
+    name: v.string(),
+    type: v.union(v.literal("weekly"), v.literal("splits")),
+    workouts: v.array(
+      v.object({
+        name: v.string(),
+        blocks: v.any(),
+        programOrder: v.number(),
+        week: v.optional(v.number()),
+      })
+    ),
+  },
+  handler: async (ctx, { name, type, workouts }) => {
+    const user = await throwIfNotAuthenticated(ctx)
+
+    const createdAt = new Date().toISOString()
+
+    // Create the program
+    const programId = await ctx.db.insert("programs", {
+      userId: user.id,
+      name,
+      type,
+      createdAt,
+      isTemplate: true,
+    })
+
+    // Create workouts
+    const workoutIds = await Promise.all(
+      workouts.map((workout) =>
+        ctx.db.insert("workouts", {
+          programId,
+          name: workout.name,
+          blocks: workout.blocks,
+          programOrder: workout.programOrder,
+          week: workout.week,
+          createdAt,
+          userId: user.id,
+        })
+      )
+    )
+
+    // Fetch the created program and workouts to return
+    const program = await ctx.db.get(programId)
+    if (!program) {
+      throw new Error("Failed to create program")
+    }
+
+    const createdWorkouts = await Promise.all(
+      workoutIds.map((id) => ctx.db.get(id))
+    )
+
+    const validWorkouts = createdWorkouts.filter(
+      (w): w is NonNullable<typeof w> => w !== null
+    )
+
+    return {
+      id: program._id,
+      created_at: program.createdAt,
+      name: program.name,
+      type: program.type as "weekly" | "splits",
+      workouts: validWorkouts.map((workout) => ({
+        id: workout._id,
+        program_order: workout.programOrder,
+        program_id: workout.programId,
+        name: workout.name,
+        blocks: workout.blocks,
+        week: workout.week,
+      })),
+    }
+  },
+})
+
+const deleteProgram = mutation({
+  args: {
+    programId: v.id("programs"),
+  },
+  handler: async (ctx, { programId }) => {
+    const user = await throwIfNotAuthenticated(ctx)
+
+    const program = await ctx.db.get(programId)
+
+    if (!program) {
+      throw new Error("Program not found")
+    }
+
+    // Validate ownership
+    if (program.userId !== user.id) {
+      throw new Error("Unauthorized")
+    }
+
+    // Delete the program (workouts will be cascade deleted)
+    await ctx.db.delete(programId)
+  },
+})
+
+export { create, deleteProgram, getAll, getById }
