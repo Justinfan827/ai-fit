@@ -1,9 +1,9 @@
 "use client"
 
+import { useMutation } from "convex/react"
 import Link from "next/link"
-import { useOptimistic, useState, useTransition } from "react"
+import { useOptimistic, useState } from "react"
 import { toast } from "sonner"
-import { deleteClientAction } from "@/actions/delete-client"
 import { EmptyStateCard } from "@/components/empty-state"
 import { Icons } from "@/components/icons"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -24,37 +24,35 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import type { ClientBasic } from "@/lib/domain/clients"
 import { cn } from "@/lib/utils"
 
 export function ClientsList({ clients }: { clients: ClientBasic[] }) {
+  const removeClient = useMutation(api.users.removeClientFromTrainer)
   const [optimisticClients, deleteOptimisticClient] = useOptimistic(
     clients,
     (state, clientId: string) => {
       return state.filter((client) => client.id !== clientId)
     }
   )
-  const [_isPending, startTransition] = useTransition()
-  const onDelete = (clientId: string) => {
-    startTransition(async () => {
-      try {
-        deleteOptimisticClient(clientId)
-        const { error } = await deleteClientAction({ clientId })
-        if (error) {
-          throw error
-        }
-        const deletedClient = clients.find((client) => client.id === clientId)
-        toast.success("Client removed successfully", {
-          description: (
-            <code className="text-xs">
-              {deletedClient?.firstName} {deletedClient?.lastName}
-            </code>
-          ),
-        })
-      } catch {
-        toast.error("Failed to remove client")
-      }
-    })
+
+  const onDelete = async (clientId: string) => {
+    try {
+      const deletedClient = clients.find((client) => client.id === clientId)
+      deleteOptimisticClient(clientId)
+      await removeClient({ clientId: clientId as Id<"clients"> })
+      toast.success("Client removed successfully", {
+        description: (
+          <code className="text-xs">
+            {deletedClient?.firstName} {deletedClient?.lastName}
+          </code>
+        ),
+      })
+    } catch (error) {
+      toast.error("Failed to remove client")
+    }
   }
 
   if (optimisticClients.length === 0) {

@@ -1,9 +1,14 @@
+import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
 import { UnauthHeader } from "@/components/header"
 import { LoginForm } from "@/components/login-form"
-import { redirectAuthorizedUser } from "@/lib/supabase/server/auth-utils"
 
 export default async function Page() {
-  await redirectAuthorizedUser()
+  const { userId } = await auth()
+  if (userId) {
+    redirect("/home/clients")
+  }
+
   return (
     <div className="h-dvh">
       <UnauthHeader />

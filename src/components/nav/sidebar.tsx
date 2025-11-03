@@ -15,7 +15,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import type { CurrentUser } from "@/lib/supabase/server/database.operations.queries"
 
 // Menu items.
 const mainItems = [
@@ -57,13 +56,11 @@ const settingsItems = [
 
 type AppSidebarProps = {
   hideOnURLs?: string[]
-  user: CurrentUser
 }
 const userSettingsRegex = /\/settings(\/|$)/
-export function AppSidebar({ hideOnURLs = [], user }: AppSidebarProps) {
+export function AppSidebar({ hideOnURLs = [] }: AppSidebarProps) {
   const path = usePathname()
   const router = useRouter()
-
   if (hideOnURLs.some((url) => new RegExp(url).test(path))) {
     return null
   }
@@ -171,13 +168,7 @@ export function AppSidebar({ hideOnURLs = [], user }: AppSidebarProps) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <NavUser
-              user={{
-                name: `${user.firstName} ${user.lastName}`,
-                email: user.email || "",
-                avatarURL: user.avatarURL || "",
-              }}
-            />
+            <NavUser />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

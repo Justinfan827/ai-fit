@@ -1,5 +1,6 @@
 "use client"
 
+import { useSignIn } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { useTransition } from "react"
@@ -7,7 +8,6 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 import { Input } from "@/components/ui/input"
-import { createBrowserClient } from "@/lib/supabase/create-browser-client"
 import { isLive } from "@/lib/utils"
 import MLoadingButton from "./massor/buttons/m-buttons"
 import { PasswordInput } from "./password-input"
@@ -23,20 +23,20 @@ import {
 
 type Inputs = z.infer<typeof authSchema>
 export const authSchema = z.object({
-  email: z.email({
-    error: "Please enter a valid email address",
+  email: z.string().email({
+    message: "Please enter a valid email address",
   }),
   password: z
     .string()
-    .min(6, {
-      error: "Password must be at least 8 characters long",
+    .min(8, {
+      message: "Password must be at least 8 characters long",
     })
     .max(100),
 })
 export function LoginForm() {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
-  const client = createBrowserClient()
+  const { signIn, setActive, isLoaded } = useSignIn()
   const form = useForm<Inputs>({
     resolver: zodResolver(authSchema),
     defaultValues: {
@@ -45,40 +45,29 @@ export function LoginForm() {
     },
   })
 
-  // const searchParams = useSearchParams()
-  // const originalPath = searchParams.get('original_path') || ''
   const onSubmit = (data: Inputs) => {
+    if (!isLoaded) {
+      return
+    }
+
     startTransition(async () => {
       try {
-        const { error } = await client.auth.signInWithPassword({
-          email: data.email,
+        const result = await signIn.create({
+          identifier: data.email,
           password: data.password,
         })
-        if (error) {
-          throw error
+
+        if (result.status === "complete") {
+          await setActive({ session: result.createdSessionId })
+          router.push("/home/clients")
+        } else {
+          toast.error("Sign in incomplete. Please try again.")
         }
-        // TODO: support email sign up flow.
-        // const authURL = siteConfig.auth.callbackURL({
-        //   query: new URLSearchParams({
-        //     // original_path: originalPath,
-        //   }),
-        // })
-        // const { error } = await client.auth.signInWithOtp({
-        //   email: data.email,
-        //   options: {
-        //     shouldCreateUser: false,
-        //     emailRedirectTo: authURL,
-        //   },
-        // })
-        // toast({
-        //   title: 'Check your email',
-        //   description:
-        //     'We sent you an email! Click the link there to sign in. You may close this tab.',
-        // })
-        router.push("/home/clients")
       } catch (error) {
         if (error instanceof Error) {
-          toast("Email sign in failed")
+          toast.error(error.message || "Email sign in failed")
+        } else {
+          toast.error("Email sign in failed")
         }
         return
       }

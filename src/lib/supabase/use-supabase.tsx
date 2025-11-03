@@ -3,9 +3,9 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js"
 import { useRouter } from "next/navigation"
 import { createContext, useContext, useEffect, useState } from "react"
+import type { CurrentUser } from "@/lib/types/user"
 import { createBrowserClient } from "./create-browser-client"
 import type { Database } from "./database.types"
-import type { CurrentUser } from "./server/database.operations.queries"
 
 type MaybeUser = User | null
 

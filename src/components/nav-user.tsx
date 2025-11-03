@@ -1,6 +1,7 @@
 "use client"
 
 import { IconLogout, IconUserCircle } from "@tabler/icons-react"
+import { useQuery } from "convex/react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -18,21 +19,18 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { api } from "@/convex/_generated/api"
 import { useSignOut } from "@/hooks/use-sign-out"
 import { Icons } from "./icons"
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatarURL: string
-  }
-}) {
+export function NavUser() {
   const { isMobile } = useSidebar()
+  const user = useQuery(api.users.getCurrentUser)
   const { signOut, isPending } = useSignOut()
-
+  if (!user) {
+    return null
+  }
+  const name = `${user.firstName} ${user.lastName}`
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -43,13 +41,13 @@ export function NavUser({
               size="lg"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage alt={user.name} src={user.avatarURL} />
+                <AvatarImage alt={name} src={user.avatarURL} />
                 <AvatarFallback className="rounded-lg">
-                  {user.name.charAt(0)}
+                  {name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{name}</span>
                 <span className="truncate text-muted-foreground text-xs">
                   {user.email}
                 </span>
@@ -66,13 +64,13 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage alt={user.name} src={user.avatarURL} />
+                  <AvatarImage alt={name} src={user.avatarURL} />
                   <AvatarFallback className="rounded-lg">
-                    {user.name.charAt(0)}
+                    {name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">{name}</span>
                   <span className="truncate text-muted-foreground text-xs">
                     {user.email}
                   </span>

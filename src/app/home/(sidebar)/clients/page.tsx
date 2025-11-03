@@ -1,3 +1,5 @@
+"use client"
+
 import { Suspense } from "react"
 import ClientButtonNewClient from "@/components/ClientButtonNewClient"
 import { SiteHeader } from "@/components/site-header"
