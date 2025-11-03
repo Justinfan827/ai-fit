@@ -350,3 +350,185 @@ export const getExerciseCategories = query({
     return results.filter((result) => result !== null)
   },
 })
+
+/**
+ * Get all exercises for a user, including platform exercises and user's custom exercises
+ * Returns data in format: { base: Exercise[], custom: Exercise[] }
+ */
+export const getAllExercisesForUser = query({
+  args: {
+    userId: v.id("users"),
+  },
+  returns: v.object({
+    base: v.array(
+      v.object({
+        id: v.string(),
+        name: v.string(),
+        ownerId: v.union(v.string(), v.null()),
+        videoURL: v.string(),
+        description: v.string(),
+        categories: v.array(
+          v.object({
+            id: v.string(),
+            name: v.string(),
+            values: v.array(
+              v.object({
+                id: v.string(),
+                name: v.string(),
+              })
+            ),
+          })
+        ),
+      })
+    ),
+    custom: v.array(
+      v.object({
+        id: v.string(),
+        name: v.string(),
+        ownerId: v.union(v.string(), v.null()),
+        videoURL: v.string(),
+        description: v.string(),
+        categories: v.array(
+          v.object({
+            id: v.string(),
+            name: v.string(),
+            values: v.array(
+              v.object({
+                id: v.string(),
+                name: v.string(),
+              })
+            ),
+          })
+        ),
+      })
+    ),
+  }),
+  handler: async (ctx, args) => {
+    // Fetch platform exercises (no owner)
+    const platformExercises = await ctx.db
+      .query("exercises")
+      .withIndex("by_owner_id")
+      .filter((q) => q.eq(q.field("ownerId"), undefined))
+      .collect()
+
+    // Fetch user's custom exercises
+    const customExercises = await ctx.db
+      .query("exercises")
+      .withIndex("by_owner_id", (q) => q.eq("ownerId", args.userId))
+      .collect()
+
+    // Helper to transform an exercise to include categories
+    const transformExercise = async (exercise: {
+      _id: Id<"exercises">
+      name: string
+      ownerId?: Id<"users">
+      notes?: string
+      videoUrl?: string
+    }) => {
+      // Get all category assignments for this exercise
+      const assignments = await ctx.db
+        .query("categoryAssignments")
+        .withIndex("by_exercise_id", (q) => q.eq("exerciseId", exercise._id))
+        .collect()
+
+      // Group category values by category
+      const categoriesMap = new Map<
+        Id<"categories">,
+        {
+          id: string
+          name: string
+          values: Array<{ id: string; name: string }>
+        }
+      >()
+
+      const assignmentPromises = assignments.map(async (assignment) => {
+        const categoryValue = await ctx.db.get(assignment.categoryValueId)
+        if (!categoryValue || categoryValue.deletedAt) return null
+
+        const category = await ctx.db.get(categoryValue.categoryId)
+        if (!category || category.deletedAt) return null
+
+        if (!categoriesMap.has(category._id)) {
+          categoriesMap.set(category._id, {
+            id: category._id,
+            name: category.name,
+            values: [],
+          })
+        }
+
+        const categoryData = categoriesMap.get(category._id)
+        if (categoryData) {
+          categoryData.values.push({
+            id: categoryValue._id,
+            name: categoryValue.name,
+          })
+        }
+
+        return null
+      })
+
+      await Promise.all(assignmentPromises)
+
+      return {
+        id: exercise._id,
+        name: exercise.name,
+        ownerId: exercise.ownerId || null,
+        videoURL: exercise.videoUrl || "",
+        description: exercise.notes || "",
+        categories: Array.from(categoriesMap.values()),
+      }
+    }
+
+    // Transform both sets of exercises
+    const basePromises = platformExercises.map(transformExercise)
+    const customPromises = customExercises.map(transformExercise)
+
+    const [base, custom] = await Promise.all([
+      Promise.all(basePromises),
+      Promise.all(customPromises),
+    ])
+
+    return { base, custom }
+  },
+})
+
+/**
+ * Delete an exercise and its category assignments
+ */
+export const deleteExercise = mutation({
+  args: {
+    exerciseId: v.id("exercises"),
+    userId: v.id("users"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    // First, verify that the exercise belongs to this user
+    const exercise = await ctx.db.get(args.exerciseId)
+
+    if (!exercise) {
+      throw new Error("Exercise not found")
+    }
+
+    // Only allow deletion of custom exercises (exercises with ownerId)
+    if (!exercise.ownerId || exercise.ownerId !== args.userId) {
+      throw new Error("Exercise not found or cannot be deleted")
+    }
+
+    // Delete all category assignments for this exercise
+    const assignments = await ctx.db
+      .query("categoryAssignments")
+      .withIndex("by_exercise_id", (q) => q.eq("exerciseId", args.exerciseId))
+      .collect()
+
+    const deleteAssignmentPromises = assignments.map(async (assignment) => {
+      await ctx.db.delete(assignment._id)
+    })
+
+    await Promise.all(deleteAssignmentPromises)
+
+    // Delete the exercise
+    await ctx.db.delete(args.exerciseId)
+
+    return null
+  },
+})

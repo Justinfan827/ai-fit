@@ -1,21 +1,21 @@
 import { z } from "zod"
 
 export const categoryValueSchema = z.object({
-  id: z.uuid(),
+  id: z.string(), // Supports both UUID and Convex IDs
   name: z.string(),
 })
 
 export const categoriesSchema = z.object({
-  id: z.uuid(),
+  id: z.string(), // Supports both UUID and Convex IDs
   name: z.string(),
   values: z.array(categoryValueSchema),
 })
 
 // exercises that are stored in the DB
 export const exerciseSchema = z.object({
-  id: z.uuid(), // Validates a UUID string
+  id: z.string(), // Supports both UUID and Convex IDs
   name: z.string(),
-  ownerId: z.uuid().nullable(),
+  ownerId: z.string().nullable(), // Supports both UUID and Convex IDs
   videoURL: z.string(),
   description: z.string(),
   categories: z.array(categoriesSchema),
@@ -66,7 +66,7 @@ export const pendingChangeTypeSchema = z.union([
 export const exerciseBlockSchema = z.object({
   type: z.literal("exercise"),
   exercise: z.object({
-    id: z.uuid(),
+    id: z.string(), // Supports both UUID and Convex IDs
     name: z.string(),
     metadata: z.object({
       sets: z.string(),
@@ -135,7 +135,7 @@ export const exerciseInstanceSetSchema = z.object({
 })
 
 export const exerciseInstanceSchema = z.object({
-  id: z.uuid(),
+  id: z.string(), // Supports both UUID and Convex IDs
   name: z.string(),
   sets: z.array(exerciseInstanceSetSchema),
 })

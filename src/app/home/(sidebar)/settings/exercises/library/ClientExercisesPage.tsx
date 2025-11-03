@@ -1,22 +1,26 @@
 "use client"
-import { use, useOptimistic, useState, useTransition } from "react"
+
+import { useMutation } from "convex/react"
+import { useState } from "react"
 import { toast } from "sonner"
-import { deleteExerciseAction } from "@/actions/delete-exercise"
 import { ExerciseTable } from "@/components/tables/exercise-table/ExerciseTable"
 import type { TableExercise } from "@/components/tables/exercise-table/types"
 import { asTableExercise } from "@/components/tables/exercise-table/utils"
-import type { DBExercises } from "@/lib/supabase/server/users/trainer-repo"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
+import type { Exercise } from "@/lib/domain/workouts"
 import type { CategoryWithValues } from "@/lib/types/categories"
 
 export function ClientExercisesPage({
-  exercisesPromise,
-  categoriesPromise,
+  exercises,
+  categories,
+  userId,
 }: {
-  exercisesPromise: Promise<DBExercises>
-  categoriesPromise: Promise<CategoryWithValues[]>
+  exercises: { base: Exercise[]; custom: Exercise[] }
+  categories: CategoryWithValues[]
+  userId: Id<"users">
 }) {
-  const exercises = use(exercisesPromise)
-  const categories = use(categoriesPromise)
+  const deleteExerciseMutation = useMutation(api.exercises.deleteExercise)
 
   const [baseExercises, setBaseExercises] = useState<TableExercise[]>(() => {
     const allExercises = exercises.base.concat(exercises.custom)
@@ -25,33 +29,24 @@ export function ClientExercisesPage({
 
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({})
 
-  const [optimisticExercises, deleteOptimisticExercise] = useOptimistic(
-    baseExercises,
-    (state, exerciseId: string) => {
-      return state.filter((exercise) => exercise.id !== exerciseId)
+  const handleDeleteExercise = async (exerciseId: string) => {
+    try {
+      await deleteExerciseMutation({
+        exerciseId: exerciseId as Id<"exercises">,
+        userId,
+      })
+      setBaseExercises((prev) => prev.filter((e) => e.id !== exerciseId))
+      const deletedExercise = baseExercises.find(
+        (exercise) => exercise.id === exerciseId
+      )
+      toast.success("Exercise deleted successfully", {
+        description: <code className="text-xs">{deletedExercise?.name}</code>,
+      })
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete exercise"
+      )
     }
-  )
-  const [, startTransition] = useTransition()
-
-  const handleDeleteExercise = (exerciseId: string) => {
-    startTransition(async () => {
-      try {
-        deleteOptimisticExercise(exerciseId)
-        const { error } = await deleteExerciseAction({ exerciseId })
-        if (error) {
-          throw error
-        }
-        setBaseExercises((prev) => prev.filter((e) => e.id !== exerciseId))
-        const deletedExercise = baseExercises.find(
-          (exercise) => exercise.id === exerciseId
-        )
-        toast.success("Exercise deleted successfully", {
-          description: <code className="text-xs">{deletedExercise?.name}</code>,
-        })
-      } catch {
-        toast.error("Failed to delete exercise")
-      }
-    })
   }
 
   const handleUpdateExercise = (exercise: TableExercise) => {
@@ -64,7 +59,7 @@ export function ClientExercisesPage({
   return (
     <ExerciseTable
       categories={categories}
-      data={optimisticExercises}
+      data={baseExercises}
       onDeleteExercise={handleDeleteExercise}
       onSelectionChange={setSelectedRows}
       onUpdateExercise={handleUpdateExercise}
