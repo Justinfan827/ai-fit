@@ -17,8 +17,8 @@ const requestSchema = z.object({
   contextItems: z.array(contextItemSchema).optional(),
   workouts: workoutsSchema,
   // New fields for chat persistence
-  programId: z.string().uuid(),
-  chatId: z.string().uuid().optional(), // Optional for new chats
+  programId: z.string(), // Convex ID string (no longer UUID)
+  chatId: z.string().optional(), // Optional Convex ID string (from previous response)
 })
 
 export { requestSchema, uiMessageSchema }

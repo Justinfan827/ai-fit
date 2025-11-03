@@ -124,4 +124,54 @@ export default defineSchema({
       "exerciseId",
       "categoryValueId",
     ]),
+  chats: defineTable({
+    // reference to the user who owns this chat
+    userId: v.id("users"),
+    // AI-generated chat title
+    title: v.optional(v.string()),
+    // flexible metadata (JSONB equivalent)
+    metadata: v.optional(v.any()),
+    // chat creation timestamp (ISO8601 date string)
+    createdAt: v.string(),
+    // chat update timestamp (ISO8601 date string)
+    updatedAt: v.string(),
+  }).index("by_user_id", ["userId"]),
+  chatMessages: defineTable({
+    // reference to the parent chat
+    chatId: v.id("chats"),
+    // AI SDK message UUID (custom ID field)
+    messageId: v.string(),
+    // message role
+    role: v.union(
+      v.literal("user"),
+      v.literal("assistant"),
+      v.literal("system")
+    ),
+    // UIMessage metadata
+    metadata: v.optional(v.any()),
+    // UIMessage parts (text, tool calls, etc.)
+    parts: v.any(),
+    // message creation timestamp (ISO8601 date string)
+    createdAt: v.string(),
+  })
+    .index("by_chat_id", ["chatId"])
+    .index("by_chat_id_and_created_at", ["chatId", "createdAt"])
+    .index("by_message_id", ["messageId"]),
+  programChats: defineTable({
+    // reference to the program
+    programId: v.id("programs"),
+    // reference to the chat
+    chatId: v.id("chats"),
+    // link creation timestamp (ISO8601 date string)
+    createdAt: v.string(),
+  })
+    .index("by_program_id", ["programId"])
+    .index("by_program_id_and_created_at", ["programId", "createdAt"])
+    .index("by_chat_id", ["chatId"]),
+  systemPrompts: defineTable({
+    // the full system prompt text
+    content: v.string(),
+    // prompt creation timestamp (ISO8601 date string)
+    createdAt: v.string(),
+  }),
 })
