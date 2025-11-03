@@ -1,8 +1,8 @@
 import fs from "node:fs"
 import path from "node:path"
-import { createClient } from "@supabase/supabase-js"
-import type { Database } from "@/lib/supabase/database.types"
-import type { DBClient } from "@/lib/supabase/types"
+import { ConvexHttpClient } from "convex/browser"
+import { api } from "../convex/_generated/api"
+import type { Id } from "../convex/_generated/dataModel"
 
 interface Exercise {
   name: string
@@ -11,12 +11,7 @@ interface Exercise {
 
 interface ExerciseWithCategoryAssignments {
   name: string
-  categoryValueAssignmentIDs: string[]
-}
-
-interface ExerciseWithCategoryAssignmentsAndIDs
-  extends ExerciseWithCategoryAssignments {
-  id: string
+  categoryValueAssignmentIDs: Id<"categoryValues">[]
 }
 
 function parseExercisesCSV(filePath: string): {
@@ -59,146 +54,118 @@ function parseExercisesCSV(filePath: string): {
 }
 
 async function createMuscleGroupCategory(
-  supabase: DBClient,
-  userId: string
-): Promise<string | null> {
+  client: ConvexHttpClient,
+  userId: Id<"users">
+): Promise<Id<"categories"> | null> {
   console.log("Creating 'Muscle Groups' category...")
 
-  // Check if the category already exists
-  const { data: existingCategory, error: fetchError } = await supabase
-    .from("categories")
-    .select("id")
-    .eq("name", "Muscle Groups")
-    .eq("user_id", userId)
-    .is("deleted_at", null)
-    .maybeSingle()
+  try {
+    // Check if the category already exists
+    const categories = await client.query(
+      api.exercises.getCategoriesWithValues,
+      {
+        userId,
+      }
+    )
 
-  if (fetchError) {
-    console.error("Error checking for existing category:", fetchError)
-    return null
-  }
+    const existingCategory = categories.find(
+      (cat) => cat.name === "Muscle Groups"
+    )
 
-  if (existingCategory) {
-    console.log("'Muscle Groups' category already exists")
-    return existingCategory.id
-  }
+    if (existingCategory) {
+      console.log("'Muscle Groups' category already exists")
+      return existingCategory._id
+    }
 
-  // Create the category
-  const { data, error } = await supabase
-    .from("categories")
-    .insert({
+    // Create the category
+    const categoryId = await client.mutation(api.exercises.createCategory, {
       name: "Muscle Groups",
       description: "Primary muscle groups targeted by exercises",
-      user_id: userId,
+      userId,
     })
-    .select("id")
-    .single()
 
-  if (error) {
+    console.log("Created 'Muscle Groups' category")
+    return categoryId
+  } catch (error) {
     console.error("Error creating 'Muscle Groups' category:", error)
     return null
   }
-
-  console.log("Created 'Muscle Groups' category")
-  return data.id
 }
 
 async function insertCategoryValues(
-  supabase: DBClient,
-  categoryId: string,
+  client: ConvexHttpClient,
+  categoryId: Id<"categories">,
   muscleGroups: string[]
-) {
+): Promise<{ id: Id<"categoryValues">; name: string }[]> {
   console.log("Inserting muscle group category values...")
-  const { data } = await supabase
-    .from("category_values")
-    .insert(
-      muscleGroups.map((name) => ({
-        name,
-        category_id: categoryId,
-        description: `${name} muscle group`,
-      }))
-    )
-    .select()
-    .throwOnError()
+  const insertedValues: { id: Id<"categoryValues">; name: string }[] = []
+
+  const insertPromises = muscleGroups.map(async (name) => {
+    try {
+      const categoryValueId = await client.mutation(
+        api.exercises.createCategoryValue,
+        {
+          categoryId,
+          name,
+          description: `${name} muscle group`,
+        }
+      )
+      return { id: categoryValueId, name }
+    } catch (error) {
+      // If it already exists, we can safely skip
+      if (error instanceof Error && error.message.includes("already exists")) {
+        console.log(`Category value "${name}" already exists, skipping...`)
+        return null
+      }
+      throw error
+    }
+  })
+
+  const results = await Promise.all(insertPromises)
+  for (const result of results) {
+    if (result !== null) {
+      insertedValues.push(result)
+    }
+  }
 
   console.log(
-    `Inserted ${data.length} new muscle group values:`,
-    data.map((v) => v.name)
+    `Inserted ${insertedValues.length} new muscle group values:`,
+    insertedValues.map((v) => v.name)
   )
-  return data
+  return insertedValues
 }
 
 async function insertExercises(
-  supabase: DBClient,
+  client: ConvexHttpClient,
   exercises: ExerciseWithCategoryAssignments[],
-  ownerId: string
+  ownerId?: Id<"users">
 ) {
   console.log("Inserting exercises...")
-  const { data: insertedExercises } = await supabase
-    .from("exercises")
-    .insert(
-      exercises.map((exercise) => ({
-        name: exercise.name,
-        owner_id: ownerId,
-      }))
-    )
-    .select()
-    .throwOnError()
 
-  console.log(
-    `Inserted ${insertedExercises.length} new exercises`,
-    insertedExercises.map((e) => e.name)
+  const exercisesToInsert = exercises.map((exercise) => ({
+    name: exercise.name,
+    ownerId,
+    categoryValueIds: exercise.categoryValueAssignmentIDs,
+  }))
+
+  const insertedExerciseIds = await client.mutation(
+    api.exercises.bulkInsertExercises,
+    {
+      exercises: exercisesToInsert,
+    }
   )
 
-  const exercisesWithIDs: ExerciseWithCategoryAssignmentsAndIDs[] =
-    exercises.map((e) => ({
-      ...e,
-      id: insertedExercises.find((exercise) => exercise.name === e.name)?.id!,
-    }))
-
-  // Create category assignments for new exercises
-  await createCategoryAssignments(supabase, exercisesWithIDs)
-}
-
-async function createCategoryAssignments(
-  supabase: DBClient,
-  exercises: ExerciseWithCategoryAssignmentsAndIDs[]
-) {
-  console.log("Creating category assignments...")
-  const { data: insertedAssignments } = await supabase
-    .from("category_assignments")
-    .insert(
-      exercises.flatMap((e) => {
-        return e.categoryValueAssignmentIDs.map((cv) => ({
-          exercise_id: e.id,
-          category_value_id: cv,
-        }))
-      })
-    )
-    .select()
-    .throwOnError()
-
-  console.log(
-    `Created ${insertedAssignments.length} category assignments`,
-    insertedAssignments.map((a) => `${a.exercise_id}-${a.category_value_id}`)
-  )
+  console.log(`Inserted ${insertedExerciseIds.length} new exercises`)
 }
 
 async function seedExercises({
   userId,
-  supabaseServiceRoleKey,
-  supabaseURL,
+  convexUrl,
 }: {
-  userId: string
-  supabaseServiceRoleKey: string
-  supabaseURL: string
+  userId: Id<"users">
+  convexUrl: string
 }) {
-  const supabase = createClient<Database>(supabaseURL, supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  })
+  const client = new ConvexHttpClient(convexUrl)
 
   try {
     // Parse the exercises CSV file
@@ -210,29 +177,43 @@ async function seedExercises({
     )
 
     // Step 1: Create the "Muscle Groups" category
-    const categoryId = await createMuscleGroupCategory(supabase, userId)
+    const categoryId = await createMuscleGroupCategory(client, userId)
     if (!categoryId) {
       console.error("Failed to create or find 'Muscle Groups' category")
       process.exit(1)
     }
 
     // Step 2: Insert muscle group category values
-    const categoryValues = await insertCategoryValues(
-      supabase,
-      categoryId,
-      Array.from(muscleGroups)
+    await insertCategoryValues(client, categoryId, Array.from(muscleGroups))
+
+    // Step 3: Get all category values (including already existing ones)
+    const allCategories = await client.query(
+      api.exercises.getCategoriesWithValues,
+      {
+        userId,
+      }
     )
+    const muscleGroupCategory = allCategories.find(
+      (cat) => cat._id === categoryId
+    )
+
+    if (!muscleGroupCategory) {
+      console.error("Failed to find muscle group category")
+      process.exit(1)
+    }
+
+    // Map exercises to their category value IDs
     const exerciseWithIDs: ExerciseWithCategoryAssignments[] = exercises.map(
       (exercise) => ({
         name: exercise.name,
-        categoryValueAssignmentIDs: categoryValues
+        categoryValueAssignmentIDs: muscleGroupCategory.values
           .filter((cv) => exercise.muscleGroups.includes(cv.name))
-          .map((cv) => cv.id),
+          .map((cv) => cv._id),
       })
     )
 
-    // Step 3: Insert exercises and create category assignments
-    await insertExercises(supabase, exerciseWithIDs, userId)
+    // Step 4: Insert exercises and create category assignments
+    await insertExercises(client, exerciseWithIDs, userId)
 
     console.log("✅ Successfully seeded exercises with categories!")
   } catch (error) {

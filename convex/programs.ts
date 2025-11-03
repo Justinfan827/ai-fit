@@ -22,7 +22,7 @@ const getAll = query({
       programs.map(async (program) => {
         const workouts = await ctx.db
           .query("workouts")
-          .withIndex("byProgramIdOrder", (q) => q.eq("programId", program._id))
+          .withIndex("byProgramId", (q) => q.eq("programId", program._id))
           .collect()
 
         // Sort workouts by programOrder
@@ -70,7 +70,7 @@ const getById = query({
     // Get workouts for this program
     const workouts = await ctx.db
       .query("workouts")
-      .withIndex("byProgramIdOrder", (q) => q.eq("programId", programId))
+      .withIndex("byProgramId", (q) => q.eq("programId", programId))
       .collect()
 
     // Sort workouts by programOrder

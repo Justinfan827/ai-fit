@@ -66,4 +66,62 @@ export default defineSchema({
     // reference to the user who owns this workout
     userId: v.id("users"),
   }).index("byProgramId", ["programId"]),
+  exercises: defineTable({
+    // exercise name
+    name: v.string(),
+    // reference to the user who created this custom exercise (optional for platform exercises)
+    ownerId: v.optional(v.id("users")),
+    // custom notes attached to the exercise
+    notes: v.optional(v.string()),
+    // video URL for the exercise
+    videoUrl: v.optional(v.string()),
+    // exercise creation timestamp (ISO8601 date string)
+    createdAt: v.string(),
+  }).index("by_owner_id", ["ownerId"]),
+  categories: defineTable({
+    // category name (e.g., "Muscle Groups")
+    name: v.string(),
+    // category description
+    description: v.optional(v.string()),
+    // reference to the user who created this category
+    userId: v.id("users"),
+    // category creation timestamp (ISO8601 date string)
+    createdAt: v.string(),
+    // category update timestamp (ISO8601 date string)
+    updatedAt: v.string(),
+    // soft delete timestamp (ISO8601 date string)
+    deletedAt: v.optional(v.string()),
+  })
+    .index("by_user_id", ["userId"])
+    .index("by_user_id_and_name", ["userId", "name"]),
+  categoryValues: defineTable({
+    // reference to the parent category
+    categoryId: v.id("categories"),
+    // value name (e.g., "Chest", "Shoulders")
+    name: v.string(),
+    // value description
+    description: v.optional(v.string()),
+    // category value creation timestamp (ISO8601 date string)
+    createdAt: v.string(),
+    // category value update timestamp (ISO8601 date string)
+    updatedAt: v.string(),
+    // soft delete timestamp (ISO8601 date string)
+    deletedAt: v.optional(v.string()),
+  })
+    .index("by_category_id", ["categoryId"])
+    .index("by_category_id_and_name", ["categoryId", "name"]),
+  categoryAssignments: defineTable({
+    // reference to the exercise
+    exerciseId: v.id("exercises"),
+    // reference to the category value
+    categoryValueId: v.id("categoryValues"),
+    // assignment creation timestamp (ISO8601 date string)
+    createdAt: v.string(),
+  })
+    .index("by_exercise_id", ["exerciseId"])
+    .index("by_category_value_id", ["categoryValueId"])
+    .index("by_exercise_id_and_category_value_id", [
+      "exerciseId",
+      "categoryValueId",
+    ]),
 })
