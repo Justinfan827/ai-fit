@@ -1,6 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "convex/react"
 import { useTransition } from "react"
 import { type UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -9,7 +10,6 @@ import {
   type CreateExerciseInput,
   createExercise,
 } from "@/actions/create-exercise"
-import { updateExercise } from "@/actions/update-exercise"
 import { Icons } from "@/components/icons"
 import type { TableExercise } from "@/components/tables/exercise-table/types"
 import { Button } from "@/components/ui/button"
@@ -42,6 +42,8 @@ import {
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { YouTubeVideo } from "@/components/ui/youtube-video"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import type { Exercise } from "@/lib/domain/workouts"
 import type { CategoryWithValues } from "@/lib/types/categories"
 import MLoadingButton from "../massor/buttons/m-buttons"
@@ -58,7 +60,7 @@ const exerciseFormSchema = z.object({
 type ExerciseFormValues = z.infer<typeof exerciseFormSchema>
 
 /**
- * Converts form values and current exercise into an Exercise object for the updateExercise action
+ * Converts form values and current exercise into an Exercise object for UI updates
  */
 const createExerciseFromFormValues = (
   currentExercise: TableExercise,
@@ -119,6 +121,7 @@ export const ExerciseDetailsSidesheet = ({
   onExerciseUpdated,
 }: ExerciseDetailsModalProps) => {
   const [isPending, startTransition] = useTransition()
+  const updateExerciseMutation = useMutation(api.exercises.updateExercise)
 
   const isCustomExercise = exercise.isCustom
   const isEditMode = isCustomExercise
@@ -164,18 +167,30 @@ export const ExerciseDetailsSidesheet = ({
   })
 
   const handleUpdateExercise = async (values: ExerciseFormValues) => {
+    // Flatten category value IDs from the form's category assignments
+    const categoryValueIds: Id<"categoryValues">[] = []
+    for (const category of categories) {
+      const assignedValueIds = values.category_assignments?.[category.id] || []
+      for (const valueId of assignedValueIds) {
+        categoryValueIds.push(valueId as Id<"categoryValues">)
+      }
+    }
+
+    // Call the Convex mutation
+    await updateExerciseMutation({
+      exerciseId: exercise.id as Id<"exercises">,
+      name: values.name,
+      notes: values.notes || undefined,
+      videoUrl: values.video_url || undefined,
+      categoryValueIds,
+    })
+
+    // Update the UI with the updated exercise data
     const exerciseToUpdate = createExerciseFromFormValues(
       exercise,
       values,
       categories
     )
-    const { error } = await updateExercise(exerciseToUpdate)
-
-    if (error) {
-      throw new Error(error.message || "Failed to update exercise")
-    }
-
-    // Update the UI with the updated exercise data
     onExerciseUpdated(asTableExercise(exerciseToUpdate))
   }
 

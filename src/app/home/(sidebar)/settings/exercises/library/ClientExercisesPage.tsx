@@ -14,11 +14,9 @@ import type { CategoryWithValues } from "@/lib/types/categories"
 export function ClientExercisesPage({
   exercises,
   categories,
-  userId,
 }: {
   exercises: { base: Exercise[]; custom: Exercise[] }
   categories: CategoryWithValues[]
-  userId: Id<"users">
 }) {
   const deleteExerciseMutation = useMutation(api.exercises.deleteExercise)
 
@@ -33,7 +31,6 @@ export function ClientExercisesPage({
     try {
       await deleteExerciseMutation({
         exerciseId: exerciseId as Id<"exercises">,
-        userId,
       })
       setBaseExercises((prev) => prev.filter((e) => e.id !== exerciseId))
       const deletedExercise = baseExercises.find(

@@ -1,6 +1,7 @@
 import { v } from "convex/values"
 import type { Id } from "./_generated/dataModel"
 import { mutation, query } from "./_generated/server"
+import { throwIfNotAuthenticated } from "./auth"
 
 // ============================================================================
 // MUTATIONS
@@ -674,15 +675,97 @@ export const getAllExercisesForUser = query({
 })
 
 /**
+ * Update an exercise and its category assignments
+ */
+export const updateExercise = mutation({
+  args: {
+    exerciseId: v.id("exercises"),
+    name: v.string(),
+    notes: v.optional(v.string()),
+    videoUrl: v.optional(v.string()),
+    categoryValueIds: v.array(v.id("categoryValues")),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    // Authenticate the user
+    const user = await throwIfNotAuthenticated(ctx)
+
+    // First, verify that the exercise belongs to this user
+    const exercise = await ctx.db.get(args.exerciseId)
+
+    if (!exercise) {
+      throw new Error("Exercise not found")
+    }
+
+    // Only allow update of custom exercises (exercises with ownerId)
+    if (!exercise.ownerId || exercise.ownerId !== user.id) {
+      throw new Error("Exercise not found or cannot be updated")
+    }
+
+    const now = new Date().toISOString()
+
+    // Update the exercise fields
+    await ctx.db.patch(args.exerciseId, {
+      name: args.name,
+      notes: args.notes,
+      videoUrl: args.videoUrl,
+    })
+
+    // Delete all existing category assignments for this exercise
+    const existingAssignments = await ctx.db
+      .query("categoryAssignments")
+      .withIndex("by_exercise_id", (q) => q.eq("exerciseId", args.exerciseId))
+      .collect()
+
+    const deleteAssignmentPromises = existingAssignments.map(
+      async (assignment) => {
+        await ctx.db.delete(assignment._id)
+      }
+    )
+
+    await Promise.all(deleteAssignmentPromises)
+
+    // Create new category assignments
+    const createAssignmentPromises = args.categoryValueIds.map(
+      async (categoryValueId) => {
+        // Check if assignment already exists (shouldn't after delete, but safety check)
+        const existing = await ctx.db
+          .query("categoryAssignments")
+          .withIndex("by_exercise_id_and_category_value_id", (q) =>
+            q
+              .eq("exerciseId", args.exerciseId)
+              .eq("categoryValueId", categoryValueId)
+          )
+          .first()
+
+        if (!existing) {
+          await ctx.db.insert("categoryAssignments", {
+            exerciseId: args.exerciseId,
+            categoryValueId,
+            createdAt: now,
+          })
+        }
+      }
+    )
+
+    await Promise.all(createAssignmentPromises)
+
+    return null
+  },
+})
+
+/**
  * Delete an exercise and its category assignments
  */
 export const deleteExercise = mutation({
   args: {
     exerciseId: v.id("exercises"),
-    userId: v.id("users"),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    // Authenticate the user
+    const user = await throwIfNotAuthenticated(ctx)
+
     // First, verify that the exercise belongs to this user
     const exercise = await ctx.db.get(args.exerciseId)
 
@@ -691,7 +774,7 @@ export const deleteExercise = mutation({
     }
 
     // Only allow deletion of custom exercises (exercises with ownerId)
-    if (!exercise.ownerId || exercise.ownerId !== args.userId) {
+    if (!exercise.ownerId || exercise.ownerId !== user.id) {
       throw new Error("Exercise not found or cannot be deleted")
     }
 

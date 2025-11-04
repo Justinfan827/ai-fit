@@ -63,11 +63,7 @@ export default function SettingsExercisesPage() {
         id="exercises content"
       >
         <div className="flex flex-col gap-4 bg-background pb-4 md:gap-6 md:px-4">
-          <ClientExercisesPage
-            categories={categories}
-            exercises={exercises}
-            userId={user.id}
-          />
+          <ClientExercisesPage categories={categories} exercises={exercises} />
         </div>
       </div>
     </>
