@@ -1,5 +1,3 @@
-"use client"
-
 import { useQuery } from "convex/react"
 import { BasicSkeleton } from "@/components/skeletons/basic-skeleton"
 import { api } from "@/convex/_generated/api"

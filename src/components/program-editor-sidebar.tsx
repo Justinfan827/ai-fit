@@ -15,6 +15,7 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
 import { ChatDebugTools } from "@/components/chat-debug-tools"
+import { BasicSkeleton } from "@/components/skeletons/basic-skeleton"
 import { Sidebar, SidebarContent, SidebarFooter } from "@/components/ui/sidebar"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
@@ -124,6 +125,16 @@ export function ProgramEditorSidebar({
   // Get custom exercises from the fetched data
   const initialExercises = exercisesData?.custom || []
 
+  // Fetch program chat history from Convex
+  const programChatData = useQuery(api.chats.getProgramChat, {
+    programId: programId as Id<"programs">,
+  })
+
+  // Extract chatId and messages from query result
+  const chatId = programChatData?.chatId
+  const initialMessages: MyUIMessage[] =
+    (programChatData?.messages as MyUIMessage[]) || []
+
   const workouts = useZProgramWorkouts()
   const zustandProgramId = useZProgramId()
 
@@ -170,6 +181,7 @@ export function ProgramEditorSidebar({
         })),
         workouts,
         programId,
+        chatId: chatId || undefined, // Include chatId if it exists
       }
       sendMessage({ text: input.trim() }, { body })
       setInput("")
@@ -183,10 +195,9 @@ export function ProgramEditorSidebar({
     setMessages,
     error,
   } = useChat<MyUIMessage>({
-    // id: chatId,
+    id: chatId,
     generateId: () => uuidv4(),
-    messages: [],
-    // messages: initialMessages, // Load existing messages using correct property name
+    messages: initialMessages,
     transport: new DefaultChatTransport({
       api: "/api/chat",
       prepareSendMessagesRequest: ({ body, messages }) => {
@@ -246,6 +257,17 @@ export function ProgramEditorSidebar({
       }
     },
   })
+
+  // Update messages when chat data loads (only on initial load)
+  useEffect(() => {
+    if (
+      programChatData !== undefined &&
+      initialMessages.length > 0 &&
+      uiMessages.length === 0
+    ) {
+      setMessages(initialMessages)
+    }
+  }, [programChatData, initialMessages, setMessages, uiMessages.length])
 
   const onAddContext = (payload: ContextAddPayload) => {
     if (payload.type === "client") {
@@ -345,6 +367,24 @@ export function ProgramEditorSidebar({
     )
   }
 
+  // Show loading skeleton while chat data is being fetched
+  if (programChatData === undefined) {
+    return (
+      <Sidebar
+        className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
+        collapsible="offcanvas"
+        side="right"
+        variant="inset"
+      >
+        <SidebarContent className="flex flex-col">
+          <div className="p-4">
+            <BasicSkeleton className="w-full" />
+          </div>
+        </SidebarContent>
+      </Sidebar>
+    )
+  }
+
   return (
     <Sidebar
       className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
@@ -354,7 +394,7 @@ export function ProgramEditorSidebar({
     >
       <SidebarContent className="flex flex-col ">
         <ChatDebugTools
-          chatId={undefined}
+          chatId={chatId}
           error={error ?? null}
           onMessagesCleared={() => setMessages([])}
           programId={programId}
