@@ -1,11 +1,10 @@
 "use client"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState, useTransition } from "react"
+import { useMutation, useQuery } from "convex/react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { createTrainerNoteAction } from "@/actions/create-trainer-note"
-import { deleteTrainerNoteAction } from "@/actions/delete-trainer-note"
 import { Icons } from "@/components/icons"
 import MLoadingButton from "@/components/massor/buttons/m-buttons"
 import { PageSectionHeader } from "@/components/page-layout"
@@ -22,7 +21,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import type { TrainerNote, ValueWithUnit } from "@/lib/domain/clients"
+import { api } from "@/convex/_generated/api"
 import { inputTrim } from "@/lib/utils/util"
 
 export const AddClientDetailFormSchema = z.object({
@@ -44,71 +43,72 @@ type TrainerNoteFormProps = {
 
 type ClientTrainerNotesPageSectionProps = {
   clientUserId: string
-  trainerNotes: TrainerNote[]
-  age: number
-  gender: string
-  weight: ValueWithUnit
-  height: ValueWithUnit
 }
 
 export function ClientTrainerNotesPageSection({
   clientUserId,
-  trainerNotes,
 }: ClientTrainerNotesPageSectionProps) {
   const [isEditingNotes, setIsEditingNotes] = useState(false)
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
 
-  const handleOnSubmit = (data: TrainerNoteFormType) => {
-    startTransition(async () => {
-      const { error } = await createTrainerNoteAction({
+  const trainerNotes = useQuery(api.trainerNotes.getByTrainerAndClient, {
+    clientId: clientUserId,
+  })
+  const createNote = useMutation(api.trainerNotes.create)
+  const deleteNote = useMutation(api.trainerNotes.softDelete)
+
+  const handleOnSubmit = async (data: TrainerNoteFormType) => {
+    setIsPending(true)
+    try {
+      await createNote({
         clientId: clientUserId,
         title: inputTrim(data.title),
         description: inputTrim(data.description),
       })
-      if (error) {
-        toast.error("Error", {
-          description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">
-                {JSON.stringify(error, null, 2)}
-              </code>
-            </pre>
-          ),
-        })
-        return
-      }
-
       toast.success("Detail added successfully", {
         description: <code className="text-xs">{data.title}</code>,
       })
       setIsEditingNotes(false)
-    })
+    } catch (error) {
+      toast.error("Error", {
+        description: (
+          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+            <code className="text-white">{JSON.stringify(error, null, 2)}</code>
+          </pre>
+        ),
+      })
+    } finally {
+      setIsPending(false)
+    }
   }
 
-  const handleRemoveDetail = (detailId: string) => {
-    startTransition(async () => {
-      const { error } = await deleteTrainerNoteAction({
+  const handleRemoveDetail = async (noteId: string) => {
+    setIsPending(true)
+    try {
+      await deleteNote({
         clientId: clientUserId,
-        detailId,
+        noteId,
       })
-      if (error) {
-        toast("Error", {
-          description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">
-                {JSON.stringify(error, null, 2)}
-              </code>
-            </pre>
-          ),
-        })
-      }
-    })
+      toast.success("Note deleted successfully")
+    } catch (error) {
+      toast.error("Error", {
+        description: (
+          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+            <code className="text-white">{JSON.stringify(error, null, 2)}</code>
+          </pre>
+        ),
+      })
+    } finally {
+      setIsPending(false)
+    }
   }
+
+  const notes = trainerNotes ?? []
 
   return (
     <>
       <PageSectionHeader>Notes</PageSectionHeader>
-      {trainerNotes.map((trainerNote) => (
+      {notes.map((trainerNote) => (
         <Card className="relative" key={trainerNote.id}>
           <Button
             className="absolute top-2 right-2 text-muted-foreground"

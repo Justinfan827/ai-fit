@@ -174,4 +174,23 @@ export default defineSchema({
     // prompt creation timestamp (ISO8601 date string)
     createdAt: v.string(),
   }),
+  trainerNotes: defineTable({
+    // reference to the trainer who created this note
+    trainerId: v.id("users"),
+    // reference to the client this note is about
+    clientId: v.id("users"),
+    // note title
+    title: v.string(),
+    // note description/content
+    description: v.string(),
+    // note creation timestamp (ISO8601 date string)
+    createdAt: v.string(),
+    // note update timestamp (ISO8601 date string)
+    updatedAt: v.string(),
+    // soft delete timestamp (ISO8601 date string)
+    deletedAt: v.optional(v.string()),
+  })
+    .index("by_trainer_id", ["trainerId"])
+    .index("by_client_id", ["clientId"])
+    .index("by_trainer_and_client", ["trainerId", "clientId"]),
 })

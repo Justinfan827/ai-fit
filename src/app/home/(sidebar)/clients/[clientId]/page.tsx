@@ -52,31 +52,8 @@ const ClientBasicInfo = ({
 }
 
 // Component for client details section
-const ClientDetails = ({
-  clientId,
-  trainerNotes,
-  age,
-  gender,
-  weight,
-  height,
-}: {
-  clientId: string
-  trainerNotes: Array<{ id: string; title: string; description: string }>
-  age: number
-  gender: string
-  weight: { value: number; unit: "kg" | "lbs" }
-  height: { value: number; unit: "cm" | "in" }
-}) => {
-  return (
-    <ClientTrainerNotesPageSection
-      age={age}
-      clientUserId={clientId}
-      gender={gender}
-      height={height}
-      trainerNotes={trainerNotes}
-      weight={weight}
-    />
-  )
+const ClientDetails = ({ clientId }: { clientId: string }) => {
+  return <ClientTrainerNotesPageSection clientUserId={clientId} />
 }
 
 const ClientPageHeader = ({ clientId }: { clientId: string }) => {
@@ -144,14 +121,7 @@ const ClientPageBody = ({ clientId }: { clientId: string }) => {
           height={client.height}
           weight={client.weight}
         />
-        <ClientDetails
-          age={client.age}
-          clientId={clientId}
-          gender={client.gender}
-          height={client.height}
-          trainerNotes={client.trainerNotes}
-          weight={client.weight}
-        />
+        <ClientDetails clientId={clientId} />
         <Tp variant="h4">Assigned Programs</Tp>
         <ProgramsListWithData
           clientId={clientId}

@@ -13,6 +13,7 @@ import type * as chats from "../chats.js";
 import type * as exercises from "../exercises.js";
 import type * as http from "../http.js";
 import type * as programs from "../programs.js";
+import type * as trainerNotes from "../trainerNotes.js";
 import type * as users from "../users.js";
 
 import type {
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   exercises: typeof exercises;
   http: typeof http;
   programs: typeof programs;
+  trainerNotes: typeof trainerNotes;
   users: typeof users;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
