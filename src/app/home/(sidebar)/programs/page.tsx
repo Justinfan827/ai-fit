@@ -1,5 +1,6 @@
 "use client"
 import { SiteHeader } from "@/components/site-header"
+import NewProgramButton from "./new-program-button"
 import ProgramsListWithData from "./programs-list-with-data"
 
 export default function WorkoutsPage() {
@@ -7,7 +8,11 @@ export default function WorkoutsPage() {
     <>
       <SiteHeader
         left={"Programs"}
-        right={<div>{/* <NewProgramButtonWithData /> */}</div>}
+        right={
+          <div>
+            <NewProgramButton />
+          </div>
+        }
       />
       <div
         className="@container/main flex flex-1 flex-col"

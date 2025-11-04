@@ -294,9 +294,7 @@ export function CategoryManager({
       setIsEditing(false)
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to save categories"
+        error instanceof Error ? error.message : "Failed to save categories"
       )
     } finally {
       setIsPending(false)

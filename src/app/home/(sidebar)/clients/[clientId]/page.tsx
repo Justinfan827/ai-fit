@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import ClientBasicInfoSection from "./basic-information-section"
 import { ClientTrainerNotesPageSection } from "./trainer-notes"
+import NewProgramButton from "../../programs/new-program-button"
 
 // Component for client name in header
 const ClientName = ({
@@ -104,7 +105,9 @@ const ClientPageHeader = ({ clientId }: { clientId: string }) => {
         </div>
       }
       right={
-        <div className="flex gap-4">{/* <NewProgramButtonWithData /> */}</div>
+        <div className="flex gap-4">
+          <NewProgramButton />
+        </div>
       }
     />
   )

@@ -120,9 +120,66 @@ const create = mutation({
       isTemplate: true,
     })
 
+    // If workouts array is empty, seed with default workouts from user's exercises
+    let workoutsToCreate = workouts
+    if (workouts.length === 0) {
+      // Fetch platform exercises (no owner)
+      const platformExercises = await ctx.db
+        .query("exercises")
+        .withIndex("by_owner_id")
+        .filter((q) => q.eq(q.field("ownerId"), undefined))
+        .collect()
+
+      // Fetch user's custom exercises
+      const customExercises = await ctx.db
+        .query("exercises")
+        .withIndex("by_owner_id", (q) => q.eq("ownerId", user.id))
+        .collect()
+
+      // Combine and take first couple of exercises
+      const allExercises = [...platformExercises, ...customExercises].slice(
+        0,
+        3
+      )
+
+      // Create 1 sample workout.
+      const defaultWorkoutNames = ["Sample Workout"]
+      workoutsToCreate = []
+      if (allExercises.length === 0) {
+        // If no exercises, create at least one empty workout
+        workoutsToCreate.push({
+          name: defaultWorkoutNames[0],
+          blocks: [],
+          programOrder: 0,
+          week: undefined,
+        })
+      } else {
+        const blocks = allExercises.map((exercise) => ({
+          type: "exercise" as const,
+          exercise: {
+            id: exercise._id,
+            name: exercise.name,
+            metadata: {
+                sets: "3",
+                reps: "10",
+                weight: "BW",
+                rest: "60s",
+              },
+            },
+          }))
+
+          workoutsToCreate.push({
+            name: defaultWorkoutNames[0],
+            blocks,
+            programOrder: 0,
+            week: undefined,
+        })
+      }
+    }
+
     // Create workouts
     const workoutIds = await Promise.all(
-      workouts.map((workout) =>
+      workoutsToCreate.map((workout) =>
         ctx.db.insert("workouts", {
           programId,
           name: workout.name,
