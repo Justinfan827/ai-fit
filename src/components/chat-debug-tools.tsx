@@ -1,10 +1,12 @@
 "use client"
 
+import { useMutation } from "convex/react"
 import { ChevronUp } from "lucide-react"
-import { useState, useTransition } from "react"
-import { clearChatHistoryAction } from "@/actions/clear-chat-history"
+import { useState } from "react"
 import type { MyUIMessage } from "@/lib/ai/ui-message-types"
 import { isLive } from "@/lib/utils"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import { Icons } from "./icons"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
@@ -32,7 +34,7 @@ export function ChatDebugTools({
 }: ChatDebugToolsProps) {
   const [showDebugMessages, setShowDebugMessages] = useState(false)
   const [isDebugHidden, setIsDebugHidden] = useState(false)
-  const [isClearing, startClear] = useTransition()
+  const clearChatMessages = useMutation(api.chats.clearChatMessages)
 
   const handleToggleDebugMessages = () => {
     setShowDebugMessages((prev) => !prev)
@@ -46,12 +48,14 @@ export function ChatDebugTools({
     }
   }
 
-  const handleClearChat = () => {
+  const handleClearChat = async () => {
     if (!chatId) return
-    startClear(async () => {
-      await clearChatHistoryAction({ chatId, programId })
+    try {
+      await clearChatMessages({ chatId: chatId as Id<"chats"> })
       onMessagesCleared()
-    })
+    } catch (error) {
+      console.error("Failed to clear chat:", error)
+    }
   }
 
   // Don't render in live environment
@@ -85,13 +89,12 @@ export function ChatDebugTools({
             {chatId && (
               <Button
                 aria-label="Clear chat history"
-                disabled={isClearing}
                 onClick={handleClearChat}
                 size="sm"
                 type="button"
                 variant="destructive"
               >
-                {isClearing ? "Clearing..." : "Clear Chat"}
+                Clear Chat
               </Button>
             )}
             <Button

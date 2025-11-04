@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import type { CreateClientInput } from "@/actions/create-client"
 import {
   Form,
   FormControl,
@@ -99,6 +98,18 @@ export const CreateClientFormScham = z
   })
 
 type CreateClientFormType = z.infer<typeof CreateClientFormScham>
+
+type CreateClientInput = {
+  firstName: string
+  lastName: string
+  email: string
+  age: number
+  gender: "male" | "female"
+  height:
+    | { unit: "in"; feet: number; inches: number }
+    | { unit: "cm"; cm: number }
+  weight: { unit: "lbs"; lbs: number } | { unit: "kg"; kg: number }
+}
 
 type NewClientFormProps = {
   formName: string

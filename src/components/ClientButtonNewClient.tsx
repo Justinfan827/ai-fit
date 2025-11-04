@@ -4,7 +4,6 @@ import { useMutation } from "convex/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import type { CreateClientInput } from "@/actions/create-client"
 import { NewClientForm } from "@/components/forms/NewClientForm"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +18,18 @@ import {
 import { api } from "@/convex/_generated/api"
 import { Icons } from "./icons"
 import MLoadingButton from "./massor/buttons/m-buttons"
+
+type CreateClientInput = {
+  firstName: string
+  lastName: string
+  email: string
+  age: number
+  gender: "male" | "female"
+  height:
+    | { unit: "in"; feet: number; inches: number }
+    | { unit: "cm"; cm: number }
+  weight: { unit: "lbs"; lbs: number } | { unit: "kg"; kg: number }
+}
 
 export default function ClientButtonNewClient() {
   const formName = "new-client-form"

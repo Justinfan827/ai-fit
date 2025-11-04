@@ -6,10 +6,6 @@ import { useTransition } from "react"
 import { type UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import {
-  type CreateExerciseInput,
-  createExercise,
-} from "@/actions/create-exercise"
 import { Icons } from "@/components/icons"
 import type { TableExercise } from "@/components/tables/exercise-table/types"
 import { Button } from "@/components/ui/button"
@@ -124,7 +120,6 @@ export const ExerciseDetailsSidesheet = ({
   const updateExerciseMutation = useMutation(api.exercises.updateExercise)
 
   const isCustomExercise = exercise.isCustom
-  const isEditMode = isCustomExercise
   // Helper function to parse existing category assignments from exercise
   const parseExistingCategoryAssignments = (): CategoryTagsState => {
     const assignments: CategoryTagsState = {}
@@ -197,18 +192,8 @@ export const ExerciseDetailsSidesheet = ({
   const handleSubmit = (values: ExerciseFormValues) => {
     startTransition(async () => {
       try {
-        if (isEditMode) {
-          await handleUpdateExercise(values)
-        } else {
-          // Create new custom exercise based on base exercise
-          await createExercise(values as CreateExerciseInput)
-        }
-
-        toast.success(
-          isEditMode
-            ? "Exercise updated successfully"
-            : "Custom exercise created successfully"
-        )
+        await handleUpdateExercise(values)
+        toast.success("Exercise updated successfully")
         onOpenChange(false)
       } catch (error) {
         toast.error(
