@@ -365,8 +365,22 @@ const deleteProgram = mutation({
       throw new Error("Program not found")
     }
 
-    // Validate ownership
-    if (program.userId !== user.id) {
+    // Allow deletion if:
+    // 1. Program is owned by the user, OR
+    // 2. Program is a template assigned by the trainer (isTemplate: true and templateId points to trainer's program)
+    let canDelete = false
+
+    if (program.userId === user.id) {
+      canDelete = true
+    } else if (program.isTemplate === true && program.templateId) {
+      // Check if the template program is owned by the trainer
+      const templateProgram = await ctx.db.get(program.templateId)
+      if (templateProgram && templateProgram.userId === user.id) {
+        canDelete = true
+      }
+    }
+
+    if (!canDelete) {
       throw new Error("Unauthorized")
     }
 
