@@ -1,15 +1,33 @@
 import { v } from "convex/values"
+import type { Id } from "./_generated/dataModel"
 import { mutation, query } from "./_generated/server"
 import { throwIfNotAuthenticated } from "./auth"
 
 const getAll = query({
-  handler: async (ctx) => {
+  args: {
+    clientId: v.optional(v.id("users")),
+  },
+  handler: async (ctx, { clientId }) => {
     const user = await throwIfNotAuthenticated(ctx)
 
-    // Get all programs for the current user
+    // Determine which userId to query
+    let targetUserId: Id<"users">
+    if (clientId) {
+      // Verify the client belongs to the authenticated trainer
+      const client = await ctx.db.get(clientId)
+      if (!client || client.trainerId !== user.id) {
+        throw new Error("Unauthorized: Client not found or access denied")
+      }
+      targetUserId = clientId
+    } else {
+      // Default behavior: get programs for the authenticated trainer
+      targetUserId = user.id
+    }
+
+    // Get all programs for the target user
     const programs = await ctx.db
       .query("programs")
-      .withIndex("byUserId", (q) => q.eq("userId", user.id))
+      .withIndex("byUserId", (q) => q.eq("userId", targetUserId))
       .collect()
 
     // Sort programs by createdAt descending
@@ -160,19 +178,19 @@ const create = mutation({
             id: exercise._id,
             name: exercise.name,
             metadata: {
-                sets: "3",
-                reps: "10",
-                weight: "BW",
-                rest: "60s",
-              },
+              sets: "3",
+              reps: "10",
+              weight: "BW",
+              rest: "60s",
             },
-          }))
+          },
+        }))
 
-          workoutsToCreate.push({
-            name: defaultWorkoutNames[0],
-            blocks,
-            programOrder: 0,
-            week: undefined,
+        workoutsToCreate.push({
+          name: defaultWorkoutNames[0],
+          blocks,
+          programOrder: 0,
+          week: undefined,
         })
       }
     }

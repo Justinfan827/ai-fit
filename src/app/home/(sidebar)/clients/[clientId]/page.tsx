@@ -9,9 +9,10 @@ import { BasicSkeleton } from "@/components/skeletons/basic-skeleton"
 import { Tp } from "@/components/typography"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
+import NewProgramButton from "../../programs/new-program-button"
 import ClientBasicInfoSection from "./basic-information-section"
 import { ClientTrainerNotesPageSection } from "./trainer-notes"
-import NewProgramButton from "../../programs/new-program-button"
+import ProgramsListWithData from "../../programs/programs-list-with-data"
 
 // Component for client name in header
 const ClientName = ({
@@ -151,7 +152,7 @@ const ClientPageBody = ({ clientId }: { clientId: string }) => {
           weight={client.weight}
         />
         <Tp variant="h4">Assigned Programs</Tp>
-        {/* <ProgramsSection clientId={clientId} /> */}
+        <ProgramsListWithData clientId={clientId} />
       </div>
     </div>
   )

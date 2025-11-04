@@ -1,10 +1,20 @@
 import { useQuery } from "convex/react"
 import { BasicSkeleton } from "@/components/skeletons/basic-skeleton"
 import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import { ProgramsList } from "./program-list"
 
-export default function ProgramsListWithData() {
-  const programs = useQuery(api.programs.getAll)
+interface ProgramsListWithDataProps {
+  clientId?: string
+}
+
+export default function ProgramsListWithData({
+  clientId,
+}: ProgramsListWithDataProps) {
+  const programs = useQuery(
+    api.programs.getAll,
+    clientId ? { clientId: clientId as Id<"users"> } : {}
+  )
 
   if (programs === undefined) {
     return <BasicSkeleton />
