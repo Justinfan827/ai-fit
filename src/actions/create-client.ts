@@ -1,9 +1,4 @@
-"use server"
-
 import { z } from "zod"
-import type { ClientBasic } from "@/lib/domain/clients"
-import { createClientT } from "@/lib/supabase/server/users/trainer-repo"
-import { withAuthInput } from "./middleware/with-auth"
 
 const weightSchema = z.discriminatedUnion("unit", [
   z.object({
@@ -49,27 +44,3 @@ const schema = z.object({
 })
 
 export type CreateClientInput = z.infer<typeof schema>
-
-export const createClientAction = withAuthInput<CreateClientInput, ClientBasic>(
-  {
-    schema,
-  },
-  async ({ input, user }) => {
-    // Extract basic client info
-    const { firstName, lastName, email, age, gender, height, weight } = input
-
-    const userData = await createClientT({
-      trainerId: user.userId,
-      newClient: {
-        firstName,
-        lastName,
-        email,
-        age,
-        gender,
-        height,
-        weight,
-      },
-    })
-    return userData
-  }
-)
