@@ -2,13 +2,26 @@
 
 import { useMutation } from "convex/react"
 import { useRouter } from "next/navigation"
+import type { ReactNode } from "react"
 import { toast } from "sonner"
 import { ProgramGrid } from "@/components/program-grid"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import type { Program } from "@/lib/domain/workouts"
 
-export function ProgramsList({ programs }: { programs: Program[] }) {
+interface ProgramsListProps {
+  programs: Program[]
+  emptyState?: {
+    title: string
+    subtitle: string
+    buttonText?: string
+    buttonAction?: () => void
+    actionComponent?: ReactNode
+    isActionPending?: boolean
+  }
+}
+
+export function ProgramsList({ programs, emptyState }: ProgramsListProps) {
   const router = useRouter()
   const deleteProgram = useMutation(api.programs.deleteProgram)
   const createProgram = useMutation(api.programs.create)
@@ -41,13 +54,15 @@ export function ProgramsList({ programs }: { programs: Program[] }) {
 
   return (
     <ProgramGrid
-      emptyState={{
-        title: "Add a program",
-        subtitle:
-          "Add a new program to get started with ai powered programming.",
-        buttonText: "New Program",
-        buttonAction: handleNewProgram,
-      }}
+      emptyState={
+        emptyState ?? {
+          title: "Add a program",
+          subtitle:
+            "Add a new program to get started with ai powered programming.",
+          buttonText: "New Program",
+          buttonAction: handleNewProgram,
+        }
+      }
       linkPath="/home/studio/:programId"
       onDelete={onDelete}
       programs={programs}

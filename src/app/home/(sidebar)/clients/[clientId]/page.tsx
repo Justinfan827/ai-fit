@@ -10,9 +10,10 @@ import { Tp } from "@/components/typography"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import NewProgramButton from "../../programs/new-program-button"
+import ProgramsListWithData from "../../programs/programs-list-with-data"
+import AssignProgramButton from "./assign-program-button"
 import ClientBasicInfoSection from "./basic-information-section"
 import { ClientTrainerNotesPageSection } from "./trainer-notes"
-import ProgramsListWithData from "../../programs/programs-list-with-data"
 
 // Component for client name in header
 const ClientName = ({
@@ -152,7 +153,15 @@ const ClientPageBody = ({ clientId }: { clientId: string }) => {
           weight={client.weight}
         />
         <Tp variant="h4">Assigned Programs</Tp>
-        <ProgramsListWithData clientId={clientId} />
+        <ProgramsListWithData
+          clientId={clientId}
+          emptyState={{
+            title: "Assign a program",
+            subtitle:
+              "Assign a program to this client to help them reach their goals.",
+            actionComponent: <AssignProgramButton clientId={clientId} />,
+          }}
+        />
       </div>
     </div>
   )

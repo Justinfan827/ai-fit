@@ -1,11 +1,10 @@
 "use client"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
+import { useMutation, useQuery } from "convex/react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { assignProgramAction } from "@/actions/assign-program"
 import MLoadingButton from "@/components/massor/buttons/m-buttons"
 import { ProgramPicker } from "@/components/program-dropdown-picker"
 import { Button } from "@/components/ui/button"
@@ -26,7 +25,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import type { Program } from "@/lib/domain/workouts"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 
 const assignProgramSchema = z.object({
   programId: z.string().min(1, "Please select a program"),
@@ -34,14 +34,14 @@ const assignProgramSchema = z.object({
 
 interface Props {
   clientId: string
-  programs: Program[]
 }
 
 type AssignProgramFormValues = z.infer<typeof assignProgramSchema>
 
-export default function AssignProgramButton({ clientId, programs }: Props) {
+export default function AssignProgramButton({ clientId }: Props) {
   const [isOpen, setIsOpen] = useState(false)
-  const router = useRouter()
+  const assignProgram = useMutation(api.programs.assignProgramToClient)
+  const programs = useQuery(api.programs.getTrainerPrograms)
 
   const form = useForm<AssignProgramFormValues>({
     resolver: zodResolver(assignProgramSchema),
@@ -51,22 +51,21 @@ export default function AssignProgramButton({ clientId, programs }: Props) {
   })
 
   const handleAssignProgram = async (values: AssignProgramFormValues) => {
-    const { error } = await assignProgramAction({
-      clientId,
-      programId: values.programId,
-    })
-
-    if (error) {
-      toast("Error assigning program", {
-        description: error.message,
+    try {
+      await assignProgram({
+        clientId: clientId as Id<"users">,
+        programId: values.programId as Id<"programs">,
       })
-      return
-    }
 
-    toast("Program assigned", {})
-    setIsOpen(false)
-    form.reset()
-    router.refresh()
+      toast.success("Program assigned")
+      setIsOpen(false)
+      form.reset()
+    } catch (error) {
+      toast.error("Error assigning program", {
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      })
+    }
   }
   return (
     <Dialog onOpenChange={setIsOpen} open={isOpen}>
@@ -98,13 +97,17 @@ export default function AssignProgramButton({ clientId, programs }: Props) {
                 <FormItem>
                   <FormLabel>Program</FormLabel>
                   <FormControl>
-                    <ProgramPicker
-                      handleSelect={({ value }) => {
-                        field.onChange(value)
-                      }}
-                      programs={programs}
-                      value={field.value}
-                    />
+                    {programs === undefined ? (
+                      <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+                    ) : (
+                      <ProgramPicker
+                        handleSelect={({ value }) => {
+                          field.onChange(value)
+                        }}
+                        programs={programs}
+                        value={field.value}
+                      />
+                    )}
                   </FormControl>
                   <FormMessage />
                 </FormItem>
