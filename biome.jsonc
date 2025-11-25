@@ -1,6 +1,14 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.1.1/schema.json",
   "extends": ["ultracite"],
+  "overrides": [
+    {
+      "includes": ["convex/tsconfig.json", "convex/_generated/**/*"],
+      "formatter": {
+        "enabled": false
+      }
+    }
+  ],
   "javascript": {
     "formatter": {
       "semicolons": "asNeeded",

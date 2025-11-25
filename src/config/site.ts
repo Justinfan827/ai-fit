@@ -1,4 +1,3 @@
-// https://supabase.com/docs/guides/auth#redirect-urls-and-wildcards
 export function getSiteURL() {
   // https://vercel.com/docs/concepts/projects/environment-variables/system-environment-variables
   let url =

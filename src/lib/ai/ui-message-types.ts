@@ -13,9 +13,7 @@ import { editOperationSchema } from "./tools/editWorkoutPlan/schemas"
 import { workoutChangeSchema } from "./tools/generateProgramDiffs/diff-schema"
 import { generateProgramDiffs } from "./tools/generateProgramDiffs/generate-program-diffs"
 
-const metadataSchema = z.object({
-  someMetadata: z.string(),
-})
+const metadataSchema = z.object({})
 
 type MyMetadata = z.infer<typeof metadataSchema>
 

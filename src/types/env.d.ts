@@ -8,11 +8,6 @@ declare namespace NodeJS {
     readonly CLERK_JWT_ISSUER_DOMAIN: string
     readonly CLERK_WEBHOOK_SECRET: string
 
-    // Supabase
-    readonly NEXT_PUBLIC_SUPABASE_URL: string
-    readonly NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: string
-    readonly SUPABASE_SERVICE_ROLE_KEY: string
-
     // Test/CI
     readonly PLAYWRIGHT_TEST_BASE_URL: string
     readonly PLAYWRIGHT: string

@@ -151,7 +151,6 @@ export const workoutInstanceSchema = z.object({
   workoutId: z.uuid(),
   userId: z.uuid(),
   programId: z.uuid(),
-  // supabase times are offset 0 at UTC
   startAt: z.iso.datetime({ offset: true }).nullable(),
   endAt: z.iso.datetime({ offset: true }).nullable().optional(),
   blocks: z.array(workoutInstanceBlockSchema),

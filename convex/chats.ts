@@ -7,8 +7,11 @@ import { throwIfNotAuthenticated } from "./auth"
 type ChatMessage = {
   id: string
   role: "user" | "assistant" | "system"
-  metadata?: unknown
-  parts: unknown
+  // TODO: full type safety from convex url to api route?
+  // biome-ignore lint/suspicious/noExplicitAny: Any is used for dynamic types
+  metadata?: any
+  // biome-ignore lint/suspicious/noExplicitAny: Any is used for dynamic types
+  parts: any
 }
 
 /**
