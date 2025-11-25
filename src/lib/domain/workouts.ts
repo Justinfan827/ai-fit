@@ -24,7 +24,7 @@ export const exerciseSchema = z.object({
 export const exercisesSchema = z.array(exerciseSchema)
 
 export const workoutExerciseSchema = z.object({
-  id: z.uuid(), // Validates a UUID string
+  id: z.string(),
   exercise_name: z.string(),
   sets: z.string(), // Assuming `sets` is a string (e.g., "3")
   reps: z.string(), // Assuming `reps` is a string (e.g., "10")
@@ -66,7 +66,7 @@ export const pendingChangeTypeSchema = z.union([
 export const exerciseBlockSchema = z.object({
   type: z.literal("exercise"),
   exercise: z.object({
-    id: z.string(), // Supports both UUID and Convex IDs
+    id: z.string(),
     name: z.string(),
     metadata: z.object({
       sets: z.string(),
@@ -141,16 +141,16 @@ export const exerciseInstanceSchema = z.object({
 })
 
 export const workoutInstanceBlockSchema = z.object({
-  id: z.uuid(),
+  id: z.string(),
   type: z.enum(["exercise"]),
   exercise: exerciseInstanceSchema,
 })
 
 export const workoutInstanceSchema = z.object({
-  id: z.uuid(),
-  workoutId: z.uuid(),
-  userId: z.uuid(),
-  programId: z.uuid(),
+  id: z.string(),
+  workoutId: z.string(),
+  userId: z.string(),
+  programId: z.string(),
   startAt: z.iso.datetime({ offset: true }).nullable(),
   endAt: z.iso.datetime({ offset: true }).nullable().optional(),
   blocks: z.array(workoutInstanceBlockSchema),

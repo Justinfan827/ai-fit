@@ -22,7 +22,7 @@ const insertAfterOpSchema = z
       "Insert a new workout immediately after the anchor workout"
     ),
     anchorWorkoutId: z
-      .uuid()
+      .string()
       .describe("Existing workoutId to insert after (must exist in the plan)"),
     workout: aiWorkoutSchema.describe(
       "The full workout to insert; an id will be assigned if missing"
@@ -36,7 +36,7 @@ const insertBeforeOpSchema = z
       "Insert a new workout immediately before the anchor workout"
     ),
     anchorWorkoutId: z
-      .uuid()
+      .string()
       .describe("Existing workoutId to insert before (must exist in the plan)"),
     workout: aiWorkoutSchema.describe(
       "The full workout to insert; an id will be assigned if missing"
@@ -68,15 +68,15 @@ const insertAtEndOpSchema = z
 const swapOpSchema = z
   .object({
     type: swapOpName.describe("Swap the positions of two workouts by id"),
-    aWorkoutId: z.uuid().describe("First workoutId to swap (must exist)"),
-    bWorkoutId: z.uuid().describe("Second workoutId to swap (must exist)"),
+    aWorkoutId: z.string().describe("First workoutId to swap (must exist)"),
+    bWorkoutId: z.string().describe("Second workoutId to swap (must exist)"),
   })
   .describe("Swap two workouts in the plan")
 
 const removeOpSchema = z
   .object({
     type: removeOpName.describe("Remove a workout from the plan by id"),
-    workoutId: z.uuid().describe("Existing workoutId to remove"),
+    workoutId: z.string().describe("Existing workoutId to remove"),
   })
   .describe("Remove a workout")
 

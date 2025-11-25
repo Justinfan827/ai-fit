@@ -9,7 +9,7 @@ import z from "zod"
 export const aiExerciseBlockSchema = z.object({
   type: z.literal("exercise"),
   exercise: z.object({
-    id: z.uuid(),
+    id: z.string(),
     name: z.string(),
     metadata: z.object({
       sets: z.string(),

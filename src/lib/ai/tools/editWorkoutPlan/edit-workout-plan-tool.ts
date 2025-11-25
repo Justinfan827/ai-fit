@@ -173,15 +173,22 @@ export const editWorkoutProgramTool = ({
           output: "array",
           system: builtSystemPrompt,
           prompt: editDescription,
-          onFinish: ({ response }) => {
-            log.consoleWithHeader(
-              "Workout plan edit operation generation finished:"
+          onFinish: ({ response, error }) => {
+            if (error) {
+              log.consoleJSONWithHeader(
+                "Workout plan edit operation generation caught error:",
+                error
+              )
+              return
+            }
+            log.consoleJSONWithHeader(
+              "Workout plan edit operation generation finished:",
+              response
             )
-            log.consoleJSON(response)
           },
           onError: (error) => {
-            log.error(
-              "Workout plan edit operation generation caught error:",
+            log.consoleJSONWithHeader(
+              "Workout plan edit operation generation onError:",
               error
             )
           },

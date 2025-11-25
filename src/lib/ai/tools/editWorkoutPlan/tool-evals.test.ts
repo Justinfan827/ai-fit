@@ -748,7 +748,6 @@ describe("Structured output", () => {
       expect(error).not.toBeDefined()
     }
   })
-
   it("ai sdk supports an insertAfter operation with generate object", async () => {
     try {
       const response = await generateObject({
