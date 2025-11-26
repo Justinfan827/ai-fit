@@ -17,24 +17,51 @@ const getAllByTrainerId = query({
       .withIndex("byTrainerId", (q) => q.eq("trainerId", user.id))
       .collect()
 
-    return clients.map((client) => ({
-      id: client._id,
-      avatarURL: client.avatarURL || "",
-      email: client.email,
-      firstName: client.firstName,
-      lastName: client.lastName,
-      createdAt: client.createdAt,
-      age: client.age ?? 0,
-      gender: (client.gender ?? "male") as "male" | "female",
-      weight: {
-        value: client.weightValue ?? 0,
-        unit: (client.weightUnit ?? "kg") as "kg" | "lbs",
-      },
-      height: {
-        value: client.heightValue ?? 0,
-        unit: (client.heightUnit ?? "cm") as "cm" | "in",
-      },
-    }))
+    // Fetch trainer notes for all clients in parallel
+    const clientsWithNotes = await Promise.all(
+      clients.map(async (client) => {
+        const notes = await ctx.db
+          .query("trainerNotes")
+          .withIndex("by_trainer_and_client", (q) =>
+            q.eq("trainerId", user.id).eq("clientId", client._id)
+          )
+          .filter((q) => q.eq(q.field("deletedAt"), undefined))
+          .collect()
+
+        // Sort by createdAt descending (newest first)
+        const sortedNotes = notes.sort((a, b) => {
+          const dateA = new Date(a.createdAt).getTime()
+          const dateB = new Date(b.createdAt).getTime()
+          return dateB - dateA
+        })
+
+        return {
+          id: client._id,
+          avatarURL: client.avatarURL || "",
+          email: client.email,
+          firstName: client.firstName,
+          lastName: client.lastName,
+          createdAt: client.createdAt,
+          age: client.age ?? 0,
+          gender: (client.gender ?? "male") as "male" | "female",
+          weight: {
+            value: client.weightValue ?? 0,
+            unit: (client.weightUnit ?? "kg") as "kg" | "lbs",
+          },
+          height: {
+            value: client.heightValue ?? 0,
+            unit: (client.heightUnit ?? "cm") as "cm" | "in",
+          },
+          trainerNotes: sortedNotes.map((note) => ({
+            id: note._id,
+            title: note.title,
+            description: note.description,
+          })),
+        }
+      })
+    )
+
+    return clientsWithNotes
   },
 })
 

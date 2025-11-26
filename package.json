@@ -16,6 +16,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
+    "test:evals": "vitest run --config vitest.evals.config.ts",
     "prepare": "husky"
   },
   "dependencies": {

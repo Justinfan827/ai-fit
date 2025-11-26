@@ -9,7 +9,6 @@ import { v4 as uuidv4 } from "uuid"
 import {
   PromptInput,
   PromptInputButton,
-  PromptInputSubmit,
   PromptInputTextarea,
   PromptInputToolbar,
   PromptInputTools,
@@ -119,7 +118,7 @@ export function ProgramEditorSidebar({
       gender: client.gender,
       weight: client.weight,
       height: client.height,
-      trainerNotes: [], // Not available from Convex query yet
+      trainerNotes: client.trainerNotes,
     })) || []
 
   // Get custom exercises from the fetched data
@@ -141,24 +140,26 @@ export function ProgramEditorSidebar({
   // Initialize context items with exercises (update when exercises data loads)
   const [contextItems, setContextItems] = useState<ContextItem[]>([])
 
-  // Update context items when exercises data is available
   useEffect(() => {
     if (initialExercises.length > 0) {
-      const hasExercisesContext = contextItems.some(
-        (item) => item.type === "exercises"
-      )
-      if (!hasExercisesContext) {
-        setContextItems((prev) => [
-          ...prev,
-          {
-            type: "exercises",
-            label: `Exercises (${initialExercises.length})`,
-            data: initialExercises,
-          },
-        ])
-      }
+      setContextItems((prev) => {
+        const hasExercisesContext = prev.some(
+          (item) => item.type === "exercises"
+        )
+        if (!hasExercisesContext) {
+          return [
+            ...prev,
+            {
+              type: "exercises",
+              label: `Exercises (${initialExercises.length})`,
+              data: initialExercises,
+            },
+          ]
+        }
+        return prev
+      })
     }
-  }, [initialExercises, contextItems])
+  }, [initialExercises])
 
   const [input, setInput] = useState("")
 
@@ -392,12 +393,11 @@ export function ProgramEditorSidebar({
       side="right"
       variant="inset"
     >
-      <SidebarContent className="flex flex-col ">
+      <SidebarContent className="relative flex flex-col">
         <ChatDebugTools
           chatId={chatId}
           error={error ?? null}
           onMessagesCleared={() => setMessages([])}
-          programId={programId}
           status={status}
           uiMessages={uiMessages}
         />
@@ -414,7 +414,6 @@ export function ProgramEditorSidebar({
       <SidebarFooter>
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            {/* Context Items */}
             {contextItems.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {contextItems.map((item) => renderContextBadge(item))}
@@ -528,7 +527,6 @@ function SidebarInput({
             </DropdownMenuContent>
           </DropdownMenu>
         </PromptInputTools>
-        <PromptInputSubmit disabled={!value} status="ready" />
       </PromptInputToolbar>
     </PromptInput>
   )

@@ -4,7 +4,7 @@ import { log } from "@/lib/logger/logger"
 import { editOperationWrappedSchema } from "./schemas"
 
 describe("editOperationSchema", () => {
-  it.only("should be valid", () => {
+  it("should be valid", () => {
     const schema = zodSchema(editOperationWrappedSchema)
     // TODO: this is just for seeing the schema in the console. remove later
     log.consoleJSON(schema)

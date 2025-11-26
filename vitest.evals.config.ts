@@ -10,8 +10,9 @@ export default defineConfig({
     exclude: [
       "**/node_modules/**",
       "**/dist/**",
-      "**/*.eval.test.ts", // Exclude eval tests by default
+      // Don't exclude eval tests when running evals
     ],
+    include: ["**/*.eval.test.ts"],
   },
   resolve: {
     alias: {

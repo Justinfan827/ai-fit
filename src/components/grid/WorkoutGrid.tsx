@@ -309,7 +309,7 @@ function WorkoutGridRows({
     }
     // Get the current exercise data for comparison
     const cell = grid[row][col]
-    if (!cell.originalBlockIndex) {
+    if (cell.originalBlockIndex === undefined) {
       log.error("No original block index found", { cell })
       return
     }
