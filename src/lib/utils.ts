@@ -10,6 +10,10 @@ export function capitalizeFirstLetter(str: string) {
 }
 
 export function isLive() {
+  // Support both Next.js (process.env) and Vite (import.meta.env)
+  if (typeof import.meta !== "undefined" && import.meta.env) {
+    return import.meta.env.PROD === true
+  }
   return process.env.NODE_ENV === "production"
 }
 

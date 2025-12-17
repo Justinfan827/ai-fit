@@ -1,8 +1,8 @@
 "use client"
 
-import { useSignIn } from "@clerk/nextjs"
+import { useSignIn } from "@clerk/clerk-react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@tanstack/react-router"
 import { useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -59,7 +59,7 @@ export function LoginForm() {
 
         if (result.status === "complete") {
           await setActive({ session: result.createdSessionId })
-          router.push("/home/clients")
+          router.navigate({ to: "/home/clients" })
         } else {
           toast.error("Sign in incomplete. Please try again.")
         }
