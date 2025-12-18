@@ -1,13 +1,38 @@
+import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start"
+import { auth } from "@clerk/tanstack-react-start/server"
+import type { ConvexQueryClient } from "@convex-dev/react-query"
 import { TanStackDevtools } from "@tanstack/react-devtools"
-import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router"
+import type { QueryClient } from "@tanstack/react-query"
+import {
+  createRootRouteWithContext,
+  HeadContent,
+  Outlet,
+  Scripts,
+  useRouteContext,
+} from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
+import { createServerFn } from "@tanstack/react-start"
+import type { ConvexReactClient } from "convex/react"
+import { ConvexProviderWithClerk } from "convex/react-clerk"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-import ClerkProvider from "../integrations/clerk/provider"
-import ConvexProvider from "../integrations/convex/provider"
 import appCss from "../styles.css?url"
 
-export const Route = createRootRoute({
+const fetchClerkAuth = createServerFn({ method: "GET" }).handler(async () => {
+  const authState = await auth()
+  const token = await authState.getToken({ template: "convex" })
+
+  return {
+    userId: authState.userId,
+    token,
+  }
+})
+
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient
+  convexClient: ConvexReactClient
+  convexQueryClient: ConvexQueryClient
+}>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -16,35 +41,59 @@ export const Route = createRootRoute({
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
-  shellComponent: RootDocument,
+  beforeLoad: async (ctx) => {
+    const clerkAuth = await fetchClerkAuth()
+    const { userId, token } = clerkAuth
+
+    // During SSR only (the only time serverHttpClient exists),
+    // set the Clerk auth token to make HTTP queries with.
+    if (token) {
+      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token)
+    }
+
+    return {
+      userId,
+      token,
+    }
+  },
+  component: RootComponent,
 })
+
+function RootComponent() {
+  const context = useRouteContext({ from: Route.id })
+  return (
+    <ClerkProvider>
+      <ConvexProviderWithClerk client={context.convexClient} useAuth={useAuth}>
+        <RootDocument>
+          <Outlet />
+        </RootDocument>
+      </ConvexProviderWithClerk>
+    </ClerkProvider>
+  )
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body className="h-screen w-full">
-        <ClerkProvider>
-          <ConvexProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              disableTransitionOnChange
-              enableSystem
-            >
-              {children}
-              <Toaster />
-              <TanStackDevtools
-                config={{ position: "bottom-right" }}
-                plugins={[
-                  { name: "Router", render: <TanStackRouterDevtoolsPanel /> },
-                ]}
-              />
-            </ThemeProvider>
-          </ConvexProvider>
-        </ClerkProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          disableTransitionOnChange
+          enableSystem
+        >
+          {children}
+          <Toaster />
+          <TanStackDevtools
+            config={{ position: "bottom-right" }}
+            plugins={[
+              { name: "Router", render: <TanStackRouterDevtoolsPanel /> },
+            ]}
+          />
+        </ThemeProvider>
         <Scripts />
       </body>
     </html>

@@ -7,6 +7,7 @@ export const Route = createFileRoute("/login")({
 })
 
 function LoginPage() {
+  console.log("[LoginPage] LoginPage component rendered")
   return (
     <div className="h-dvh">
       <UnauthHeader />

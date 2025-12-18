@@ -1,6 +1,4 @@
-"use client"
-
-import { useSignIn } from "@clerk/clerk-react"
+import { useSignIn } from "@clerk/tanstack-react-start"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "@tanstack/react-router"
 import { useTransition } from "react"
@@ -45,32 +43,43 @@ export function LoginForm() {
     },
   })
 
-  const onSubmit = (data: Inputs) => {
+  const handleSignIn = async (data: Inputs) => {
+    console.log("[LoginForm] handleSignIn called", { data, isLoaded })
     if (!isLoaded) {
+      console.log("[LoginForm] Clerk not loaded, returning early")
       return
     }
 
-    startTransition(async () => {
-      try {
-        const result = await signIn.create({
-          identifier: data.email,
-          password: data.password,
-        })
+    try {
+      console.log("[LoginForm] Calling signIn.create...")
+      const result = await signIn.create({
+        identifier: data.email,
+        password: data.password,
+      })
+      console.log("[LoginForm] signIn.create result:", result)
 
-        if (result.status === "complete") {
-          await setActive({ session: result.createdSessionId })
-          router.navigate({ to: "/home/clients" })
-        } else {
-          toast.error("Sign in incomplete. Please try again.")
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          toast.error(error.message || "Email sign in failed")
-        } else {
-          toast.error("Email sign in failed")
-        }
-        return
+      if (result.status === "complete") {
+        console.log("[LoginForm] Sign in complete, setting active session...")
+        await setActive({ session: result.createdSessionId })
+        console.log("[LoginForm] Navigating to /home/clients...")
+        router.navigate({ to: "/home/clients" })
+      } else {
+        console.log("[LoginForm] Sign in incomplete, status:", result.status)
+        toast.error("Sign in incomplete. Please try again.")
       }
+    } catch (error) {
+      console.error("[LoginForm] Sign in error:", error)
+      if (error instanceof Error) {
+        toast.error(error.message || "Email sign in failed")
+      } else {
+        toast.error("Email sign in failed")
+      }
+    }
+  }
+
+  const onSubmit = (data: Inputs) => {
+    startTransition(() => {
+      handleSignIn(data)
     })
   }
   return (
@@ -82,11 +91,7 @@ export function LoginForm() {
         </p>
       </div>
       <Form {...form}>
-        <form
-          className="space-y-10"
-          id="login-form"
-          onSubmit={(...args) => form.handleSubmit(onSubmit)(...args)}
-        >
+        <form className="space-y-10" id="login-form">
           <FormField
             control={form.control}
             name="email"
@@ -115,18 +120,19 @@ export function LoginForm() {
               </FormItem>
             )}
           />
+          <MLoadingButton
+            className="w-full"
+            isLoading={isPending}
+            onClick={() => {
+              console.log("[LoginForm] onClick called")
+              // form.handleSubmit(onSubmit)()
+            }}
+            type="button"
+          >
+            Sign in
+          </MLoadingButton>
         </form>
       </Form>
-      <div className="w-full">
-        <MLoadingButton
-          className="w-full"
-          form="login-form"
-          isLoading={isPending}
-          type="submit"
-        >
-          Sign in
-        </MLoadingButton>
-      </div>
     </div>
   )
 }

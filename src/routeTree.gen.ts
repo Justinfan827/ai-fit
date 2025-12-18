@@ -10,11 +10,20 @@
 
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as LoginRouteImport } from "./routes/login"
+import { Route as HomeRouteImport } from "./routes/home"
 import { Route as IndexRouteImport } from "./routes/index"
+import { Route as HomeIndexRouteImport } from "./routes/home/index"
+import { Route as HomeProgramsRouteImport } from "./routes/home/programs"
+import { Route as HomeClientsRouteImport } from "./routes/home/clients"
 
 const LoginRoute = LoginRouteImport.update({
   id: "/login",
   path: "/login",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: "/home",
+  path: "/home",
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,30 +31,70 @@ const IndexRoute = IndexRouteImport.update({
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const HomeIndexRoute = HomeIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => HomeRoute,
+} as any)
+const HomeProgramsRoute = HomeProgramsRouteImport.update({
+  id: "/programs",
+  path: "/programs",
+  getParentRoute: () => HomeRoute,
+} as any)
+const HomeClientsRoute = HomeClientsRouteImport.update({
+  id: "/clients",
+  path: "/clients",
+  getParentRoute: () => HomeRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
+  "/home": typeof HomeRouteWithChildren
   "/login": typeof LoginRoute
+  "/home/clients": typeof HomeClientsRoute
+  "/home/programs": typeof HomeProgramsRoute
+  "/home/": typeof HomeIndexRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/login": typeof LoginRoute
+  "/home/clients": typeof HomeClientsRoute
+  "/home/programs": typeof HomeProgramsRoute
+  "/home": typeof HomeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
+  "/home": typeof HomeRouteWithChildren
   "/login": typeof LoginRoute
+  "/home/clients": typeof HomeClientsRoute
+  "/home/programs": typeof HomeProgramsRoute
+  "/home/": typeof HomeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/" | "/login"
+  fullPaths:
+    | "/"
+    | "/home"
+    | "/login"
+    | "/home/clients"
+    | "/home/programs"
+    | "/home/"
   fileRoutesByTo: FileRoutesByTo
-  to: "/" | "/login"
-  id: "__root__" | "/" | "/login"
+  to: "/" | "/login" | "/home/clients" | "/home/programs" | "/home"
+  id:
+    | "__root__"
+    | "/"
+    | "/home"
+    | "/login"
+    | "/home/clients"
+    | "/home/programs"
+    | "/home/"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HomeRoute: typeof HomeRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
@@ -58,6 +107,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/home": {
+      id: "/home"
+      path: "/home"
+      fullPath: "/home"
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/": {
       id: "/"
       path: "/"
@@ -65,11 +121,47 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/home/": {
+      id: "/home/"
+      path: "/"
+      fullPath: "/home/"
+      preLoaderRoute: typeof HomeIndexRouteImport
+      parentRoute: typeof HomeRoute
+    }
+    "/home/programs": {
+      id: "/home/programs"
+      path: "/programs"
+      fullPath: "/home/programs"
+      preLoaderRoute: typeof HomeProgramsRouteImport
+      parentRoute: typeof HomeRoute
+    }
+    "/home/clients": {
+      id: "/home/clients"
+      path: "/clients"
+      fullPath: "/home/clients"
+      preLoaderRoute: typeof HomeClientsRouteImport
+      parentRoute: typeof HomeRoute
+    }
   }
 }
 
+interface HomeRouteChildren {
+  HomeClientsRoute: typeof HomeClientsRoute
+  HomeProgramsRoute: typeof HomeProgramsRoute
+  HomeIndexRoute: typeof HomeIndexRoute
+}
+
+const HomeRouteChildren: HomeRouteChildren = {
+  HomeClientsRoute: HomeClientsRoute,
+  HomeProgramsRoute: HomeProgramsRoute,
+  HomeIndexRoute: HomeIndexRoute,
+}
+
+const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HomeRoute: HomeRouteWithChildren,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
@@ -77,10 +169,11 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from "./router.tsx"
-import type { createStart } from "@tanstack/react-start"
+import type { startInstance } from "./start.ts"
 declare module "@tanstack/react-start" {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

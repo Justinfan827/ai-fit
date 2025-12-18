@@ -1,7 +1,5 @@
-"use client"
+import { Link, useLocation, useRouter } from "@tanstack/react-router"
 import { ChevronLeft, Settings, SquareLibrary, User } from "lucide-react"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -59,15 +57,16 @@ type AppSidebarProps = {
 }
 const userSettingsRegex = /\/settings(\/|$)/
 export function AppSidebar({ hideOnURLs = [] }: AppSidebarProps) {
-  const path = usePathname()
+  const location = useLocation()
   const router = useRouter()
+  const path = location.pathname
   if (hideOnURLs.some((url) => new RegExp(url).test(path))) {
     return null
   }
   const isUserSettingsPage = userSettingsRegex.test(path)
 
   const handleBackClick = () => {
-    router.push("/home/clients")
+    router.navigate({ to: "/home/clients" })
   }
 
   return (
@@ -79,9 +78,9 @@ export function AppSidebar({ hideOnURLs = [] }: AppSidebarProps) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="/home">
+              <Link to="/home">
                 <span className="font-semibold text-base">AI Fit.</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -102,10 +101,10 @@ export function AppSidebar({ hideOnURLs = [] }: AppSidebarProps) {
                     return (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild isActive={isActive}>
-                          <a href={item.url}>
+                          <Link to={item.url}>
                             <item.icon className="text-sidebar-accent-foreground/70 transition-colors duration-100 ease-linear group-hover/menu-item:text-sidebar-accent-foreground group-has-data-[active=true]/menu-item:font-medium group-has-data-[active=true]/menu-item:text-sidebar-accent-foreground" />
                             <span>{item.title}</span>
-                          </a>
+                          </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     )
@@ -128,7 +127,6 @@ export function AppSidebar({ hideOnURLs = [] }: AppSidebarProps) {
                     <SidebarMenuButton asChild>
                       <button
                         aria-label="Back"
-                        className=""
                         onClick={handleBackClick}
                         type="button"
                       >
@@ -148,7 +146,7 @@ export function AppSidebar({ hideOnURLs = [] }: AppSidebarProps) {
                           return (
                             <SidebarMenuItem key={item.title}>
                               <SidebarMenuButton asChild isActive={isActive}>
-                                <Link href={item.url}>
+                                <Link to={item.url}>
                                   <item.icon className="text-sidebar-accent-foreground/70 transition-colors duration-100 ease-linear group-hover/menu-item:text-sidebar-accent-foreground group-has-data-[active=true]/menu-item:font-medium group-has-data-[active=true]/menu-item:text-sidebar-accent-foreground" />
                                   <span>{item.title}</span>
                                 </Link>

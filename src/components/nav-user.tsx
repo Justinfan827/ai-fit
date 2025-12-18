@@ -1,8 +1,5 @@
-"use client"
-
 import { IconLogout, IconUserCircle } from "@tabler/icons-react"
 import { useQuery } from "convex/react"
-import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -80,10 +77,10 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link href="/home/settings/exercises/library">
+                <a href="/home/settings/exercises/library">
                   <IconUserCircle />
                   Account
-                </Link>
+                </a>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
