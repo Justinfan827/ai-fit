@@ -1,0 +1,159 @@
+name: Deploy supabase + vercel
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  generate-changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Generate changelog
+        run: ./scripts/github-actions/generate-changelog.sh prod-sandbox ${{ github.sha }}
+      - name: Send slack message for skipping deploy if there are no changes
+        if: ${{ env.HAS_CHANGES != 'true' }}
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          channel-id: 'deploy-notifications'
+          payload: |
+            {
+              "text": "${{github.workflow}} changelog",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":thumbsup: Skipping PORTAL release to `prod-sandbox`. No new changes to deploy!"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      - name: Send slack message for deploy if there are changes
+        if: ${{ env.HAS_CHANGES == 'true' }}
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          channel-id: 'deploy-notifications'
+          payload: |
+            {
+              "text": "${{github.workflow}} changelog",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":portalparrot: Releasing PORTAL to `prod-sandbox (${{ github.sha }})`"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "```${{ env.SLACK_CHANGELOG }}```"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Confirm the deploy on Github!"
+                  },
+                  "accessory": {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Link to Github"
+                    },
+                    "url": "https://github.com/GetAnsa/ansa-portal/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  run-migrations-prod-sandbox:
+    runs-on: ubuntu-latest
+    environment: prod-sandbox
+    needs: generate-changelog
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.PROD_SANDBOX_SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.PROD_SANDBOX_SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase link --project-ref $SUPABASE_PROJECT_ID
+      - run: supabase db push
+  deploy-vercel-prod-sandbox:
+    needs: run-migrations-prod-sandbox
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.PROD_SANDBOX_VERCEL_PROJECT_ID }}
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      # - name: Build Project Artifacts
+      #   run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      # - name: Deploy Project Artifacts to Vercel
+      #   run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Update git tags
+        run: |
+          git tag -f prod-sandbox ${{ github.sha }}
+          git push -f origin tag prod-sandbox
+      - name: Deploy to prod-sandbox
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+  run-migrations-prod-live:
+    runs-on: ubuntu-latest
+    needs: deploy-vercel-prod-sandbox
+    environment: prod-live
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.PROD_LIVE_SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.PROD_LIVE_SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase link --project-ref $SUPABASE_PROJECT_ID
+      - run: supabase db push
+  deploy-vercel-prod-live:
+    needs: run-migrations-prod-live
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.PROD_LIVE_VERCEL_PROJECT_ID }}
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      # - name: Build Project Artifacts
+      #   run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      # - name: Deploy Project Artifacts to Vercel
+      #   run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: update-tags
+        run: |
+          git tag -f rollback prod-live
+          git tag -f prod-live prod-sandbox
+          git push -f origin tag rollback
+          git push -f origin tag prod-live
+      - name: Deploy to prod-live
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
